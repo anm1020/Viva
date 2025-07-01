@@ -17,6 +17,7 @@ public class SecurityConfig {
 		return new BCryptPasswordEncoder();
 	}
 	
+	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
 		http.cors(cors -> cors.disable())			// cors 방지
 			.csrf(csrf -> csrf.disable())			// csrf 방지
