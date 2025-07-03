@@ -165,33 +165,32 @@ $(document).ready(function() {
 												for(var f in list) {
 													var id = list[f]["id"];					// 퍼블리셔의 feed ID (Janus 내부 식별자)
 													var display = list[f]["display"];		// 표시할 닉네임 또는 이름
-													var audio = list[f]["audio_codec"];
-													var video = list[f]["video_codec"];
+													var audio = list[f]["audio_codec"];		// 사용중인 오디오 코덱
+													var video = list[f]["video_codec"];		// 사용중인 비디오 코덱
 													Janus.debug("  >> [" + id + "] " + display + " (audio: " + audio + ", video: " + video + ")");
 													// A사용자가 먼저 방에 입장해서 publish 중인 경우 이후 입장한 B는 newReomoteFeed 호출하여 A의 스트림 수신 
 													newRemoteFeed(id, display, audio, video);	
 												}
 											}
-										} else if(event === "destroyed") {
-											// The room has been destroyed
+										} else if(event === "destroyed") {		// 방 삭제된 경우
 											Janus.warn("The room has been destroyed!");
 											bootbox.alert("The room has been destroyed", function() {
-												window.location.reload();
+												window.location.reload();		// 페이지 새로고침
 											});
-										} else if(event === "event") {
-											// Any new feed to attach to?
-											if(msg["publishers"]) {
+										} else if(event === "event") {			// 기타 이벤트 처리
+											if(msg["publishers"]) {				// 새 참가자 들어옴
 												var list = msg["publishers"];
 												Janus.debug("Got a list of available publishers/feeds:", list);
 												for(var f in list) {
-													var id = list[f]["id"];
-													var display = list[f]["display"];
+													var id = list[f]["id"];					// 퍼블리셔의 feed ID(janus 내부용)
+													var display = list[f]["display"];		// 사용자 이름(닉네임)
 													var audio = list[f]["audio_codec"];
 													var video = list[f]["video_codec"];
 													Janus.debug("  >> [" + id + "] " + display + " (audio: " + audio + ", video: " + video + ")");
+													// 새 퍼블리셔의 스트림을 구독하기 위해 subscriber 연결
 													newRemoteFeed(id, display, audio, video);
 												}
-											} else if(msg["leaving"]) {
+											} else if(msg["leaving"]) {			// 참가자 나감
 												// One of the publishers has gone away?
 												var leaving = msg["leaving"];
 												Janus.log("Publisher left: " + leaving);
@@ -207,7 +206,7 @@ $(document).ready(function() {
 													$('#remote'+remoteFeed.rfindex).empty().hide();
 													$('#videoremote'+remoteFeed.rfindex).empty();
 													feeds[remoteFeed.rfindex] = null;
-													remoteFeed.detach();
+													remoteFeed.detach();		// 연결 해제
 												}
 											} else if(msg["unpublished"]) {
 												// One of the publishers has unpublished?
