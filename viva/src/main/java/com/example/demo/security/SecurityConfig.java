@@ -21,6 +21,7 @@ public class SecurityConfig {
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
 		http.cors(cors -> cors.disable())			// cors 방지
 			.csrf(csrf -> csrf.disable())			// csrf 방지
+			
 			.formLogin(form -> form.disable());		// 기본 로그인 페이지 없애기
 		
 		return http.build();
