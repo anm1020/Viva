@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 @Controller                         // <— 반드시 붙여야 합니다!
 @RequestMapping("/interviewers")    // 뷰용 기본 URL
 @RequiredArgsConstructor
-public class InterviewerController {
+public class TestController {
 
   /** 0) 테스트용 면접관 리스트 */
   @GetMapping
