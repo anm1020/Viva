@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>방생성</title>
+
+  <!-- 외부 라이브러리 -->
+  <script th:src="@{https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/6.4.0/adapter.min.js}"></script>
+  <script th:src="@{https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js}"></script>
+  <script th:src="@{https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js}"></script>
+  <script th:src="@{https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.4.0/bootbox.min.js}"></script>
+  <script th:src="@{https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js}"></script>
+  <script th:src="@{https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js}"></script>
+
+
+  <!-- 스타일 -->
+<!--   <link rel="stylesheet" th:href="@{/css/demo.css}" /> -->
+  <link rel="stylesheet" th:href="@{https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css}" />
+  <link rel="stylesheet" th:href="@{https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css}" />
+
+  <style>
+    table {
+      width: 100%;
+      border-top: 1px solid #bdbcbc;
+      border-collapse: collapse;
+    }
+    th, td {
+      border-bottom: 1px solid #bdbcbc;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+	<h2>면접 방 생성</h2>
+
+	<form th:action="@{/meeting/createRoom}" method="post">
+	    <label for="intrRoomTitle">방 제목:</label>
+	    <input type="text" id="intrRoomTitle" name="intrRoomTitle" required />
+	
+	    <!-- 필요한 경우 hidden으로 hostId도 함께 전달 -->
+<!-- 	    <input type="hidden" name="hostId" th:value="${hostId}" /> -->
+	
+	    <button type="submit">방생성</button>
+	</form>
+
+</body>
+</html>
