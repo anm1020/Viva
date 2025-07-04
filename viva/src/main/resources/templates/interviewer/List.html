@@ -1,0 +1,72 @@
+<!-- 면접관 리스트 페이지 (interviewer.html) -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>면접관 리스트</title>
+  <link rel="stylesheet" th:href="@{/css/interviewer.css}">
+</head>
+<body>
+
+<div class="container">
+  <h2>면접관 리스트</h2>
+
+<!-- ✅ 직무 필터 -->
+<div class="category-filter">
+  <label class="filter-label">직무·직업</label>
+  <div class="tag-container">
+    <span class="tag"
+          th:each="cate : ${T(com.example.demo.model.entity.CategoryType).values()}"
+          th:text="${cate.label}"
+          th:attr="data-value=${cate}"
+          onclick="toggleTag(this)">
+    </span>
+  </div>
+
+  <form method="get" th:action="@{/interviewer}">
+    <input type="hidden" name="intrCate" id="intrCateHidden">
+    <button type="submit" class="search-btn">검색</button>
+  </form>
+</div>
+
+
+
+  <hr>
+
+  <!-- ✅ 면접관 카드 리스트 -->
+  <div class="grid">
+    <div class="card" th:each="i : ${interviewers}">
+      <a th:href="@{'/interviewer/' + ${i.intrId}}">
+        <img th:src="@{${i.intrImage}}" alt="프로필 이미지" />
+        <div class="name" th:text="${i.userName}">면접관 이름</div>
+        <div class="category" th:text="${i.userSkill}">직무</div>
+        <div class="rating">⭐ 5.0</div>
+      </a>
+    </div>
+  </div>
+
+  <div style="text-align: right; margin-top: 30px;">
+    <a href="/interviewer/form">
+      <button type="button" class="write-btn">➕ 프로필 카드 만들기</button>
+    </a>
+  </div>
+</div>
+
+<script>
+function toggleTag(tagEl) {
+  tagEl.classList.toggle("selected");
+  const selected = Array.from(document.querySelectorAll(".tag.selected")).map(t => t.dataset.value);
+
+  if (selected.length > 3) {
+    tagEl.classList.remove("selected");
+    alert("최대 3개까지만 선택할 수 있습니다.");
+    return;
+  }
+
+  document.getElementById("intrCateHidden").value = selected.join(",");
+}
+</script>
+
+</body>
+</html>
+
