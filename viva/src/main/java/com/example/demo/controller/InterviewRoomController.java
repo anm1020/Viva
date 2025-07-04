@@ -72,4 +72,6 @@ public class InterviewRoomController {
 		model.addAttribute("roomList", roomList);
 		return "webRtc/interview-list";
 	}
+	
+	
 }

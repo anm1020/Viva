@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>화상 면접 SPA</title>
+
+<style>
+/* main-view, new-view, list-view는 각각 숨김처리 */
+.view {
+	display: none;
+}
+
+.view.active {
+	display: block;
+}
+
+body {
+	font-family: 'Arial', sans-serif;
+	background-color: #f2f2f2;
+	padding: 20px;
+}
+
+/* ================================== */
+ header, footer {
+            background-color: #cfd8ff;
+            padding: 10px 20px;
+            text-align: center;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        .logo {
+            font-size: 1.2rem;
+        }
+
+        .login-link {
+            font-size: 0.9rem;
+        }
+
+        main {
+            background-color: #ffffff;
+            min-height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 0;
+        }
+
+        .content-box {
+            border: 1px solid #d0d0d0;
+            border-radius: 6px;
+            padding: 30px 50px;
+            text-align: center;
+        }
+
+        .content-box h2 {
+            margin-bottom: 30px;
+            font-size: 1.4rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .nav-button {
+            width: 120px;
+            height: 100px;
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .nav-button:hover {
+            background-color: #d6d6d6;
+        }
+
+        footer {
+            font-weight: bold;
+        }
+
+/* ================================== */
+.room-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px;
+}
+
+.room-card {
+	background-color: #fff;
+	width: 300px;
+	border-radius: 12px;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+	padding: 16px;
+	position: relative;
+}
+
+.room-status-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	display: inline-block;
+	margin-right: 8px;
+}
+
+.status-waiting {
+	background-color: red;
+}
+
+.status-playing {
+	background-color: green;
+}
+
+.status-ended {
+	background-color: gray;
+}
+
+.room-title {
+	font-size: 1.1rem;
+	font-weight: bold;
+	margin: 8px 0;
+}
+
+.room-info {
+	color: #666;
+	font-size: 0.9rem;
+	margin-top: 4px;
+}
+
+.room-icon {
+	position: absolute;
+	bottom: 16px;
+	right: 16px;
+	font-size: 1.2rem;
+}
+
+.room-list a {
+	text-decoration: none;
+	color: inherit;
+}
+
+.room-list a:hover {
+	transform: translateY(-4px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+</style>
+<!-- 외부 라이브러리 -->
+<script th:src="@{https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/6.4.0/adapter.min.js}"></script>
+
+<!-- 내부 라이브러리 -->
+<script th:src="@{/js/webRtc/janus.js}"></script>
+
+</head>
+<body>
+
+	<!-- [1] 메인 화면 -->
+	<div id="main-view" class="view active">
+		<header>
+			<div class="logo">로고</div>
+			<div class="login-link">
+				<a href="/login">로그인</a>
+			</div>
+		</header>
+		<main>
+			<div class="content-box">
+				<h2>면접 메인</h2>
+				<div class="button-group">
+					<button class="nav-button" onclick="navigate('new')">New
+						Meeting</button>
+					<button class="nav-button" onclick="navigate('list')">Join</button>
+				</div>
+			</div>
+		</main>
+		<footer>푸터</footer>
+	</div>
+
+	<!-- [2] 방 생성 화면 -->
+	<div id="new-view" class="view">
+		<h2>면접 방 생성</h2>
+		<form id="createRoomForm">
+			<label for="intrRoomTitle">방 제목:</label> <input type="text"
+				id="intrRoomTitle" name="intrRoomTitle" required />
+			<button type="submit">방생성</button>
+		</form>
+		<button onclick="navigate('main')">← 뒤로가기</button>
+	</div>
+
+	<!-- [3] 방 목록 화면 -->
+	<div id="list-view" class="view">
+		<h2>면접 방 목록</h2>
+		<div id="roomList" class="room-list"></div>
+		<button onclick="navigate('main')">← 뒤로가기</button>
+	</div>
+
+	<!-- [4] 통화방 화면 -->
+	<div id="videoroom-view" class="view">
+	  <h2>화상 통화</h2>
+	  <video id="myVideo" autoplay muted playsinline width="320" height="240"></video>
+	  <button onclick="navigate('main')">종료</button>
+	</div>
+
+
+<script>
+//video-room-view에 진입 시 초기화
+function navigate(view) {
+    document.querySelectorAll('.view').forEach(div => div.classList.remove('active'));
+    document.getElementById(view + '-view').classList.add('active');
+
+    if (view === 'list') loadRoomList();
+    if (view === 'videoroom') initJanus(); // 화상통화 화면 진입 시 초기화
+}
+
+//방 생성
+document.getElementById("createRoomForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    const title = document.getElementById("intrRoomTitle").value;
+
+    fetch("/api/meeting/roomcreate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ intrRoomTitle: title })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(`방 생성 완료: ${data.intrRoomTitle}`);
+        navigate('list');
+    });
+});
+
+// 방 목록 불러오기
+function loadRoomList() {
+    fetch("/api/meeting/roomlist")
+        .then(res => res.json())
+        .then(data => {
+            const listEl = document.getElementById("roomList");
+            listEl.innerHTML = ""; // 초기화
+
+            data.forEach(room => {
+                const statusClass = room.statusCd === 'waiting' ? 'status-waiting'
+                                   : room.statusCd === 'in_progress' ? 'status-playing'
+                                   : 'status-ended';
+
+                const html = `
+                    <div class="room-card" onclick="enterRoom(${room.intrRoomId})">
+                        <div>
+                            <span class="room-status-dot ${statusClass}"></span>
+                            <span>${room.intrRoomId}</span>
+                        </div>
+                        <div class="room-title">${room.intrRoomTitle}</div>
+                        <div class="room-info">${room.hostId}님의 방</div>
+                        <div class="room-info">생성: ${formatDate(room.createdDt)}</div>
+                        <div class="room-icon">🔒 🔓</div>
+                    </div>
+                `;
+                listEl.insertAdjacentHTML('beforeend', html);
+            });
+        });
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleString("ko-KR", {
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit'
+    });
+}
+
+// 방 입장
+function enterRoom(roomId) {
+	selectedRoomId = roomId; // 전역 또는 상태 저장
+    navigate('videoroom');   // SPA 방식의 화면 전환
+}
+
+// 브라우저 WebRTC 지원 확인 및 janus 초기화
+function initJanus() {
+    if (!Janus.isWebrtcSupported()) {
+        alert("WebRTC를 지원하지 않는 브라우저입니다.");
+        return;
+    }
+
+    Janus.init({
+        debug: "all",
+        callback: createJanusSession
+    });
+}
+
+var version = 1.2;
+var server = null;
+server = "https://janus.jsflux.co.kr/janus";
+
+let janus = null;
+let sfutest = null;
+let opaqueId = "videoroom-" + Janus.randomString(12);
+let mypvtid = null;
+
+function createJanusSession() {
+    janus = new Janus({
+        server: server,
+
+        success: function () {
+            janus.attach({
+                plugin: "janus.plugin.videoroom",
+                opaqueId: opaqueId,					// 세션 식별용
+
+                // 플러그인 연결 성공 시
+                success: function (pluginHandle) {
+                    sfutest = pluginHandle;
+
+                    // 방 참여 요청
+                    const joinRequest = {
+                        request: "join",
+                        room: selectedRoomId,		// 선택된 방 id
+                        ptype: "publisher",
+                        display: "익명"
+                    };
+                    sfutest.send({ message: joinRequest });
+                },
+				
+                // 에러시
+                error: function (error) {
+                    console.error("플러그인 attach 실패", error);
+                },
+
+                consentDialog: function (on) {
+                    Janus.debug("Consent dialog should be " + (on ? "on" : "off") + " now");
+                    function publishOwnFeed(useAudio) {
+                        sfutest.createOffer({
+                            media: {
+                                audioRecv: false, videoRecv: false,
+                                audioSend: useAudio, videoSend: true
+                            },
+                            success: function (jsep) {
+                                const publish = {
+                                    request: "configure",
+                                    audio: useAudio,
+                                    video: true
+                                };
+                                sfutest.send({ message: publish, jsep: jsep });
+                            },
+                            error: function (error) {
+                                console.error("미디어 publish 오류", error);
+                            }
+                        });
+                    }
+
+                },
+
+                mediaState: function (medium, on) {
+                	Janus.log("Janus " + (on ? "started" : "stopped") + " receiving our " + medium);
+                },
+
+                webrtcState: function (on) {
+                    Janus.log("WebRTC 연결 상태:", on ? "연결됨" : "끊김");
+                },
+
+                onmessage: function (msg, jsep) {
+                    if (msg.videoroom === "joined") {
+                        mypvtid = msg.private_id;
+                        publishOwnFeed(true);
+                    }
+                    if (jsep) {
+                        sfutest.handleRemoteJsep({ jsep: jsep });
+                    }
+                },
+
+                onlocalstream: function (stream) {
+                    Janus.attachMediaStream(document.getElementById("myVideo"), stream);
+                }
+            });
+        },
+
+        error: function (error) {
+            console.error("Janus 세션 생성 실패", error);
+        },
+
+        destroyed: function () {
+            console.log("Janus 세션 종료됨");
+        }
+    });
+}
+
+function publishOwnFeed(useAudio) {
+    sfutest.createOffer({
+        media: {
+            audioRecv: false, videoRecv: false,
+            audioSend: useAudio, videoSend: true
+        },
+        success: function (jsep) {
+            const publish = {
+                request: "configure",
+                audio: useAudio,
+                video: true
+            };
+            sfutest.send({ message: publish, jsep: jsep });
+        },
+        error: function (error) {
+            console.error("미디어 publish 오류", error);
+        }
+    });
+}
+
+
+</script>
+
+</body>
+</html>
