@@ -1,0 +1,258 @@
+<!-- src/main/resources/templates/interviewer/list.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>면접관 목록</title>
+
+  <!-- flatpickr CSS -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+  <style>
+    /* 전체 기본 스타일 */
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: #f0f2f5;
+      color: #333;
+      padding: 1rem;
+    }
+    h1 {
+      margin-bottom: 1rem;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      margin: .5rem 0;
+    }
+    .btn-reserve {
+      margin-left: .5rem;
+      padding: .4rem .8rem;
+      background: #0078d4;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .btn-reserve:hover {
+      background: #005a9e;
+    }
+
+    /* 모달 백드롭 */
+    #modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
+      z-index: 1000;
+    }
+
+    /* 모달 박스 */
+    #modal {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 800px;
+      display: flex;
+      overflow: hidden;
+    }
+    #modal header {
+      padding: 1rem;
+      border-bottom: 1px solid #eee;
+      background: #fafafa;
+    }
+    #modal header h2 {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+    #modal main {
+      display: flex;
+      width: 100%;
+    }
+    .calendar-container {
+      flex: 1;
+      padding: 1rem;
+      border-right: 1px solid #eee;
+    }
+    .times-container {
+      flex: 1;
+      padding: 1rem;
+    }
+
+    .times-container h3 {
+      margin-top: 0;
+      font-size: 1.1rem;
+    }
+    .times-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: .75rem;
+      margin-top: .75rem;
+    }
+    .times-grid button {
+      padding: .6rem;
+      background: #f5f5f5;
+      border: 2px solid #ccc;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: .95rem;
+      transition: background .2s, border-color .2s;
+    }
+    .times-grid button:hover {
+      background: #e8eaed;
+    }
+    .times-grid button.selected {
+      background: #0078d4;
+      border-color: #005a9e;
+      color: #fff;
+    }
+
+    #modal footer {
+      padding: 1rem;
+      text-align: right;
+      background: #fafafa;
+      border-top: 1px solid #eee;
+    }
+    #modal footer button {
+      margin-left: .5rem;
+      padding: .5rem 1rem;
+      font-size: .95rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    #btn-confirm {
+      background: #0078d4;
+      color: #fff;
+    }
+    #btn-confirm:hover {
+      background: #005a9e;
+    }
+    #btn-cancel {
+      background: #ddd;
+    }
+    #btn-cancel:hover {
+      background: #bbb;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>면접관 목록 (테스트용)</h1>
+  <ul>
+    <li th:each="intr : ${interviewers}">
+      <span th:text="${intr.name}">홍길동</span>
+      <button type="button"
+              class="btn-reserve"
+              th:data-id="${intr.id}"
+              th:data-name="${intr.name}">
+        예약하기
+      </button>
+    </li>
+  </ul>
+
+  <!-- 모달 -->
+  <div id="modal-backdrop">
+    <div id="modal">
+      <header>
+        <h2>예약 — <span id="intr-name">이름</span></h2>
+      </header>
+      <main>
+        <div class="calendar-container">
+          <div id="calendar"></div>
+        </div>
+        <div class="times-container">
+          <h3>가능 시간</h3>
+          <div id="times-grid" class="times-grid">
+            <!-- JS가 여기에 버튼을 채웁니다 -->
+          </div>
+        </div>
+      </main>
+      <footer>
+        <button id="btn-cancel">취소</button>
+        <button id="btn-confirm">확인</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- flatpickr JS -->
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script>
+    const backdrop   = document.getElementById('modal-backdrop');
+    const nameEl     = document.getElementById('intr-name');
+    const calendarEl = document.getElementById('calendar');
+    const timesGrid  = document.getElementById('times-grid');
+    let currentIntrId, selectedDate, selectedTime;
+
+    // 1) “예약하기” 버튼들
+    document.querySelectorAll('.btn-reserve').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentIntrId = btn.dataset.id;
+        nameEl.textContent = btn.dataset.name;
+        selectedDate = null;
+        selectedTime = null;
+        timesGrid.innerHTML = '';
+        backdrop.style.display = 'block';
+      });
+    });
+
+    // 2) flatpickr 달력 (inline)
+    flatpickr(calendarEl, {
+      inline: true,
+      onChange: (_, dateStr) => {
+        selectedDate = dateStr;
+        // TODO: 실제 API 호출 대신 더미 시간 목록 사용
+        const dummyTimes = ['09:00','10:00','11:00','13:00','14:00','15:00','16:00','17:00'];
+        renderTimes(dummyTimes);
+      }
+    });
+
+    // 3) 시간 버튼 렌더링
+    function renderTimes(times) {
+      timesGrid.innerHTML = '';
+      times.forEach(t => {
+        const btn = document.createElement('button');
+        btn.textContent = t;
+        btn.dataset.time = t;
+        btn.addEventListener('click', () => {
+          // 하나만 선택
+          timesGrid.querySelectorAll('button')
+                   .forEach(b=>b.classList.remove('selected'));
+          btn.classList.add('selected');
+          selectedTime = t;
+        });
+        timesGrid.appendChild(btn);
+      });
+    }
+
+    // 4) 확인 / 취소
+    document.getElementById('btn-confirm').addEventListener('click', () => {
+      if (!selectedDate || !selectedTime) {
+        return alert('날짜와 시간을 모두 선택해주세요.');
+      }
+      alert(`예약 확정:\n면접관: ${nameEl.textContent}\n일시: ${selectedDate} ${selectedTime}`);
+      backdrop.style.display = 'none';
+   // /payment/charge?intrId={id}&date={yyyy-MM-dd}&time={HH:mm}
+          const params = new URLSearchParams({
+             intrId:      currentIntrId,
+             intrName:    nameEl.textContent,
+             date:        selectedDate,
+             time:        selectedTime
+           });
+           window.location.href = `/payment/charge?${params.toString()}`;
+    });
+    document.getElementById('btn-cancel').addEventListener('click', () => {
+      backdrop.style.display = 'none';
+    });
+  </script>
+</body>
+</html>
