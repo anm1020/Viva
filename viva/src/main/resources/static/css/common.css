@@ -1,0 +1,33 @@
+/* 헤더 */
+header {
+    background-color: #ffffff;
+    border-bottom: 1px solid #ddd;
+    padding: 10px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo {
+    font-weight: bold;
+    font-size: 20px;
+    color: #003366;
+}
+
+nav a {
+    margin: 0 15px;
+    color: #003366;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+nav a:hover {
+    color: #007bff;
+}
+/* 푸터 */
+footer {
+    background-color: #003366;
+    color: white;
+    padding: 30px;
+    text-align: center;
+}

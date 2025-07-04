@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>GPT 면접 채팅</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+    }
+    .chat-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      height: 90vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .message {
+      max-width: 70%;
+      padding: 10px 15px;
+      border-radius: 15px;
+      margin: 10px 0;
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+    .user {
+      align-self: flex-end;
+      background-color: #d1e7dd;
+      color: #000;
+    }
+    .assistant {
+      align-self: flex-start;
+      background-color: #ffffff;
+      border: 1px solid #ccc;
+      color: #000;
+    }
+    .input-form {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      max-width: 800px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #fff;
+      display: flex;
+      padding: 10px;
+      box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-right: 10px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+<!-- 세션 ID Thymeleaf 변수 전달 -->
+<input type="hidden" id="sessionId" th:value="${sessionId}" />
+
+<!-- 채팅 메시지 출력 영역 -->
+<div class="chat-container" id="chatBox"></div>
+
+<!-- 채팅 입력 영역 -->
+<form class="input-form">
+  <input type="text" name="prompt" placeholder="면접 질문을 입력하세요..." required />
+  <button type="submit">전송</button>
+</form>
+
+<!-- 채팅 로직 -->
+<script>
+  const form = document.querySelector("form");
+  const input = document.querySelector("input[name='prompt']");
+  const container = document.querySelector("#chatBox");
+  const sessionId = document.getElementById("sessionId").value;
+
+  // 🔹 기존 대화 불러오기
+  window.addEventListener("DOMContentLoaded", async () => {
+    try {
+      console.log("세션 ID:", sessionId); // 디버깅용
+      
+      const res = await fetch(`/messages/${sessionId}`);
+      
+      if (!res.ok) {
+        console.error(`HTTP 오류: ${res.status} ${res.statusText}`);
+        if (res.status === 500) {
+          console.log("서버 내부 오류. 빈 메시지로 시작합니다.");
+          return; // 빈 상태로 시작
+        }
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
+      const messages = await res.json();
+      console.log("로드된 메시지:", messages); // 디버깅용
+      
+      // messages가 배열인지 확인
+      if (Array.isArray(messages)) {
+        messages.forEach(msg => {
+          if (msg && msg.role && msg.content) {
+            const msgDiv = document.createElement("div");
+            msgDiv.className = "message " + msg.role;
+            msgDiv.textContent = msg.content;
+            container.appendChild(msgDiv);
+          }
+        });
+      } else {
+        console.warn("messages가 배열이 아닙니다:", messages);
+        
+        // 객체인 경우 처리
+        if (messages && typeof messages === 'object') {
+          // 객체의 값들을 배열로 변환 시도
+          const messageArray = Object.values(messages);
+          if (Array.isArray(messageArray)) {
+            messageArray.forEach(msg => {
+              if (msg && msg.role && msg.content) {
+                const msgDiv = document.createElement("div");
+                msgDiv.className = "message " + msg.role;
+                msgDiv.textContent = msg.content;
+                container.appendChild(msgDiv);
+              }
+            });
+          }
+        } else if (messages === null || messages === undefined) {
+          console.log("메시지가 없습니다. 새 세션을 시작합니다.");
+        }
+      }
+
+      container.scrollTop = container.scrollHeight;
+    } catch (err) {
+      console.error("기존 메시지 불러오기 실패:", err);
+    }
+  });
+
+  // 🔹 메시지 전송
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const prompt = input.value.trim();
+    if (!prompt) return;
+
+    // 사용자 메시지 출력
+    const userDiv = document.createElement("div");
+    userDiv.className = "message user";
+    userDiv.textContent = prompt;
+    container.appendChild(userDiv);
+
+    container.scrollTop = container.scrollHeight;
+
+    try {
+      const res = await fetch("/sendAndReply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, prompt })
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const result = await res.json();
+      console.log("서버 응답:", result); // 디버깅용
+
+      if (result && result.assistantMessage && result.assistantMessage.content) {
+        const assistantDiv = document.createElement("div");
+        assistantDiv.className = "message assistant";
+        assistantDiv.textContent = result.assistantMessage.content;
+        container.appendChild(assistantDiv);
+      } else if (result && result.assistantMessage) {
+        // content가 없는 경우
+        const assistantDiv = document.createElement("div");
+        assistantDiv.className = "message assistant";
+        assistantDiv.textContent = "응답 내용이 비어있습니다.";
+        container.appendChild(assistantDiv);
+      } else {
+        // 응답 구조가 예상과 다른 경우
+        const errorDiv = document.createElement("div");
+        errorDiv.className = "message assistant";
+        errorDiv.textContent = "응답 형식이 올바르지 않습니다. 다시 시도해주세요.";
+        container.appendChild(errorDiv);
+      }
+
+      input.value = "";
+      container.scrollTop = container.scrollHeight;
+    } catch (err) {
+      console.error("GPT 응답 처리 오류:", err);
+      
+      // 오류 메시지 표시
+      const errorDiv = document.createElement("div");
+      errorDiv.className = "message assistant";
+      errorDiv.textContent = "오류가 발생했습니다: " + err.message;
+      container.appendChild(errorDiv);
+      
+      input.value = "";
+      container.scrollTop = container.scrollHeight;
+    }
+  });
+</script>
+
+</body>
+</html>
+
