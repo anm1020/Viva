@@ -153,12 +153,87 @@ body {
 	transform: translateY(-4px);
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
+
+/*** 비디오 영역 css ***/
+ #videoroom-view {
+    padding: 20px;
+  }
+
+  #local-area, #remote-area {
+    margin-bottom: 20px;
+  }
+
+  .label {
+    font-size: 14px;
+    background-color: #3498db;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  .hide {
+    display: none;
+  }
+
+  .remote-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+  }
+
+  .remote-box {
+    position: relative;
+    border: 1px solid #ccc;
+    padding: 5px;
+    min-height: 150px;
+  }
+
+  .bitrate-controls {
+    margin-left: 10px;
+    display: inline-block;
+    position: relative;
+  }
+
+  .dropdown-menu {
+    list-style: none;
+    position: absolute;
+    background: #fff;
+    border: 1px solid #aaa;
+    margin: 0;
+    padding: 0;
+    display: none;
+  }
+
+  .dropdown-menu li {
+    padding: 5px 10px;
+  }
+
+  .dropdown-menu li:hover {
+    background-color: #f0f0f0;
+  }
+
+  #bitrateset:hover + .dropdown-menu,
+  .dropdown-menu:hover {
+    display: block;
+  }
 </style>
 <!-- 외부 라이브러리 -->
 <script th:src="@{https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/6.4.0/adapter.min.js}"></script>
+<script th:src="@{https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js}"></script>
+<script th:src="@{https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js}"></script>
+<script th:src="@{https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.4.0/bootbox.min.js}"></script>
+<script th:src="@{https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js}"></script>
+<script th:src="@{https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js}"></script>
+
+
 
 <!-- 내부 라이브러리 -->
 <script th:src="@{/js/webRtc/janus.js}"></script>
+
+<link rel="stylesheet" th:href="@{https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css}" />
+<link rel="stylesheet" th:href="@{https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css}" />
+
 
 </head>
 <body>
@@ -205,7 +280,39 @@ body {
 	<!-- [4] 통화방 화면 -->
 	<div id="videoroom-view" class="view">
 	  <h2>화상 통화</h2>
-	  <video id="myVideo" autoplay muted playsinline width="320" height="240"></video>
+	  <!-- 로컬 비디오 -->
+	  <section id="local-area">
+	    <h3>
+	      내 화면 <span id="publisher" class="label hide"></span>
+	      <span class="bitrate-controls hide">
+	        <button id="bitrateset">Bandwidth ▼</button>
+	        <ul id="bitrate" class="dropdown-menu">
+	          <li><a href="#" id="0">No limit</a></li>
+	          <li><a href="#" id="128">128kbps</a></li>
+	          <li><a href="#" id="256">256kbps</a></li>
+	          <li><a href="#" id="512">512kbps</a></li>
+	          <li><a href="#" id="1024">1mbps</a></li>
+	          <li><a href="#" id="1500">1.5mbps</a></li>
+	          <li><a href="#" id="2000">2mbps</a></li>
+	        </ul>
+	      </span>
+	    </h3>
+	    <div id="videolocal">
+	      <video id="myVideo" autoplay muted playsinline width="320" height="240" border="1"></video>
+	    </div>
+	  </section>
+	   <!-- 원격 비디오 -->
+	  <section id="remote-area">
+	    <h3>상대 화면</h3>
+	    <div class="remote-grid">
+	      <div class="remote-box" id="videoremote1"><span id="remote1" class="label hide"></span></div>
+	      <div class="remote-box" id="videoremote2"><span id="remote2" class="label hide"></span></div>
+	      <div class="remote-box" id="videoremote3"><span id="remote3" class="label hide"></span></div>
+	      <div class="remote-box" id="videoremote4"><span id="remote4" class="label hide"></span></div>
+	      <div class="remote-box" id="videoremote5"><span id="remote5" class="label hide"></span></div>
+	    </div>
+	  </section>
+	  
 	  <button onclick="navigate('main')">종료</button>
 	</div>
 
@@ -250,19 +357,36 @@ function loadRoomList() {
                                    : room.statusCd === 'in_progress' ? 'status-playing'
                                    : 'status-ended';
 
-                const html = `
-                    <div class="room-card" onclick="enterRoom(${room.intrRoomId})">
-                        <div>
-                            <span class="room-status-dot ${statusClass}"></span>
-                            <span>${room.intrRoomId}</span>
-                        </div>
-                        <div class="room-title">${room.intrRoomTitle}</div>
-                        <div class="room-info">${room.hostId}님의 방</div>
-                        <div class="room-info">생성: ${formatDate(room.createdDt)}</div>
-                        <div class="room-icon">🔒 🔓</div>
-                    </div>
+                const div = document.createElement("div");
+                div.className = "room-card";
+
+                div.innerHTML = `
+                  <div>
+                    <span class="room-status-dot ${statusClass}"></span>
+                    <span>${room.intrRoomId}</span>
+                  </div>
+                  <div class="room-title">${room.intrRoomTitle}</div>
+                  <div class="room-info">${room.hostId}님의 방</div>
+                  <div class="room-info">생성: ${formatDate(room.createdDt)}</div>
+                  <div class="room-icon">🔒 🔓</div>
                 `;
-                listEl.insertAdjacentHTML('beforeend', html);
+
+                // 이벤트 등록
+                div.addEventListener("click", () => enterRoom(room.intrRoomId, room.hostId));
+
+//                 const html = `
+//                     <div class="room-card" onclick="enterRoom(${room.intrRoomId}, '${room.hostId}')">
+//                         <div>
+//                             <span class="room-status-dot ${statusClass}"></span>
+//                             <span>${room.intrRoomId}</span>
+//                         </div>
+//                         <div class="room-title">${room.intrRoomTitle}</div>
+//                         <div class="room-info">${room.hostId}님의 방</div>
+//                         <div class="room-info">생성: ${formatDate(room.createdDt)}</div>
+//                         <div class="room-icon">🔒 🔓</div>
+//                     </div>
+//                 `;
+                listEl.appendChild(div);
             });
         });
 }
@@ -276,8 +400,9 @@ function formatDate(dateString) {
 }
 
 // 방 입장
-function enterRoom(roomId) {
+function enterRoom(roomId, hostId) {
 	selectedRoomId = roomId; // 전역 또는 상태 저장
+	displayName = hostId;
     navigate('videoroom');   // SPA 방식의 화면 전환
 }
 
@@ -290,7 +415,7 @@ function initJanus() {
 
     Janus.init({
         debug: "all",
-        callback: createJanusSession
+        callback: createJanusSession		// 초기화 후 세션 생성
     });
 }
 
@@ -303,6 +428,22 @@ let sfutest = null;
 let opaqueId = "videoroom-" + Janus.randomString(12);
 let mypvtid = null;
 
+var feeds = [];
+var bitrateTimer = [];
+
+var doSimulcast = (getQueryStringValue("simulcast") === "yes" || getQueryStringValue("simulcast") === "true");
+var doSimulcast2 = (getQueryStringValue("simulcast2") === "yes" || getQueryStringValue("simulcast2") === "true");
+var subscriber_mode = (getQueryStringValue("subscriber-mode") === "yes" || getQueryStringValue("subscriber-mode") === "true");
+
+//Helper to parse query string
+function getQueryStringValue(name) {
+	name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+	var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+		results = regex.exec(location.search);
+	return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
+// janus 세션 생성
 function createJanusSession() {
     janus = new Janus({
         server: server,
@@ -321,7 +462,7 @@ function createJanusSession() {
                         request: "join",
                         room: selectedRoomId,		// 선택된 방 id
                         ptype: "publisher",
-                        display: "익명"
+                        display: displayName
                     };
                     sfutest.send({ message: joinRequest });
                 },
@@ -368,6 +509,12 @@ function createJanusSession() {
                         mypvtid = msg.private_id;
                         publishOwnFeed(true);
                     }
+                    if (msg["publishers"]) {	// 기존 참가자 구독처리
+                    	const list = msg["publishers"];
+                    	list.forEach(p => {
+                    	newRemoteFeed(p.id, p.display, p.audio_codec, p.video_codec);
+                    	});
+                    }
                     if (jsep) {
                         sfutest.handleRemoteJsep({ jsep: jsep });
                     }
@@ -393,7 +540,8 @@ function publishOwnFeed(useAudio) {
     sfutest.createOffer({
         media: {
             audioRecv: false, videoRecv: false,
-            audioSend: useAudio, videoSend: true
+            audioSend: useAudio, videoSend: true		// 캠/마이크 없을때 테스트하기 위해 임시로 false처리
+            										// 기존 값 useAudio, true
         },
         success: function (jsep) {
             const publish = {
@@ -408,6 +556,207 @@ function publishOwnFeed(useAudio) {
         }
     });
 }
+
+//[jsflux] 새로운 유저 들어왔을때
+function newRemoteFeed(id, display, audio, video) {
+	// A new feed has been published, create a new plugin handle and attach to it as a subscriber
+	var remoteFeed = null;
+	janus.attach(
+		{
+			plugin: "janus.plugin.videoroom",
+			opaqueId: opaqueId,
+			success: function(pluginHandle) {
+				remoteFeed = pluginHandle;
+				remoteFeed.simulcastStarted = false;
+				Janus.log("Plugin attached! (" + remoteFeed.getPlugin() + ", id=" + remoteFeed.getId() + ")");
+				Janus.log("  -- This is a subscriber");
+				// We wait for the plugin to send us an offer
+				var subscribe = {
+					request: "join",
+					room: selectedRoomId,
+					ptype: "subscriber",
+					feed: id,
+					private_id: mypvtid
+				};
+				// In case you don't want to receive audio, video or data, even if the
+				// publisher is sending them, set the 'offer_audio', 'offer_video' or
+				// 'offer_data' properties to false (they're true by default), e.g.:
+				// 		subscribe["offer_video"] = false;
+				// For example, if the publisher is VP8 and this is Safari, let's avoid video
+				if(Janus.webRTCAdapter.browserDetails.browser === "safari" &&
+						(video === "vp9" || (video === "vp8" && !Janus.safariVp8))) {
+					if(video)
+						video = video.toUpperCase()
+					toastr.warning("Publisher is using " + video + ", but Safari doesn't support it: disabling video");
+					subscribe["offer_video"] = false;
+				}
+				remoteFeed.videoCodec = video;
+				remoteFeed.send({ message: subscribe });
+			},
+			error: function(error) {
+				Janus.error("  -- Error attaching plugin...", error);
+				bootbox.alert("Error attaching plugin... " + error);
+			},
+			onmessage: function(msg, jsep) {
+				Janus.debug(" ::: Got a message (subscriber) :::", msg);
+				var event = msg["videoroom"];
+				Janus.debug("Event: " + event);
+				if(msg["error"]) {
+					bootbox.alert(msg["error"]);
+				} else if(event) {
+					if(event === "attached") {
+						// Subscriber created and attached
+						for(var i=1;i<6;i++) {
+							if(!feeds[i]) {
+								feeds[i] = remoteFeed;
+								remoteFeed.rfindex = i;
+								break;
+							}
+						}
+						remoteFeed.rfid = msg["id"];
+						remoteFeed.rfdisplay = msg["display"];
+						if(!remoteFeed.spinner) {
+							var target = document.getElementById('videoremote'+remoteFeed.rfindex);
+							remoteFeed.spinner = new Spinner({top:100}).spin(target);
+						} else {
+							remoteFeed.spinner.spin();
+						}
+						Janus.log("Successfully attached to feed " + remoteFeed.rfid + " (" + remoteFeed.rfdisplay + ") in room " + msg["room"]);
+						$('#remote'+remoteFeed.rfindex).removeClass('hide').html(remoteFeed.rfdisplay).show();
+					} else if(event === "event") {
+						// Check if we got a simulcast-related event from this publisher
+						var substream = msg["substream"];
+						var temporal = msg["temporal"];
+						if((substream !== null && substream !== undefined) || (temporal !== null && temporal !== undefined)) {
+							if(!remoteFeed.simulcastStarted) {
+								remoteFeed.simulcastStarted = true;
+								// Add some new buttons
+								addSimulcastButtons(remoteFeed.rfindex, remoteFeed.videoCodec === "vp8" || remoteFeed.videoCodec === "h264");
+							}
+							// We just received notice that there's been a switch, update the buttons
+							updateSimulcastButtons(remoteFeed.rfindex, substream, temporal);
+						}
+					} else {
+						// What has just happened?
+					}
+				}
+				if(jsep) {
+					Janus.debug("Handling SDP as well...", jsep);
+					// Answer and attach
+					remoteFeed.createAnswer(
+						{
+							jsep: jsep,
+							// Add data:true here if you want to subscribe to datachannels as well
+							// (obviously only works if the publisher offered them in the first place)
+							media: { audioSend: false, videoSend: false },	// We want recvonly audio/video
+							success: function(jsep) {
+								Janus.debug("Got SDP!", jsep);
+								var body = { request: "start", room: selectedRoomId };
+								remoteFeed.send({ message: body, jsep: jsep });
+							},
+							error: function(error) {
+								Janus.error("WebRTC error:", error);
+								bootbox.alert("WebRTC error... " + error.message);
+							}
+						});
+				}
+			},
+			iceState: function(state) {
+				Janus.log("ICE state of this WebRTC PeerConnection (feed #" + remoteFeed.rfindex + ") changed to " + state);
+			},
+			webrtcState: function(on) {
+				Janus.log("Janus says this WebRTC PeerConnection (feed #" + remoteFeed.rfindex + ") is " + (on ? "up" : "down") + " now");
+			},
+			onlocalstream: function(stream) {
+				// The subscriber stream is recvonly, we don't expect anything here
+			},
+			onremotestream: function(stream) {
+				Janus.debug("Remote feed #" + remoteFeed.rfindex + ", stream:", stream);
+				var addButtons = false;
+				if($('#remotevideo'+remoteFeed.rfindex).length === 0) {
+					addButtons = true;
+					// No remote video yet
+					$('#videoremote'+remoteFeed.rfindex).append('<video class="rounded centered" id="waitingvideo' + remoteFeed.rfindex + '" width="100%" height="100%" />');
+					$('#videoremote'+remoteFeed.rfindex).append('<video class="rounded centered relative hide" id="remotevideo' + remoteFeed.rfindex + '" width="100%" height="100%" autoplay playsinline/>');
+					$('#videoremote'+remoteFeed.rfindex).append(
+						'<span class="label label-primary hide" id="curres'+remoteFeed.rfindex+'" style="position: absolute; bottom: 0px; left: 0px; margin: 15px;"></span>' +
+						'<span class="label label-info hide" id="curbitrate'+remoteFeed.rfindex+'" style="position: absolute; bottom: 0px; right: 0px; margin: 15px;"></span>');
+					// Show the video, hide the spinner and show the resolution when we get a playing event
+					$("#remotevideo"+remoteFeed.rfindex).bind("playing", function () {
+						if(remoteFeed.spinner)
+							remoteFeed.spinner.stop();
+						remoteFeed.spinner = null;
+						$('#waitingvideo'+remoteFeed.rfindex).remove();
+						if(this.videoWidth)
+							$('#remotevideo'+remoteFeed.rfindex).removeClass('hide').show();
+						var width = this.videoWidth;
+						var height = this.videoHeight;
+						$('#curres'+remoteFeed.rfindex).removeClass('hide').text(width+'x'+height).show();
+						if(Janus.webRTCAdapter.browserDetails.browser === "firefox") {
+							// Firefox Stable has a bug: width and height are not immediately available after a playing
+							setTimeout(function() {
+								var width = $("#remotevideo"+remoteFeed.rfindex).get(0).videoWidth;
+								var height = $("#remotevideo"+remoteFeed.rfindex).get(0).videoHeight;
+								$('#curres'+remoteFeed.rfindex).removeClass('hide').text(width+'x'+height).show();
+							}, 2000);
+						}
+					});
+				}
+				Janus.attachMediaStream($('#remotevideo'+remoteFeed.rfindex).get(0), stream);
+				var videoTracks = stream.getVideoTracks();
+				if(!videoTracks || videoTracks.length === 0) {
+					// No remote video
+					$('#remotevideo'+remoteFeed.rfindex).hide();
+					if($('#videoremote'+remoteFeed.rfindex + ' .no-video-container').length === 0) {
+						$('#videoremote'+remoteFeed.rfindex).append(
+							'<div class="no-video-container">' +
+								'<i class="fa fa-video-camera fa-5 no-video-icon"></i>' +
+								'<span class="no-video-text">No remote video available</span>' +
+							'</div>');
+					}
+				} else {
+					$('#videoremote'+remoteFeed.rfindex+ ' .no-video-container').remove();
+					$('#remotevideo'+remoteFeed.rfindex).removeClass('hide').show();
+				}
+				if(!addButtons)
+					return;
+				if(Janus.webRTCAdapter.browserDetails.browser === "chrome" || Janus.webRTCAdapter.browserDetails.browser === "firefox" ||
+						Janus.webRTCAdapter.browserDetails.browser === "safari") {
+					$('#curbitrate'+remoteFeed.rfindex).removeClass('hide').show();
+					bitrateTimer[remoteFeed.rfindex] = setInterval(function() {
+						// Display updated bitrate, if supported
+						var bitrate = remoteFeed.getBitrate();
+						$('#curbitrate'+remoteFeed.rfindex).text(bitrate);
+						// Check if the resolution changed too
+						var width = $("#remotevideo"+remoteFeed.rfindex).get(0).videoWidth;
+						var height = $("#remotevideo"+remoteFeed.rfindex).get(0).videoHeight;
+						if(width > 0 && height > 0)
+							$('#curres'+remoteFeed.rfindex).removeClass('hide').text(width+'x'+height).show();
+					}, 1000);
+				}
+			},
+			oncleanup: function() {
+				Janus.log(" ::: Got a cleanup notification (remote feed " + id + ") :::");
+				if(remoteFeed.spinner)
+					remoteFeed.spinner.stop();
+				remoteFeed.spinner = null;
+				$('#remotevideo'+remoteFeed.rfindex).remove();
+				$('#waitingvideo'+remoteFeed.rfindex).remove();
+				$('#novideo'+remoteFeed.rfindex).remove();
+				$('#curbitrate'+remoteFeed.rfindex).remove();
+				$('#curres'+remoteFeed.rfindex).remove();
+				if(bitrateTimer[remoteFeed.rfindex])
+					clearInterval(bitrateTimer[remoteFeed.rfindex]);
+				bitrateTimer[remoteFeed.rfindex] = null;
+				remoteFeed.simulcastStarted = false;
+				$('#simulcast'+remoteFeed.rfindex).remove();
+				console.log("Unpublished");
+				$('#videolocal').empty();
+				$('#publish').show();
+			}
+		});
+}
+
 
 
 </script>
