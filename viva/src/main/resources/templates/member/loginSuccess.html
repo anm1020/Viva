@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>로그인 성공</title>
+    <script th:inline="javascript">
+        window.onload = function() {
+            alert('[[${loginMsg}]]');
+            window.location.href = /*[[@{/main}]]*/ '/main';
+        }
+    </script>
+</head>
+<body>
+</body>
+</html>
