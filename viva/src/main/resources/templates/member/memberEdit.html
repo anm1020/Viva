@@ -75,13 +75,18 @@
     .form-frame button[type="submit"]:hover {
       background-color: #0056b3;
     }
+    .readonly-field {
+    background: #f2f2f2;
+    color: #888;
+    font-weight: bold;
+  	}
   </style>
 </head>
 <body>
 
   <div class="form-frame">
   <h2>회원가입</h2>
-  <form th:action="@{/memberinsert}" th:object="${users}" method="post">
+  <form th:action="@{/memberUpdate}" th:object="${users}" method="post">
   <input type="hidden" th:field="*{userRole}">
   <!-- <input type="hidden" name="userRole" value="mem"/> -->
   <input type="hidden" name="userType" value="Y"/>
@@ -95,7 +100,7 @@
                th:field="*{userId}"
                id="userId"
                placeholder="아이디"
-               required />
+               required readonly class="readonly-field" />
       </div>
       <div style="flex: 1; align-self: end;">
         <button type="button" id="checkIdBtn">중복확인</button>
@@ -104,25 +109,25 @@
     </div>
 
     <!-- 비밀번호 -->
-    <div class="form-group">
+    <!-- <div class="form-group">
       <label for="userPass">비밀번호</label>
       <input type="password"
              th:field="*{userPass}"
              id="userPass"
              placeholder="비밀번호"
-             required />
-    </div>
+             required readonly class="readonly-field" />
+    </div> -->
 
     <!-- 비밀번호 확인 -->
-    <div class="form-group">
+    <!-- <div class="form-group">
       <label for="userPassConfirm">비밀번호 확인</label>
       <input type="password"
              th:field="*{userPassConfirm}"
              id="userPassConfirm"
              placeholder="비밀번호 확인"
-             required />
+             required readonly class="readonly-field" />
       <span id="passCheckResult"></span>
-    </div>
+    </div> -->
 
     <!-- 이름 -->
     <div class="form-group">
@@ -131,7 +136,7 @@
 		         th:field="*{userName}"
 		         id="userName"
 		         placeholder="이름"
-		         required />
+		         required readonly class="readonly-field" />
 		  <span id="nameCheckResult" style="margin-left:10px;font-size:13px;"></span>
 		</div>
 
@@ -237,8 +242,8 @@
 	<!-- 면접관인 경우 -->
 	<div class="form-group" th:if="${users.userRole} == 'intr'">
 	  <label for="userCareer1">경력</label>
-	  <input type="text" name="userCareer" id="userCareer" placeholder="경력 1 (회사/직무/기간)">
-	  <input type="text" name="userCareer2" id="userCareer2" placeholder="경력 2 (기간 예 : 5년)" style="margin-top:0.5rem;">
+	  <input type="text" th:field="*{userCareer}" id="userCareer" placeholder="경력 1 (회사/직무/기간)">
+	  <input type="text" th:field="*{userCareer2}" id="userCareer2" placeholder="경력 2 (기간 예 : 5년)" style="margin-top:0.5rem;">
 	</div>
 
 
@@ -246,27 +251,44 @@
     <div class="form-group">
       <label>기술</label>
       <div class="inline-group">
-        <label>
-          <input type="checkbox" name="skill" value="Java" /> Java </label>
-        <label>
-          <input type="checkbox" name="skill"  value="React.js" /> React.js </label>
-        <label>
-          <input type="checkbox" name="skill"  value="Vue.js" /> Vue.js</label>
-        <label>
-          <input type="checkbox" name="skill"  value="JPA" /> JPA</label>
-        <label>
-          <input type="checkbox" name="skill"  value="MyBatis" /> MyBatis</label>
-        <label>
-          <input type="checkbox" name="skill"  value="Spring Boot" /> Spring Boot</label>
-        <label>
-          <input type="checkbox" name="skill"  value="Oracle " /> Oracle </label>
-        <label>
-          <input type="checkbox" name="skill"  value="MySQL" /> MySQL</label>
+	        <label>
+	  		  <input type="checkbox" name="skill" value="Java"
+	         		 th:checked="${#arrays.contains(userSkillArr, 'Java')}" /> Java
+			</label>
+			<label>
+			  <input type="checkbox" name="skill" value="React.js"
+			         th:checked="${#arrays.contains(userSkillArr, 'React.js')}" /> React.js
+			</label>
+			<label>
+			  <input type="checkbox" name="skill" value="Vue.js"
+			         th:checked="${#arrays.contains(userSkillArr, 'Vue.js')}" /> Vue.js
+			</label>
+			<label>
+			  <input type="checkbox" name="skill" value="JPA"
+			         th:checked="${#arrays.contains(userSkillArr, 'JPA')}" /> JPA
+			</label>
+			<label>
+			  <input type="checkbox" name="skill" value="MyBatis"
+			         th:checked="${#arrays.contains(userSkillArr, 'MyBatis')}" /> MyBatis
+			</label>
+			<label>
+			  <input type="checkbox" name="skill" value="Spring Boot"
+			         th:checked="${#arrays.contains(userSkillArr, 'Spring Boot')}" /> Spring Boot
+			</label>
+			<label>
+			  <input type="checkbox" name="skill" value="Oracle"
+			         th:checked="${#arrays.contains(userSkillArr, 'Oracle')}" /> Oracle
+			</label>
+			<label>
+			  <input type="checkbox" name="skill" value="MySQL"
+			         th:checked="${#arrays.contains(userSkillArr, 'MySQL')}" /> MySQL
+			</label>
       </div>
     </div>
 
-    <!-- 회원가입 버튼 -->
-    <button type="submit">회원가입</button>
+    <!-- 수정 버튼 -->
+    <button type="submit">정보 수정</button>
+    <button type="button" onclick="history.back();">취소</button>
   </form>
 </div>
 
@@ -352,21 +374,5 @@ document.addEventListener('DOMContentLoaded', function() {
   });
  </script>
   
-  
- <!--  <script>
-  const emailSelect    = document.getElementById('emailSelect');
-  const emailDomainIn  = document.getElementById('emailDomain');
-
-  emailSelect.addEventListener('change', function() {
-    if (this.value === 'custom') {
-      emailDomainIn.value    = '';
-      emailDomainIn.readOnly = false;
-      emailDomainIn.focus();
-    } else {
-      emailDomainIn.value    = this.value;
-      emailDomainIn.readOnly = true;
-    }
-  });
-</script> -->
 </body>
 </html>

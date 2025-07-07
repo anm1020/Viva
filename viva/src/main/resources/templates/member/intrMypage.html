@@ -135,8 +135,8 @@
       <div>
         <div class="sidebar-menu">
           <a href="#" class="active">내 정보</a>
-          <a href="#">내 정보 수정</a>
-          <a href="#">내 후기 관리</a>
+          <a th:href="@{/memberEdit}">내 정보 수정</a>
+          <a href="#">후기 관리</a>
           <a href="#">일정 관리</a>
           <a href="#">이력서 관리</a>
         </div>
@@ -153,21 +153,27 @@
         <div class="member-info">
           <h2>회원 정보</h2>
           <div class="member-info-list">
-            <div><strong>아이디:</strong> <span th:text="${user.userId}">intr1</span></div>
-            <div><strong>이름:</strong> <span th:text="${user.userName}">홍면접</span></div>
-            <div><strong>핸드폰번호:</strong> <span th:text="${user.userNum}">010-0000-0000</span></div>
-            <div><strong>이메일:</strong> <span th:text="${user.userEmail}">intr@naver.com</span></div>
-            <div><strong>주소:</strong> <span th:text="${user.userAdd}">서울시...</span></div>
-            <div><strong>가입일:</strong> <span th:text="${user.joinDate}">2025-06-27</span></div>
+            <div><strong>아이디:</strong> <span th:text="${users.userId}">intr1</span></div>
+            <div><strong>이름:</strong> <span th:text="${users.userName}">홍면접</span></div>
+            <div><strong>핸드폰번호:</strong> <span th:text="${users.userNum}">010-0000-0000</span></div>
+            <div><strong>이메일:</strong> <span th:text="${users.userEmail}">intr@naver.com</span></div>
+            <div><strong>주소:</strong> <span th:text="${users.userAdd + ' ' + users.userAddDetail}">주소+상세주소</span></div>
+            <div><strong>가입일:</strong> <span th:text="${users.createdDt}">2025-06-27</span></div>
           </div>
         </div>
         <!-- 포인트만 표시하는 활동통계 -->
         <div class="stat-info">
           <h2>나의 포인트</h2>
-          <div class="point-value" th:text="${user.point}">5200</div>
-        </div>
+          <!-- <div class="point-value" th:text="${user.point}">5200</div>
+        </div> -->
       </div>
     </section>
   </div>
+  
+  <!-- 회원정보 수정 후 메세지 -->
+<script th:if="${editSuccess != null}" th:inline="javascript">
+	 alert('[[${editSuccess}]]');
+</script>
+  
 </body>
 </html>
