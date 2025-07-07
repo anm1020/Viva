@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>로그인 구분</title>
+  <style>
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  #roleModal {
+    display: none; /* 처음엔 반드시 none! */
+    position: fixed;
+    left: 0; top: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.35);
+    z-index: 9999;
+    align-items: flex-start;   /* 센터에서 위쪽으로! */
+    justify-content: center;
+    padding-top: 120px;        /* 원하는 만큼 조정(위 여백) */
+  }
+  #roleModal .modal-content {
+    background: #fff;
+    width: 330px;
+    padding: 34px 24px 28px 24px;
+    border-radius: 13px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+    position: relative;
+    animation: popupFadeIn 0.17s;
+    margin: 0;
+  }
+  .login-tabs { display: flex; }
+  .login-tab {
+    flex: 1;
+    text-align: center;
+    padding: 12px 0;
+    cursor: pointer;
+    background: #f7f7f7;
+    border: 1px solid #eee;
+    border-bottom: none;
+    font-weight: bold;
+    color: #999;
+  }
+  .login-tab.active {
+    background: #fff;
+    color: #222;
+    border-bottom: 2px solid #fff;
+  }
+  .login-box {
+    border: 1px solid #eee;
+    border-radius: 7px;
+    padding: 30px 24px 24px 24px;
+    background: #fff;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  }
+  .login-input { width: 100%; margin: 12px 0; padding: 12px; border: 1px solid #ddd; border-radius: 5px; }
+  .login-btn { width: 100%; background: #fbb034; color: #fff; padding: 13px 0; border: none; border-radius: 5px; font-weight: bold; font-size: 17px; margin-top: 8px; cursor: pointer; }
+  .login-links { margin-top: 18px; text-align: center; color: #666; font-size: 15px; }
+  .login-links a { margin: 0 7px; color: #666; text-decoration: none; }
+  .login-frame { max-width: 370px; margin: 50px auto; }
+  /* 모달 버튼 스타일 등 */
+  .role-btn {
+    display: block;
+    width: 100%;
+    background: #5c7cfa;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 0;
+    font-size: 16px;
+    font-weight: bold;
+    margin: 18px 0 0 0;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .role-btn:hover { background: #364fc7; }
+  #roleModal .close-btn {
+    position: absolute;
+    top: 14px; right: 14px;
+    font-size: 20px;
+    color: #999;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  @keyframes popupFadeIn {
+    from {transform: translateY(30px); opacity: 0;}
+    to   {transform: none; opacity: 1;}
+  }
+  
+  </style>
+</head>
+<body>
+	<script th:if="${loginMsg != null}" th:inline="javascript">
+	    alert('[[${loginMsg}]]');
+	</script>
+	
+	<script th:if="${registerMsg != null}" th:inline="javascript">
+	    alert('[[${registerMsg}]]');
+	</script>
+	<script th:if="${registerFailMsg != null}" th:inline="javascript">
+	    alert('[[${registerFailMsg}]]');
+	</script>
+	
+	
+<div class="login-frame">
+  <div class="login-tabs">
+    <div class="login-tab active" id="studentTab">취준생 로그인</div>
+    <div class="login-tab" id="teacherTab">면접관 로그인</div>
+  </div>
+  <div class="login-box" id="loginBox">
+    <!-- 취준생 로그인 폼 -->
+    <form id="studentLoginForm" th:action="@{/loginAll}" method="post" autocomplete="off">
+      <input type="hidden" name="role" value="mem">
+      <input type="text" class="login-input" name="userId" placeholder="아이디" required>
+      <input type="password" class="login-input" name="password" placeholder="비밀번호" required>
+      <button type="submit" class="login-btn">로그인</button>
+    </form>
+    
+    <!-- 면접관 로그인 폼 (초기엔 숨김) -->
+    <form id="teacherLoginForm" th:action="@{/loginAll}" method="post" autocomplete="off" style="display: none;">
+      <input type="hidden" name="role" value="intr">
+      <input type="text" class="login-input" name="userId" placeholder="아이디" required>
+      <input type="password" class="login-input" name="password" placeholder="비밀번호" required>
+      <button type="submit" class="login-btn">로그인</button>
+    </form>
+  
+  <!-- 카카오 로그인 -->
+  <a th:href="@{/oauth2/authorization/kakao}">
+	  <img src="/images/kakao_login_medium_wide.png" alt="카카오 로그인" />
+  </a>
+  </div>
+  
+  
+  
+  
+  <div class="login-links">
+    <a th:href="@{/find-password}">비밀번호 찾기</a> 
+    <a href="#" id="signupBtn">회원가입</a>
+  </div>
+</div>
+
+<!-- 반드시 login-frame 바깥에 위치해야 함!!! -->
+<div id="roleModal">
+  <div class="modal-content">
+    <button class="close-btn" onclick="closeRoleModal()" title="닫기">&times;</button>
+    <h3 style="margin-bottom:30px;">회원 유형을 선택하세요</h3>
+    <button type="button" class="role-btn" onclick="location.href='/memberform?role=mem'">취준생</button>
+	<button type="button" class="role-btn" onclick="location.href='/memberform?role=intr'">면접관</button>
+    <!-- <button class="role-btn" onclick="location.href='/memberform?role=mem'">취준생</button>
+    <button class="role-btn" onclick="location.href='/memberform?role=intr'">면접관</button> -->
+  </div>
+</div>
+
+
+<script th:if="${param.error}" th:inline="javascript">
+    alert('아이디 또는 비밀번호가 일치하지 않습니다.');
+</script>
+<script th:if="${param.roleError}" th:inline="javascript">
+    alert('계정 유형이 일치하지 않습니다.');
+</script>
+
+<script>
+  // 로그인 탭 전환
+  const studentTab = document.getElementById('studentTab');
+  const teacherTab = document.getElementById('teacherTab');
+  const studentForm = document.getElementById('studentLoginForm');
+  const teacherForm = document.getElementById('teacherLoginForm');
+
+  studentTab.addEventListener('click', function() {
+    studentTab.classList.add('active');
+    teacherTab.classList.remove('active');
+    studentForm.style.display = '';
+    teacherForm.style.display = 'none';
+  });
+
+  teacherTab.addEventListener('click', function() {
+    teacherTab.classList.add('active');
+    studentTab.classList.remove('active');
+    teacherForm.style.display = '';
+    studentForm.style.display = 'none';
+  });
+  
+  // 팝업 띄우기 (중앙 정렬을 위해 flex로!)
+  document.getElementById('signupBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('roleModal').style.display = 'flex';
+  });
+  // 팝업 닫기
+  function closeRoleModal() {
+    document.getElementById('roleModal').style.display = 'none';
+  }
+  // 바깥 클릭시 닫기
+  document.getElementById('roleModal').addEventListener('click', function(e) {
+    if (e.target === this) closeRoleModal();
+  });
+</script>
+</body>
+</html>

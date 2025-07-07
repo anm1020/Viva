@@ -1,38 +1,60 @@
 package com.example.demo.model.dto;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+//import com.example.demo.model.entity.User.UserRole;
+//import com.example.demo.model.entity.User.UserType;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+// DTO 안 쓰는 중
+
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class UserDTO {
 
-    private String user_id;
-    private String user_pass;
-    private String user_name;
-    private String user_gender;
-    private LocalDate user_birth;
-    private String user_num;
-    private String user_email;
-    private String user_add;
-    private String user_add_detail;
-    private String user_role;
-    private String user_skill;
-    private String user_career;
-    private String user_outh;
-    public enum userType {
-        Y, N
-    }
-    private userType user_type;
-    private LocalDateTime created_dt;
+    private String userId;
+    private String userPass;
+    private String userName;
+    private String userGender;
+    private String userBirth;
+    private String userNum;
+    private String userEmail;
+    private String userAdd;
+    private String userAddDetail;
+    private String userRole;
+    private String userSkill;
+    private String userCareer;
+    private String userOuth;
+    private String userType;
+    private LocalDateTime createdDt;
+
+//    public enum UserRole {
+//        mem, intr
+//    }
+//
+//    public enum UserType {
+//        Y, N
+//    }
     
-    // 추가
-    private String userpassconfirm;
-    private String phoneprefix;
-    private String phonemiddle;
-    private String phonelast;
-    private String emailid;
-    private String emaildomain;
+ // 추가
+    // 비밀번호 확인
+    private String userPassConfirm;
+
+    // 전화번호 분리 필드
+    private String phonePrefix;
+    private String phoneMiddle;
+    private String phoneLast;
+
+    // 이메일 분리 필드
+    private String emailId;
+    private String emailDomain;
+
    
 }

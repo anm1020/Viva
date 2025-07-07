@@ -6,9 +6,9 @@
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <link rel="stylesheet" th:href="@{/css/common.css}">
   
-  
 </head>
 <body>
+
   <!-- Header -->
   <header>
     <div class="logo">VIVA</div>
@@ -17,7 +17,30 @@
       <a th:href="@{/ai}">AI</a>
       <a th:href="@{/interviewer}">면접관</a>
       <a th:href="@{/board}">게시판</a>
-      <a th:href="@{/login}">로그인</a>
+      
+ <!--     <span th:if="${displayName != null}" th:text="'환영합니다, ' + ${displayName} + '님!'"></span>
+<span th:unless="${displayName != null}">
+  <a th:href="@{/loginmain}">로그인</a>
+</span> -->
+
+<!-- 로그인/로그아웃 영역 -->
+<span th:if="${displayName != null}">
+
+<!-- 환영합니다 옆에 닉네임 누르면 마이페이지 가게 만들 건데 
+	카카오 소셜 로그인 설정한 코드 때문에 요청 경로값들이 좀 꼬여서 일단 주석처리 후 커밋푸쉬, 수정 중임 -->
+	
+    <!-- <a th:if="${role == 'intr'}" th:href="@{/intrMypage}" style="text-decoration:none; color:inherit; font-weight:bold;"> -->
+        <span th:text="'환영합니다, ' + ${displayName} + '님!'"></span>
+    </a>
+   <!--  <a th:if="${role == 'mem'}" th:href="@{/memMypage}" style="text-decoration:none; color:inherit; font-weight:bold;"> -->
+       <!--  <span th:text="'환영합니다, ' + ${displayName} + '님!'"></span> -->
+    </a>
+    <a th:href="@{/logout}" style="margin-left: 10px;">로그아웃</a>
+</span>
+<span th:unless="${displayName != null}">
+    <a th:href="@{/loginmain}">로그인</a>
+</span>
+    
     </nav>
   </header>
 
@@ -107,6 +130,13 @@
     <p>문의: faceprep@example.com</p>
   </footer>
   <!-- 슬라이드 동작 Script -->
+ 
+<script th:if="${param.loginSuccess}" th:inline="javascript">
+    alert('로그인에 성공했습니다!');
+</script>
+<script th:if="${param.logoutSuccess}" th:inline="javascript">
+    alert('로그아웃 되었습니다.');
+</script>
  
   <script>
   document.addEventListener("DOMContentLoaded", () => {
