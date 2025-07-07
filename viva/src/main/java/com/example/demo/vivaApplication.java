@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class VivaApplication {
+public class vivaApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(VivaApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(vivaApplication.class, args);
+    }
 
 }

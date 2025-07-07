@@ -10,6 +10,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+// DTO 안 쓰는 중
+
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -52,5 +55,6 @@ public class UserDTO {
     // 이메일 분리 필드
     private String emailId;
     private String emailDomain;
-    
+
+   
 }

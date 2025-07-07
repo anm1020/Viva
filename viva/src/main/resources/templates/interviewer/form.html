@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>면접관 등록</title>
+  <link rel="stylesheet" th:href="@{/css/interviewer.css}">
+</head>
+<body>
+
+<div class="form-container">
+  <h2>면접관 프로필 등록</h2>
+  <form th:action="@{/interviewer/save}" method="post">
+    <input type="text" name="userId" placeholder="유저 ID" required><br>
+    <input type="text" name="intrIntro" placeholder="한 줄 소개"><br>
+    <input type="text" name="intrSkills" placeholder="보유 스킬"><br>
+    <input type="text" name="intrImage" placeholder="이미지 URL"><br>
+    <input type="number" name="intrPrice" placeholder="상담 가격"><br>
+
+    <!-- ✅ 직무 카테고리 선택 -->
+    <label>직무 카테고리 (최대 3개)</label>
+    <div class="form-category-box">
+      <div th:each="cate : ${T(com.example.demo.model.entity.CategoryType).values()}"
+           class="form-category-item"
+           th:attr="data-value=${cate}"
+           onclick="toggleCategory(this)">
+        <span th:text="${cate}">카테고리</span>
+      </div>
+    </div>
+    <input type="hidden" name="intrCate" id="intrCateHidden">
+
+    <!-- ✅ 자기소개 입력 -->
+    <div class="form-content-section">
+      <h3>자기소개</h3>
+      <textarea name="intrContent" class="form-content-textarea" rows="10"
+                placeholder="자기소개, 상담 방식 등 자세히 적어주세요"></textarea>
+    </div>
+
+    <button type="submit">등록하기</button>
+  </form>
+</div>
+
+<script>
+  function toggleCategory(element) {
+    element.classList.toggle('selected');
+
+    const selected = Array.from(document.querySelectorAll('.form-category-item.selected'))
+                          .map(el => el.getAttribute('data-value'));
+
+    if (selected.length > 3) {
+      alert("최대 3개까지 선택할 수 있습니다.");
+      element.classList.remove('selected');
+      return;
+    }
+
+    document.getElementById("intrCateHidden").value = selected.join(',');
+  }
+</script>
+
+</body>
+</html>
+
