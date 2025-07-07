@@ -28,16 +28,30 @@
 
 <!-- 환영합니다 옆에 닉네임 누르면 마이페이지 가게 만들 건데 
 	카카오 소셜 로그인 설정한 코드 때문에 요청 경로값들이 좀 꼬여서 일단 주석처리 후 커밋푸쉬, 수정 중임 -->
-	
-    <!-- <a th:if="${role == 'intr'}" th:href="@{/intrMypage}" style="text-decoration:none; color:inherit; font-weight:bold;"> -->
+<!-- 
+        [설명]
+        - role 값이 "intr"(면접관)이면 → /intrMypage로
+        - role 값이 "mem"(취준생)이면 → /memMypage로
+        - 둘 중 하나에만 해당되므로 th:if를 각각 씀
+        - 닉네임(=displayName)을 클릭하면 내 역할에 맞는 마이페이지로 이동
+        - 카카오 등 소셜 로그인에서 경로가 꼬일 수 있어, 현재는 로컬 로그인만 사용!
+        - 소셜 연동 후에는 역할별 분기에서 OAuth2User 처리 코드도 추가 필요
+    -->
+
+    <!-- 면접관이면: /intrMypage로 이동 -->
+    <a th:if="${role == 'intr'}" th:href="@{/intrMypage}" style="text-decoration:none; color:inherit; font-weight:bold;">
         <span th:text="'환영합니다, ' + ${displayName} + '님!'"></span>
     </a>
-   <!--  <a th:if="${role == 'mem'}" th:href="@{/memMypage}" style="text-decoration:none; color:inherit; font-weight:bold;"> -->
-       <!--  <span th:text="'환영합니다, ' + ${displayName} + '님!'"></span> -->
+    <!-- 취준생이면: /memMypage로 이동 -->
+    <a th:if="${role == 'mem'}" th:href="@{/memMypage}" style="text-decoration:none; color:inherit; font-weight:bold;">
+        <span th:text="'환영합니다, ' + ${displayName} + '님!'"></span>
     </a>
+    <!-- 로그아웃 버튼(항상 노출) -->
     <a th:href="@{/logout}" style="margin-left: 10px;">로그아웃</a>
 </span>
+
 <span th:unless="${displayName != null}">
+    <!-- 로그인하지 않은 경우 -->
     <a th:href="@{/loginmain}">로그인</a>
 </span>
     

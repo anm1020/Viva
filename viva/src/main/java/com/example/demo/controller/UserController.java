@@ -47,7 +47,7 @@ public class UserController {
 
 		Users users = new Users();
 	    users.setUserRole(role);       // 엔티티에 바로 값 셋팅
-	    model.addAttribute("user", users);
+	    model.addAttribute("users", users);
 	    model.addAttribute("role", role); // 필요하면 role도 넘기기
 		
 //	    if (role.equals("intr")) {
@@ -183,6 +183,7 @@ public class UserController {
 	        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
 	        String displayName = null;
+	        String role = null;
 
 	        // 2. 인증됐고 익명유저 아니면
 	        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
@@ -191,7 +192,7 @@ public class UserController {
 	            // (1) 일반 로그인 (UserDetails)
 	            if (principal instanceof CustomUserDetails userDetails) {
 	                displayName = userDetails.getUsers().getUserName(); // 엔티티 필드에 따라 변경!
-//	                role = userDetails.getUsers().getUserRole();           // 예: "mem" 또는 "intr"
+	                role = userDetails.getUsers().getUserRole();           // 예: "mem" 또는 "intr"
 	            }
 	            
 	            // (2) 소셜 로그인 (DefaultOAuth2User)
@@ -208,8 +209,8 @@ public class UserController {
 	            }
 	        }
 
-//	        model.addAttribute("role", role);
 	        model.addAttribute("displayName", displayName);
+	        model.addAttribute("role", role);
 
 	        return "main"; // main.html (Thymeleaf)
 	    }
@@ -225,11 +226,112 @@ public class UserController {
 		    Users users = service.findByUserId(userId);
 		    model.addAttribute("users", users);
 
-		    return "/intrMypage"; // mypage.html (Thymeleaf)
+		    return "member/intrMypage"; // mypage.html (Thymeleaf)
 		}
 		
+		@GetMapping("/memberEdit")
+		public String showEditForm(Model model, Principal principal,
+						@RequestParam(name = "skill", required = false) List<String> UserSkill) {
+		    // 1. 현재 로그인 유저의 아이디(또는 PK) 구하기
+		    String userId = principal.getName();
+
+		    // 2. DB에서 회원정보 조회
+		    Users users = service.findByUserId(userId);
+
+		    // 1. 핸드폰 번호 분리
+		    if (users.getUserNum() != null) {
+		        String[] phone = users.getUserNum().split("-");
+		        if (phone.length == 3) {
+		            users.setPhonePrefix(phone[0]);
+		            users.setPhoneMiddle(phone[1]);
+		            users.setPhoneLast(phone[2]);
+		        }
+		    }
+		    
+		    // 이메일 분리
+		    if (users.getUserEmail() != null) {
+		        String[] email = users.getUserEmail().split("@");
+		        if (email.length == 2) {
+		            users.setEmailId(email[0]);
+		            users.setEmailDomain(email[1]);
+		        }
+		    }
+		    
+		    // userSkill(String) → 배열로 변환 (체크박스 자동 체크용) 분리
+		    if (users.getUserSkill() != null && !users.getUserSkill().isBlank()) {
+		        String[] skillArr = users.getUserSkill().split(",");
+		        model.addAttribute("userSkillArr", skillArr);
+		    } else {
+		        model.addAttribute("userSkillArr", new String[0]);
+		    }
+		    
+		    // 경력 분리: "삼성전자/백엔드/3년" => [삼성전자, 백엔드, 3년]
+		    // 경력 분리 (ex. "삼성전자/5년" → "삼성전자", "5년")
+		    if (users.getUserCareer() != null) {
+		        String[] careerArr = users.getUserCareer().split("/", 2); // 2개까지만 분리
+		        users.setUserCareer(careerArr.length > 0 ? careerArr[0] : "");
+		        users.setUserCareer2(careerArr.length > 1 ? careerArr[1] : "");
+		    } else {
+		        users.setUserCareer("");
+		        users.setUserCareer2("");
+		    }
+		    
+		    // 3. 모델에 담아서 폼으로 전달
+		    model.addAttribute("users", users);
+
+		    return "member/memberEdit"; // editMember.html (Thymeleaf)
+		}
 		
+		@PostMapping("/memberUpdate")
+		public String updateMemberInfo(@ModelAttribute("users") Users users, 
+										@RequestParam(name = "skill", required = false) List<String> UserSkill,
+										Principal principal, RedirectAttributes rttr) {
+		    // 1. 로그인 사용자 확인(보안)
+		    String userId = principal.getName();
+
+		    // 2. 기존 정보 불러와서(아이디 등)  
+		    Users dbUser = service.findByUserId(userId);
+
+		    // 2. 핸드폰 (3개 → 1개로 합쳐서 저장)
+		    String fullPhone = 
+		        (users.getPhonePrefix() != null ? users.getPhonePrefix() : "") + "-" +
+		        (users.getPhoneMiddle() != null ? users.getPhoneMiddle() : "") + "-" +
+		        (users.getPhoneLast() != null ? users.getPhoneLast() : "");
+		    dbUser.setUserNum(fullPhone);
+		    
+		    // 경력 합치기 (수정 폼에서 받은 값)
+		    String career = (users.getUserCareer() != null ? users.getUserCareer() : "") + "/" +
+		                    (users.getUserCareer2() != null ? users.getUserCareer2() : "");
+		    dbUser.setUserCareer(career);
+		    
+		    // 5. 기술(체크박스 여러개 → 콤마로 합쳐서 저장)
+//		    if (users.getUserSkill() != null && users.getUserSkill().length() > 0) {
+//		        String allSkill = String.join(",", users.getUserSkill());
+//		        dbUser.setUserSkill(allSkill);
+//		    } else {
+//		        dbUser.setUserSkill("");
+//		    }
+		    
+		    // 기술 String → 배열로 변환해서 model에 "userSkillArr"로 전달: 체크박스의 th:checked에 사용됨.
+		    if (UserSkill != null && !UserSkill.isEmpty()) {
+		        String allSkill = String.join(",", UserSkill);
+		        dbUser.setUserSkill(allSkill);
+		    } else {
+		        dbUser.setUserSkill("");
+		    }
+		    
+		    // 3. 수정 가능한 필드만 업데이트
+		    dbUser.setUserBirth(users.getUserBirth());
+		    dbUser.setUserGender(users.getUserGender());
+		    dbUser.setUserAdd(users.getUserAdd());
+		    dbUser.setUserAddDetail(users.getUserAddDetail());
+
+		    // 4. 저장
+		    service.save(dbUser);
+
+		    // 5. 성공 메시지 + 마이페이지로 이동
+		    rttr.addFlashAttribute("editSuccess", "회원정보가 수정되었습니다!");
+		    return "redirect:/intrMypage"; // or memMypage (role에 따라)
+		}
 		
-		
-	
 }
