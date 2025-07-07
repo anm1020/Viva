@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>결제 페이지</title>
+  <script src="https://code.jquery.com/jquery-latest.js"></script>
+  <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
+</head>
+<body>
+
+  <h2>면접관 예약 결제</h2>
+  <p>면접관: <strong th:text="${intrName}">[이름]</strong></p>
+  <p>예약 일시: <strong th:text="${reservedDate} + ' ' + ${reservedTime}">[날짜 시간]</strong></p>
+  <p>결제 금액: <strong th:text="${amount} + '원'">[금액]</strong></p>
+
+  <button id="btn-pay">결제하기</button>
+
+  <script>
+    $('#btn-pay').on('click', function() {
+      IMP.init("imp14397622");
+
+      IMP.request_pay({
+        channelKey:  "channel-key-01764171-b249-4c16-9d18-e9174fa8e611",
+        pay_method:  'card',
+        merchant_uid:'resv_' + new Date().getTime(),
+        name:        '면접관 예약 결제',
+        amount:      /*[[${amount}]]*/ 100,
+        buyer_name:  /*[[${userName}]]*/ '홍길동'
+      }, function(rsp) {
+        if (!rsp.success) {
+          return alert('결제 실패: ' + rsp.error_msg);
+        }
+        $.ajax({
+          type: 'POST',
+          url:  '/payment/save',
+          contentType: 'application/json',
+          data: JSON.stringify({
+            imp_uid:      rsp.imp_uid,
+            merchant_uid: rsp.merchant_uid,
+            amount:       rsp.paid_amount
+          }),
+          success: function(data) {
+            if (data.success) {
+              alert('결제 완료: ' + data.amount + '원');
+              window.location.href = '/payment/result?success=true&amount=' + data.amount;
+            } else {
+              alert('검증 실패: ' + data.message);
+            }
+          },
+          error: function() {
+            alert('서버 오류 발생');
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

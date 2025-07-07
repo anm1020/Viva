@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<head>
+  <meta charset="UTF-8">
+  <title>회원유형 선택 팝업</title>
+  <style>
+    /* 팝업 배경 */
+    #roleModal {
+      display: none;
+      position: fixed; left: 0; top: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.35);
+      z-index: 9999;
+    }
+    /* 팝업 본체 */
+    #roleModal .modal-content {
+      background: #fff;
+      width: 330px;
+      margin: 170px auto;
+      padding: 34px 24px 28px 24px;
+      border-radius: 13px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+      position: relative;
+      animation: popupFadeIn 0.17s;
+    }
+    @keyframes popupFadeIn {
+      from {transform: translateY(30px); opacity: 0;}
+      to   {transform: none; opacity: 1;}
+    }
+    /* X버튼 */
+    #roleModal .close-btn {
+      position: absolute;
+      top: 14px; right: 14px;
+      font-size: 20px;
+      color: #999;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    .role-btn {
+      display: block;
+      width: 100%;
+      background: #5c7cfa;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 12px 0;
+      font-size: 16px;
+      font-weight: bold;
+      margin: 18px 0 0 0;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .role-btn:hover { background: #364fc7; }
+  </style>
+</head>
+<body>
+  <!-- 회원가입 버튼(메뉴/페이지 등 원하는 곳에) -->
+  <a href="#" id="signupBtn" style="font-size:16px; font-weight:bold;">회원가입</a>
+
+  <!-- 회원유형 선택 팝업(모달) -->
+  <div id="roleModal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeRoleModal()" title="닫기">&times;</button>
+      <h3 style="margin-bottom:30px;">회원 유형을 선택하세요</h3>
+      <button class="role-btn" onclick="location.href='/memberform?role=mem'">취준생으로 가입</button>
+      <button class="role-btn" onclick="location.href='/memberform?role=intr'">면접관으로 가입</button>
+    </div>
+  </div>
+
+  <script>
+    // 회원가입 버튼 클릭 → 팝업 띄우기
+    document.getElementById('signupBtn').addEventListener('click', function(e) {
+      e.preventDefault();
+      document.getElementById('roleModal').style.display = 'block';
+    });
+    // 팝업 닫기 (X버튼)
+    function closeRoleModal() {
+      document.getElementById('roleModal').style.display = 'none';
+    }
+    // 바깥 클릭시 닫기
+    document.getElementById('roleModal').addEventListener('click', function(e) {
+      if (e.target === this) closeRoleModal();
+    });
+  </script>
+</body>
+</html>

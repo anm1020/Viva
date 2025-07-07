@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>회원가입</title>
+  <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+  <script src="https://code.jquery.com/jquery-latest.js"></script>
+  <script th:src="@{/js/check.js}"></script>
+  <style>
+    /* 카드 컨테이너 */
+    .form-frame {
+      max-width: 360px;
+      margin: 2rem auto;
+      padding: 1.5rem;
+      background-color: #ffffff;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .form-frame h2 {
+      text-align: center;
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: #111827;
+    }
+    .form-frame .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-frame label {
+      display: block;
+      margin-bottom: 0.25rem;
+      font-size: 0.875rem;
+      color: #374151;
+    }
+    .form-frame input,
+    .form-frame select {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.875rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      background-color: #f9fafb;
+      box-sizing: border-box;
+    }
+    .inline-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .inline-group > * {
+      flex: 1;
+    }
+    .form-frame button {
+      font-size: 0.875rem;
+      border-radius: 0.375rem;
+    }
+    .form-frame button[type="button"] {
+      padding: 0.5rem 0.75rem;
+      background-color: #ffffff;
+      border: 1px solid #d1d5db;
+      color: #374151;
+      cursor: pointer;
+    }
+    .form-frame button[type="button"]:hover {
+      background-color: #f3f4f6;
+    }
+    .form-frame button[type="submit"] {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 1rem;
+      background-color: #007bff;
+      color: #ffffff;
+      border: none;
+      cursor: pointer;
+    }
+    .form-frame button[type="submit"]:hover {
+      background-color: #0056b3;
+    }
+    .readonly-field {
+    background: #f2f2f2;
+    color: #888;
+    font-weight: bold;
+  	}
+  </style>
+</head>
+<body>
+
+  <div class="form-frame">
+  <h2>회원가입</h2>
+  <form th:action="@{/memberUpdate}" th:object="${users}" method="post">
+  <input type="hidden" th:field="*{userRole}">
+  <!-- <input type="hidden" name="userRole" value="mem"/> -->
+  <input type="hidden" name="userType" value="Y"/>
+  <input type="hidden" name="userOuth" value="N"/>
+
+    <!-- 아이디 + 중복확인 -->
+    <div class="form-group inline-group">
+      <div style="flex: 2;">
+        <label for="userId">아이디</label>
+        <input type="text"
+               th:field="*{userId}"
+               id="userId"
+               placeholder="아이디"
+               required readonly class="readonly-field" />
+      </div>
+      <div style="flex: 1; align-self: end;">
+        <button type="button" id="checkIdBtn">중복확인</button>
+        <span id="idCheckResult"></span>
+      </div>
+    </div>
+
+    <!-- 비밀번호 -->
+    <!-- <div class="form-group">
+      <label for="userPass">비밀번호</label>
+      <input type="password"
+             th:field="*{userPass}"
+             id="userPass"
+             placeholder="비밀번호"
+             required readonly class="readonly-field" />
+    </div> -->
+
+    <!-- 비밀번호 확인 -->
+    <!-- <div class="form-group">
+      <label for="userPassConfirm">비밀번호 확인</label>
+      <input type="password"
+             th:field="*{userPassConfirm}"
+             id="userPassConfirm"
+             placeholder="비밀번호 확인"
+             required readonly class="readonly-field" />
+      <span id="passCheckResult"></span>
+    </div> -->
+
+    <!-- 이름 -->
+    <div class="form-group">
+		<label for="userName">이름</label>
+		  <input type="text"
+		         th:field="*{userName}"
+		         id="userName"
+		         placeholder="이름"
+		         required readonly class="readonly-field" />
+		  <span id="nameCheckResult" style="margin-left:10px;font-size:13px;"></span>
+		</div>
+
+    <!-- 생년월일 -->
+    <div class="form-group">
+      <label for="userBirth">생년월일</label>
+      <input type="date"
+             th:field="*{userBirth}"
+             id="userBirth"
+             required />
+    </div>
+
+    <!-- 성별 -->
+    <div class="form-group">
+      <label>성별</label>
+      <div class="inline-group">
+        <input type="radio"
+               th:field="*{userGender}"
+               id="male"
+               value="남성" />
+        <label for="male">남성</label>
+
+        <input type="radio"
+               th:field="*{userGender}"
+               id="female"
+               value="여성" />
+        <label for="female">여성</label>
+      </div>
+    </div>
+    <span id="genderCheckResult" style="margin-left:10px; font-size:13px;"></span>
+
+    <!-- 이메일 -->
+    <div class="form-group inline-group">
+      <div style="flex: 2;">
+        <label for="emailId">이메일</label>
+        <div class="inline-group">
+          <input type="text"
+                 th:field="*{emailId}"
+                 id="emailId"
+                 placeholder="example"
+                 required />
+          <span>@</span>
+          <input type="text"
+                 th:field="*{emailDomain}"
+                 id="emailDomain"
+                 readonly
+                 required />
+        </div>
+        <span id="emailCheckResult" style="margin-left:10px; font-size:13px;"></span>
+      </div>
+      <div style="flex: 1; align-self: end;">
+        <select id="emailDomainSelect">
+          <option value="" selected>도메인 선택</option>
+          <option value="naver.com">naver.com</option>
+          <option value="gmail.com">gmail.com</option>
+          <option value="daum.net">daum.net</option>
+          <option value="custom">직접입력</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 핸드폰번호 -->
+    <div class="form-group inline-group">
+      <label style="flex: none; align-self: center;" for="phonePrefix">핸드폰번호</label>
+      <select th:field="*{phonePrefix}" id="phonePrefix">
+        <option value="010">010</option>
+        <option value="011">011</option>
+        <option value="017">017</option>
+        <option value="070">070</option>
+      </select>
+      <input type="text"
+             th:field="*{phoneMiddle}"
+             id="phoneMiddle"
+             maxlength="4"
+             placeholder="0000" />
+      <input type="text"
+             th:field="*{phoneLast}"
+             id="phoneLast"
+             maxlength="4"
+             placeholder="0000" />
+      <span id="phoneCheckResult"></span>
+    </div>
+
+    <!-- 주소 검색 -->
+    <div class="form-group inline-group">
+      <label style="flex: none; align-self: center;" for="userAdd">주소</label>
+      <input type="text"
+             th:field="*{userAdd}"
+             id="userAdd"
+             placeholder="주소"
+             readonly />
+      <button type="button" id="addrBtn">주소 검색</button>
+      <span id="addressCheckResult" style="margin-left:10px; font-size:13px;"></span>
+    </div>
+    <div class="form-group">
+      <input type="text"
+             th:field="*{userAddDetail}"
+             id="userAddDetail"
+             placeholder="상세주소 입력" />
+       <span id="addressDetailCheckResult" style="margin-left:10px; font-size:13px;"></span>
+    </div>
+
+	<!-- 면접관인 경우 -->
+	<div class="form-group" th:if="${users.userRole} == 'intr'">
+	  <label for="userCareer1">경력</label>
+	  <input type="text" th:field="*{userCareer}" id="userCareer" placeholder="경력 1 (회사/직무/기간)">
+	  <input type="text" th:field="*{userCareer2}" id="userCareer2" placeholder="경력 2 (기간 예 : 5년)" style="margin-top:0.5rem;">
+	</div>
+
+
+    <!-- 기술 스택 (체크박스 예시) -->
+    <div class="form-group">
+      <label>기술</label>
+      <div class="inline-group">
+	        <label>
+	  		  <input type="checkbox" name="skill" value="Java"
+	         		 th:checked="${#arrays.contains(userSkillArr, 'Java')}" /> Java
+			</label>
+			<label>
+			  <input type="checkbox" name="skill" value="React.js"
+			         th:checked="${#arrays.contains(userSkillArr, 'React.js')}" /> React.js
+			</label>
+			<label>
+			  <input type="checkbox" name="skill" value="Vue.js"
+			         th:checked="${#arrays.contains(userSkillArr, 'Vue.js')}" /> Vue.js
+			</label>
+			<label>
+			  <input type="checkbox" name="skill" value="JPA"
+			         th:checked="${#arrays.contains(userSkillArr, 'JPA')}" /> JPA
+			</label>
+			<label>
+			  <input type="checkbox" name="skill" value="MyBatis"
+			         th:checked="${#arrays.contains(userSkillArr, 'MyBatis')}" /> MyBatis
+			</label>
+			<label>
+			  <input type="checkbox" name="skill" value="Spring Boot"
+			         th:checked="${#arrays.contains(userSkillArr, 'Spring Boot')}" /> Spring Boot
+			</label>
+			<label>
+			  <input type="checkbox" name="skill" value="Oracle"
+			         th:checked="${#arrays.contains(userSkillArr, 'Oracle')}" /> Oracle
+			</label>
+			<label>
+			  <input type="checkbox" name="skill" value="MySQL"
+			         th:checked="${#arrays.contains(userSkillArr, 'MySQL')}" /> MySQL
+			</label>
+      </div>
+    </div>
+
+    <!-- 수정 버튼 -->
+    <button type="submit">정보 수정</button>
+    <button type="button" onclick="history.back();">취소</button>
+  </form>
+</div>
+
+<script>
+//--- 아이디 중복확인 플래그
+let isIdChecked = false;
+
+// 아이디 입력시, 중복확인 다시 해야 하니까 플래그 false + 가입버튼 비활성화
+$('#userId').on('input', function() {
+  isIdChecked = false;
+  $('#registerBtn').prop('disabled', true);
+  $('#idCheckResult').text('');
+});
+
+// 중복확인 버튼 클릭
+$('#checkIdBtn').click(function() {
+  const userId = $('#userId').val().trim();
+  if (!userId) {
+    $('#idCheckResult').text('아이디를 입력하세요.');
+    return;
+  }
+
+  // 실제 서버 엔드포인트에 맞춰서 URL 변경!
+  $.ajax({
+    url: '/member/checkId', // ex) /member/checkId?userId=aaa
+    type: 'GET',
+    data: { userId },
+    success: function(result) {
+      if (result === 'OK') {
+        $('#idCheckResult').text('사용 가능한 아이디입니다.');
+        isIdChecked = true;
+        $('#registerBtn').prop('disabled', false);
+      } else {
+        $('#idCheckResult').text('이미 사용 중인 아이디입니다.');
+        isIdChecked = false;
+        $('#registerBtn').prop('disabled', true);
+      }
+    },
+    error: function() {
+      $('#idCheckResult').text('오류 발생! 다시 시도하세요.');
+      isIdChecked = false;
+      $('#registerBtn').prop('disabled', true);
+    }
+  });
+});
+
+// form submit 시에도 우회방지(꼭 필요!)
+$('form[th\\:action="@{/memberinsert}"]').on('submit', function(e) {
+  if (!isIdChecked) {
+    alert('아이디 중복확인을 먼저 해주세요!');
+    e.preventDefault();
+  }
+});
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  const domainSelect = document.getElementById('emailDomainSelect');
+  const domainInput  = document.getElementById('emailDomain');
+
+  domainSelect.addEventListener('change', function() {
+    const val = this.value;
+    if (val === 'custom') {
+      domainInput.value = '';
+      domainInput.removeAttribute('readonly');
+      domainInput.focus();
+    } else if (val) {
+      domainInput.value = val;
+      domainInput.setAttribute('readonly', 'readonly');
+    } else {
+      domainInput.value = '';
+      domainInput.setAttribute('readonly', 'readonly');
+    }
+  });
+});
+  
+  // ⬇️ 여기부터 주소 검색(카카오 우편번호) 추가!
+  document.getElementById('addrBtn').addEventListener('click', function() {
+    new daum.Postcode({
+      oncomplete: function(data) {
+        document.getElementById('userAdd').value = data.address; // 주소 입력
+      }
+    }).open();
+  });
+ </script>
+  
+</body>
+</html>

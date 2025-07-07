@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>면접관 마이페이지</title>
+  <style>
+    body {
+      background: #f7f9fc;
+      font-family: 'Segoe UI', '맑은 고딕', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .mypage-layout {
+      display: flex;
+      max-width: 1100px;
+      margin: 50px auto 0 auto;
+      min-height: 550px;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 14px rgba(70,110,180,0.08);
+      overflow: hidden;
+    }
+    /* 사이드바 */
+    .sidebar {
+      width: 230px;
+      background: #eaf1fb;
+      padding: 36px 0 0 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .sidebar-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding-left: 24px;
+    }
+    .sidebar-menu a {
+      font-size: 17px;
+      color: #314266;
+      text-decoration: none;
+      padding: 10px 0 10px 12px;
+      border-radius: 5px 0 0 5px;
+      transition: background 0.18s;
+      font-weight: 500;
+      letter-spacing: -0.2px;
+    }
+    .sidebar-menu a.active,
+    .sidebar-menu a:hover {
+      background: #c3d3ee;
+      color: #2951a3;
+      font-weight: bold;
+    }
+    .sidebar-bottom {
+      padding-left: 24px;
+      padding-bottom: 38px;
+    }
+    .sidebar-bottom a {
+      color: #d34040;
+      font-weight: bold;
+      text-decoration: none;
+      font-size: 15px;
+      transition: color 0.2s;
+    }
+    .sidebar-bottom a:hover {
+      color: #b80000;
+      text-decoration: underline;
+    }
+    /* 메인컨텐츠 */
+    .main-content {
+      flex: 1;
+      padding: 46px 44px;
+      background: #f7f9fc;
+      min-width: 0;
+    }
+    .info-cards {
+      display: flex;
+      gap: 36px;
+    }
+    .member-info {
+      background: #fff;
+      border-radius: 9px;
+      box-shadow: 0 2px 8px rgba(135,160,180,0.07);
+      padding: 32px 38px 30px 38px;
+      min-width: 320px;
+      flex: 1;
+      margin-bottom: 24px;
+    }
+    .member-info h2 {
+      margin-top: 0;
+      font-size: 21px;
+      color: #314266;
+      margin-bottom: 16px;
+    }
+    .member-info-list {
+      font-size: 16px;
+      line-height: 2.1;
+      color: #222;
+    }
+    .stat-info {
+      background: #eaf1fb;
+      border-radius: 9px;
+      box-shadow: 0 2px 8px rgba(70,110,180,0.06);
+      padding: 32px 40px;
+      min-width: 220px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    .stat-info h2 {
+      margin-top: 0;
+      font-size: 20px;
+      color: #2951a3;
+      margin-bottom: 18px;
+    }
+    .stat-info .point-value {
+      font-size: 25px;
+      color: #314266;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    @media (max-width: 900px) {
+      .mypage-layout { flex-direction: column; }
+      .sidebar { width: 100%; flex-direction: row; padding: 0; }
+      .main-content { padding: 24px 10px; }
+      .info-cards { flex-direction: column; gap: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="mypage-layout">
+    <!-- 사이드바 -->
+    <nav class="sidebar">
+      <div>
+        <div class="sidebar-menu">
+          <a href="#" class="active">내 정보</a>
+          <a th:href="@{/memberEdit}">내 정보 수정</a>
+          <a href="#">후기 관리</a>
+          <a href="#">일정 관리</a>
+          <a href="#">이력서 관리</a>
+        </div>
+      </div>
+      <div class="sidebar-bottom">
+        <a href="#" style="color:#d34040;">회원 탈퇴</a>
+      </div>
+    </nav>
+
+    <!-- 메인 컨텐츠 -->
+    <section class="main-content">
+      <div class="info-cards">
+        <!-- 회원 정보 -->
+        <div class="member-info">
+          <h2>회원 정보</h2>
+          <div class="member-info-list">
+            <div><strong>아이디:</strong> <span th:text="${users.userId}">intr1</span></div>
+            <div><strong>이름:</strong> <span th:text="${users.userName}">홍면접</span></div>
+            <div><strong>핸드폰번호:</strong> <span th:text="${users.userNum}">010-0000-0000</span></div>
+            <div><strong>이메일:</strong> <span th:text="${users.userEmail}">intr@naver.com</span></div>
+            <div><strong>주소:</strong> <span th:text="${users.userAdd + ' ' + users.userAddDetail}">주소+상세주소</span></div>
+            <div><strong>가입일:</strong> <span th:text="${users.createdDt}">2025-06-27</span></div>
+          </div>
+        </div>
+        <!-- 포인트만 표시하는 활동통계 -->
+        <div class="stat-info">
+          <h2>나의 포인트</h2>
+          <!-- <div class="point-value" th:text="${user.point}">5200</div>
+        </div> -->
+      </div>
+    </section>
+  </div>
+  
+  <!-- 회원정보 수정 후 메세지 -->
+<script th:if="${editSuccess != null}" th:inline="javascript">
+	 alert('[[${editSuccess}]]');
+</script>
+  
+</body>
+</html>
