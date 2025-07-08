@@ -106,7 +106,7 @@ public class PointController {
 		    boolean success = service.use(user.getUserId(), amount);
 		    if (!success) {
 		        return ResponseEntity.badRequest().body("포인트 부족");
-		    }
+		    } 
 
 		    // 포인트 결제니까 markReservationAsPaid 호출
 		    resservice.markReservationAsPaid(resId);
