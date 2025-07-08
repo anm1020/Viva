@@ -21,73 +21,73 @@ body {
 }
 
 /* ================================== */
- header, footer {
-            background-color: #cfd8ff;
-            padding: 10px 20px;
-            text-align: center;
-        }
+header, footer {
+	background-color: #cfd8ff;
+	padding: 10px 20px;
+	text-align: center;
+}
 
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: bold;
-        }
+header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	font-weight: bold;
+}
 
-        .logo {
-            font-size: 1.2rem;
-        }
+.logo {
+	font-size: 1.2rem;
+}
 
-        .login-link {
-            font-size: 0.9rem;
-        }
+.login-link {
+	font-size: 0.9rem;
+}
 
-        main {
-            background-color: #ffffff;
-            min-height: 400px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 40px 0;
-        }
+main {
+	background-color: #ffffff;
+	min-height: 400px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 40px 0;
+}
 
-        .content-box {
-            border: 1px solid #d0d0d0;
-            border-radius: 6px;
-            padding: 30px 50px;
-            text-align: center;
-        }
+.content-box {
+	border: 1px solid #d0d0d0;
+	border-radius: 6px;
+	padding: 30px 50px;
+	text-align: center;
+}
 
-        .content-box h2 {
-            margin-bottom: 30px;
-            font-size: 1.4rem;
-        }
+.content-box h2 {
+	margin-bottom: 30px;
+	font-size: 1.4rem;
+}
 
-        .button-group {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-        }
+.button-group {
+	display: flex;
+	gap: 20px;
+	justify-content: center;
+}
 
-        .nav-button {
-            width: 120px;
-            height: 100px;
-            background-color: #e0e0e0;
-            border: none;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
+.nav-button {
+	width: 120px;
+	height: 100px;
+	background-color: #e0e0e0;
+	border: none;
+	border-radius: 6px;
+	font-size: 1rem;
+	font-weight: bold;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
 
-        .nav-button:hover {
-            background-color: #d6d6d6;
-        }
+.nav-button:hover {
+	background-color: #d6d6d6;
+}
 
-        footer {
-            font-weight: bold;
-        }
+footer {
+	font-weight: bold;
+}
 
 /* ================================== */
 .room-list {
@@ -155,84 +155,92 @@ body {
 }
 
 /*** 비디오 영역 css ***/
- #videoroom-view {
-    padding: 20px;
-  }
+#videoroom-view {
+	padding: 20px;
+}
 
-  #local-area, #remote-area {
-    margin-bottom: 20px;
-  }
+#local-area, #remote-area {
+	margin-bottom: 20px;
+}
 
-  .label {
-    font-size: 14px;
-    background-color: #3498db;
-    color: #fff;
-    padding: 2px 6px;
-    border-radius: 3px;
-  }
+.label {
+	font-size: 14px;
+	background-color: #3498db;
+	color: #fff;
+	padding: 2px 6px;
+	border-radius: 3px;
+}
 
-  .hide {
-    display: none;
-  }
+.hide {
+	display: none;
+}
 
-  .remote-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 10px;
-  }
+.remote-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 10px;
+}
 
-  .remote-box {
-    position: relative;
-    border: 1px solid #ccc;
-    padding: 5px;
-    min-height: 150px;
-  }
+.remote-box {
+	position: relative;
+	border: 1px solid #ccc;
+	padding: 5px;
+	min-height: 150px;
+}
 
-  .bitrate-controls {
-    margin-left: 10px;
-    display: inline-block;
-    position: relative;
-  }
+.bitrate-controls {
+	margin-left: 10px;
+	display: inline-block;
+	position: relative;
+}
 
-  .dropdown-menu {
-    list-style: none;
-    position: absolute;
-    background: #fff;
-    border: 1px solid #aaa;
-    margin: 0;
-    padding: 0;
-    display: none;
-  }
+.dropdown-menu {
+	list-style: none;
+	position: absolute;
+	background: #fff;
+	border: 1px solid #aaa;
+	margin: 0;
+	padding: 0;
+	display: none;
+}
 
-  .dropdown-menu li {
-    padding: 5px 10px;
-  }
+.dropdown-menu li {
+	padding: 5px 10px;
+}
 
-  .dropdown-menu li:hover {
-    background-color: #f0f0f0;
-  }
+.dropdown-menu li:hover {
+	background-color: #f0f0f0;
+}
 
-  #bitrateset:hover + .dropdown-menu,
-  .dropdown-menu:hover {
-    display: block;
-  }
+#bitrateset:hover+.dropdown-menu, .dropdown-menu:hover {
+	display: block;
+}
 </style>
 <!-- 외부 라이브러리 -->
-<script th:src="@{https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/6.4.0/adapter.min.js}"></script>
-<script th:src="@{https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js}"></script>
-<script th:src="@{https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js}"></script>
-<script th:src="@{https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js}"></script>
-<script th:src="@{https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.4.0/bootbox.min.js}"></script>
-<script th:src="@{https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js}"></script>
-<script th:src="@{https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js}"></script>
+<script
+	th:src="@{https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/6.4.0/adapter.min.js}"></script>
+<script
+	th:src="@{https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js}"></script>
+<script
+	th:src="@{https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js}"></script>
+<script
+	th:src="@{https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js}"></script>
+<script
+	th:src="@{https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.4.0/bootbox.min.js}"></script>
+<script
+	th:src="@{https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js}"></script>
+<script
+	th:src="@{https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js}"></script>
 
 
 
 <!-- 내부 라이브러리 -->
 <script th:src="@{/js/webRtc/janus.js}"></script>
 
-<link rel="stylesheet" th:href="@{https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css}" />
-<link rel="stylesheet" th:href="@{https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css}" />
+<link rel="stylesheet"
+	th:href="@{https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css}" />
+<link rel="stylesheet"
+	th:href="@{https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css}" />
 
 
 </head>
@@ -279,45 +287,60 @@ body {
 
 	<!-- [4] 통화방 화면 -->
 	<div id="videoroom-view" class="view">
-	  <h2>화상 통화</h2>
-	  <!-- 로컬 비디오 -->
-	  <section id="local-area">
-	    <h3>
-	      내 화면 <span id="publisher" class="label hide"></span>
-	      <span class="bitrate-controls hide">
-	        <button id="bitrateset">Bandwidth ▼</button>
-	        <ul id="bitrate" class="dropdown-menu">
-	          <li><a href="#" id="0">No limit</a></li>
-	          <li><a href="#" id="128">128kbps</a></li>
-	          <li><a href="#" id="256">256kbps</a></li>
-	          <li><a href="#" id="512">512kbps</a></li>
-	          <li><a href="#" id="1024">1mbps</a></li>
-	          <li><a href="#" id="1500">1.5mbps</a></li>
-	          <li><a href="#" id="2000">2mbps</a></li>
-	        </ul>
-	      </span>
-	    </h3>
-	    <div id="videolocal">
-	      <video id="myVideo" autoplay muted playsinline width="320" height="240" border="1"></video>
-	    </div>
-	  </section>
-	   <!-- 원격 비디오 -->
-	  <section id="remote-area">
-	    <h3>상대 화면</h3>
-	    <div class="remote-grid">
-	      <div class="remote-box" id="videoremote1"><span id="remote1" class="label hide"></span></div>
-	      <div class="remote-box" id="videoremote2"><span id="remote2" class="label hide"></span></div>
-	      <div class="remote-box" id="videoremote3"><span id="remote3" class="label hide"></span></div>
-	      <div class="remote-box" id="videoremote4"><span id="remote4" class="label hide"></span></div>
-	      <div class="remote-box" id="videoremote5"><span id="remote5" class="label hide"></span></div>
-	    </div>
-	  </section>
-	  
-	  <button onclick="navigate('main')">종료</button>
+		<h2>화상 통화</h2>
+
+		<div class="remote-grid" id="remoteContainer"></div>
+
+
+		<!-- 로컬 비디오 -->
+<!-- 		<section id="local-area"> -->
+<!-- 			<h3> -->
+<!-- 				내 화면 <span id="publisher" class="label hide"></span> <span -->
+<!-- 					class="bitrate-controls hide"> -->
+<!-- 					<button id="bitrateset">Bandwidth ▼</button> -->
+<!-- 					<ul id="bitrate" class="dropdown-menu"> -->
+<!-- 						<li><a href="#" id="0">No limit</a></li> -->
+<!-- 						<li><a href="#" id="128">128kbps</a></li> -->
+<!-- 						<li><a href="#" id="256">256kbps</a></li> -->
+<!-- 						<li><a href="#" id="512">512kbps</a></li> -->
+<!-- 						<li><a href="#" id="1024">1mbps</a></li> -->
+<!-- 						<li><a href="#" id="1500">1.5mbps</a></li> -->
+<!-- 						<li><a href="#" id="2000">2mbps</a></li> -->
+<!-- 					</ul> -->
+<!-- 				</span> -->
+<!-- 			</h3> -->
+<!-- 			<div id="videolocal"> -->
+<!-- 				<video id="myVideo" autoplay muted playsinline width="320" -->
+<!-- 					height="240" border="1"></video> -->
+<!-- 			</div> -->
+<!-- 		</section> -->
+		<!-- 원격 비디오 -->
+<!-- 		<section id="remote-area"> -->
+<!-- 			<h3>상대 화면</h3> -->
+<!-- 			<div class="remote-grid"> -->
+<!-- 				<div class="remote-box" id="videoremote1"> -->
+<!-- 					<span id="remote1" class="label hide"></span> -->
+<!-- 				</div> -->
+<!-- 				<div class="remote-box" id="videoremote2"> -->
+<!-- 					<span id="remote2" class="label hide"></span> -->
+<!-- 				</div> -->
+<!-- 				<div class="remote-box" id="videoremote3"> -->
+<!-- 					<span id="remote3" class="label hide"></span> -->
+<!-- 				</div> -->
+<!-- 				<div class="remote-box" id="videoremote4"> -->
+<!-- 					<span id="remote4" class="label hide"></span> -->
+<!-- 				</div> -->
+<!-- 				<div class="remote-box" id="videoremote5"> -->
+<!-- 					<span id="remote5" class="label hide"></span> -->
+<!-- 				</div> -->
+<!-- 			</div> -->
+<!-- 		</section> -->
+
+		<button onclick="navigate('main')">종료</button>
 	</div>
 
 
-<script>
+	<script>
 //video-room-view에 진입 시 초기화
 function navigate(view) {
     document.querySelectorAll('.view').forEach(div => div.classList.remove('active'));
@@ -672,145 +695,228 @@ function newRemoteFeed(id, display, audio, video) {
 			},
 			onremotestream: function(stream) {
 				Janus.debug("Remote feed #" + remoteFeed.rfindex + ", stream:", stream);
-				var addButtons = false;
-				if($('#remotevideo'+remoteFeed.rfindex).length === 0) {
-					addButtons = true;
-					
-					// 대기용 및 실제 비디오 요소
-					$('#videoremote'+remoteFeed.rfindex).append('<video class="rounded centered" id="waitingvideo' + remoteFeed.rfindex + '" width="100%" height="100%" />');
-					$('#videoremote'+remoteFeed.rfindex).append('<video class="rounded centered relative hide" id="remotevideo' + remoteFeed.rfindex + '" width="100%" height="100%" autoplay playsinline/>');
-					
-					// 해상도/비트레이트 표시용 span
-					$('#videoremote'+remoteFeed.rfindex).append(
-						'<span class="label label-primary hide" id="curres'+remoteFeed.rfindex+'" style="position: absolute; bottom: 0px; left: 0px; margin: 15px;"></span>' +
-						'<span class="label label-info hide" id="curbitrate'+remoteFeed.rfindex+'" style="position: absolute; bottom: 0px; right: 0px; margin: 15px;"></span>');
-					
-					// 볼륨 슬라이더 UI 추가
-			        $('#videoremote'+remoteFeed.rfindex).append(`
-			            <div style="margin-top: 6px;">
-			                🔊 <input type="range" id="volume-${remoteFeed.rfindex}" min="0" max="1" step="0.01" value="1" style="width: 100px;" />
-			            </div>
-			        `);
+				const rawId = remoteFeed.rfid || remoteFeed.getId();
+				const id = `rf${rawId}`;
+				const display = remoteFeed.rfdisplay || `user-${id}`;
 
-			        // 오디오 출력 장치 선택 UI 추가
-			        $('#videoremote'+remoteFeed.rfindex).append(`
-			            <div style="margin-top: 6px;">
-			                🎧 <select id="sink-${remoteFeed.rfindex}">
-			                    <option value="">기본 출력</option>
-			                </select>
-			            </div>
-			        `);
+				// 이미 있는 경우 제거 후 재생성 (중복 방지)
+				$(`#remote-box-${id}`).remove();
+				
+				// 비디오 영역 동적 생성
+				const remoteBox = $('<div>', {
+				  class: 'remote-box',
+				  id: `remote-box-${id}`,
+				  style: 'position: relative;'
+				});
+				
+				remoteBox.append(`<span class="label" id="label-${id}">${display}</span>`);
+				remoteBox.append(`<video id="remotevideo-${id}" autoplay playsinline width="100%" height="100%" class="rounded centered relative hide"></video>`);
+				remoteBox.append(`<span class="label label-primary hide" id="curres-${id}" style="position: absolute; bottom: 0px; left: 0px; margin: 5px;"></span>`);
+				remoteBox.append(`<span class="label label-info hide" id="curbitrate-${id}" style="position: absolute; bottom: 0px; right: 0px; margin: 5px;"></span>`);
+				
+				const audioControls = $(
+					'<div class="audio-controls" style="margin-top: 6px;">' +
+					'<label for="volume-' + id + '">&#128266;</label>' +
+					'<input type="range" id="volume-' + id + '" min="0" max="1" step="0.01" value="1" style="width: 100px;" />' +
+					'<br />' +
+					'<label for="sink-' + id + '">&#127911;</label>' +
+					'<select id="sink-' + id + '"><option value="">기본 출력</option></select>' +
+					'</div>'
+				);
+				
+// 				const audioControls = $(`
+// 				  <div class="audio-controls" style="margin-top: 6px;">
+// 				  	<label for="volume-${id}">&#128266;</label>
+// 				    <input type="range" id="volume-${id}" min="0" max="1" step="0.01" value="1" style="width: 100px;" />
+// 				    <br />
+// 				    <label for="sink-${id}">&#127911;</label>
+// 				    <select id="sink-${id}"><option value="">기본 출력</option></select>
+// 				  </div>
+// 				`);
+				remoteBox.append(audioControls);
+				
+				$('#remoteContainer').append(remoteBox);
+				
+				// 🔊 볼륨 조절
+				document.getElementById(`volume-${id}`).addEventListener('input', e => {
+					const vol = parseFloat(e.target.value);
+					const vid = document.getElementById(`remotevideo-${id}`);
+					if (vid) vid.volume = vol;
+				});
 
-			        // 볼륨 조절 이벤트 바인딩
-			        document.getElementById(`volume-${remoteFeed.rfindex}`).addEventListener('input', function(e) {
-			            const vol = parseFloat(e.target.value);
-			            const video = document.getElementById(`remotevideo${remoteFeed.rfindex}`);
-			            if (video) video.volume = vol;
-			        });
-					
-			        // 오디오 출력 장치 목록 채우기
-			        navigator.mediaDevices.enumerateDevices().then(devices => {
-			            const outputs = devices.filter(d => d.kind === 'audiooutput');
-			            const select = document.getElementById(`sink-${remoteFeed.rfindex}`);
-			            outputs.forEach(d => {
-			                const option = document.createElement('option');
-			                option.value = d.deviceId;
-			                option.textContent = d.label || d.deviceId;
-			                select.appendChild(option);
-			            });
-			        });
-
-			        // 오디오 출력 장치 선택 이벤트 바인딩
-			        document.getElementById(`sink-${remoteFeed.rfindex}`).addEventListener('change', function(e) {
-			            const sinkId = e.target.value;
-			            const videoEl = document.getElementById(`remotevideo${remoteFeed.rfindex}`);
-			            if (!videoEl.setSinkId) {
-			                alert("이 브라우저는 setSinkId를 지원하지 않습니다.");
-			                return;
-			            }
-			            videoEl.setSinkId(sinkId).then(() => {
-			                console.log(`Feed #${remoteFeed.rfindex}의 오디오 출력 장치가 ${sinkId || "기본"}로 설정됨`);
-			            }).catch(err => {
-			                console.error("setSinkId 오류:", err);
-			            });
-			        });
-			        
-					// 영상 준비 이벤트
-					$("#remotevideo"+remoteFeed.rfindex).bind("playing", function () {
-						if(remoteFeed.spinner)
-							remoteFeed.spinner.stop();
-						remoteFeed.spinner = null;
-						$('#waitingvideo'+remoteFeed.rfindex).remove();
-						if(this.videoWidth)
-							$('#remotevideo'+remoteFeed.rfindex).removeClass('hide').show();
-						var width = this.videoWidth;
-						var height = this.videoHeight;
-						$('#curres'+remoteFeed.rfindex).removeClass('hide').text(width+'x'+height).show();
-						if(Janus.webRTCAdapter.browserDetails.browser === "firefox") {
-							// Firefox Stable has a bug: width and height are not immediately available after a playing
-							setTimeout(function() {
-								var width = $("#remotevideo"+remoteFeed.rfindex).get(0).videoWidth;
-								var height = $("#remotevideo"+remoteFeed.rfindex).get(0).videoHeight;
-								$('#curres'+remoteFeed.rfindex).removeClass('hide').text(width+'x'+height).show();
-							}, 2000);
-						}
+				// 🎧 오디오 출력 장치 선택
+				navigator.mediaDevices.enumerateDevices().then(devices => {
+				    const outputs = devices.filter(d => d.kind === 'audiooutput');
+				    const select = document.getElementById(`sink-${id}`);
+				    outputs.forEach(device => {
+				    	const opt = document.createElement('option');
+				    	opt.value = device.deviceId;
+				    	opt.textContent = device.label || device.deviceId;
+				    	select.appendChild(opt);
+				    });
+				});
+				
+				document.getElementById(`sink-${id}`).addEventListener('change', function(e) {
+				    const sinkId = e.target.value;
+				    const video = document.getElementById(`remotevideo-${id}`);
+				    if (!video.setSinkId) {
+				      alert("이 브라우저는 setSinkId를 지원하지 않습니다.");
+				      return;
+				    }
+				    video.setSinkId(sinkId).then(() => {
+				    	console.log(`🔈 [${id}] 출력 장치 설정 완료: ${sinkId}`);
+					}).catch(err => {
+					   console.error("setSinkId 오류:", err);
 					});
-				}
+				});
 				
-				// 스트림 연결
-				Janus.attachMediaStream($('#remotevideo'+remoteFeed.rfindex).get(0), stream);
-				
-				// 비디오 트랙 없을 경우
-				var videoTracks = stream.getVideoTracks();
-				if(!videoTracks || videoTracks.length === 0) {
-					// No remote video
-					$('#remotevideo'+remoteFeed.rfindex).hide();
-					if($('#videoremote'+remoteFeed.rfindex + ' .no-video-container').length === 0) {
-						$('#videoremote'+remoteFeed.rfindex).append(
-							'<div class="no-video-container">' +
-								'<i class="fa fa-video-camera fa-5 no-video-icon"></i>' +
-								'<span class="no-video-text">No remote video available</span>' +
-							'</div>');
-					}
-				} else {
-					$('#videoremote'+remoteFeed.rfindex+ ' .no-video-container').remove();
-					$('#remotevideo'+remoteFeed.rfindex).removeClass('hide').show();
-				}
-				if(!addButtons)
-					return;
-				if(Janus.webRTCAdapter.browserDetails.browser === "chrome" || Janus.webRTCAdapter.browserDetails.browser === "firefox" ||
-						Janus.webRTCAdapter.browserDetails.browser === "safari") {
-					$('#curbitrate'+remoteFeed.rfindex).removeClass('hide').show();
-					bitrateTimer[remoteFeed.rfindex] = setInterval(function() {
-						// Display updated bitrate, if supported
-						var bitrate = remoteFeed.getBitrate();
-						$('#curbitrate'+remoteFeed.rfindex).text(bitrate);
-						// Check if the resolution changed too
-						var width = $("#remotevideo"+remoteFeed.rfindex).get(0).videoWidth;
-						var height = $("#remotevideo"+remoteFeed.rfindex).get(0).videoHeight;
-						if(width > 0 && height > 0)
-							$('#curres'+remoteFeed.rfindex).removeClass('hide').text(width+'x'+height).show();
+				// 🎥 영상 연결
+				const videoEl = document.getElementById(`remotevideo-${id}`);
+				Janus.attachMediaStream(videoEl, stream);
+
+				// 🎯 해상도/비트레이트 추적
+				$(videoEl).on("playing", function () {
+				    const w = this.videoWidth;
+				    const h = this.videoHeight;
+				    $(`#curres-${id}`).removeClass('hide').text(`${w}x${h}`);
+				});
+
+				if (!bitrateTimer[id]) {
+				    bitrateTimer[id] = setInterval(() => {
+				    	const bitrate = remoteFeed.getBitrate();
+				    	const w = videoEl.videoWidth;
+				    	const h = videoEl.videoHeight;
+				    	$(`#curbitrate-${id}`).removeClass('hide').text(bitrate);
+				      	if (w && h) $(`#curres-${id}`).removeClass('hide').text(`${w}x${h}`);
 					}, 1000);
 				}
+				
+				
+
+// 				var addButtons = false;
+// 				if($('#remotevideo'+remoteFeed.rfindex).length === 0) {
+// 					addButtons = true;
+					
+					
+// 			        // 볼륨 조절 이벤트 바인딩
+// 			        document.getElementById(`volume-${remoteFeed.rfindex}`).addEventListener('input', function(e) {
+// 			            const vol = parseFloat(e.target.value);
+// 			            const video = document.getElementById(`remotevideo${remoteFeed.rfindex}`);
+// 			            if (video) video.volume = vol;
+// 			        });
+					
+// 			        // 오디오 출력 장치 목록 채우기
+// 			        navigator.mediaDevices.enumerateDevices().then(devices => {
+// 			            const outputs = devices.filter(d => d.kind === 'audiooutput');
+// 			            const select = document.getElementById(`sink-${remoteFeed.rfindex}`);
+// 			            outputs.forEach(d => {
+// 			                const option = document.createElement('option');
+// 			                option.value = d.deviceId;
+// 			                option.textContent = d.label || d.deviceId;
+// 			                select.appendChild(option);
+// 			            });
+// 			        });
+
+// 			        // 오디오 출력 장치 선택 이벤트 바인딩
+// 			        document.getElementById(`sink-${remoteFeed.rfindex}`).addEventListener('change', function(e) {
+// 			            const sinkId = e.target.value;
+// 			            const videoEl = document.getElementById(`remotevideo${remoteFeed.rfindex}`);
+// 			            if (!videoEl.setSinkId) {
+// 			                alert("이 브라우저는 setSinkId를 지원하지 않습니다.");
+// 			                return;
+// 			            }
+// 			            videoEl.setSinkId(sinkId).then(() => {
+// 			                console.log(`Feed #${remoteFeed.rfindex}의 오디오 출력 장치가 ${sinkId || "기본"}로 설정됨`);
+// 			            }).catch(err => {
+// 			                console.error("setSinkId 오류:", err);
+// 			            });
+// 			        });
+			        
+// 					// 영상 준비 이벤트
+// 					$("#remotevideo"+remoteFeed.rfindex).bind("playing", function () {
+// 						if(remoteFeed.spinner)
+// 							remoteFeed.spinner.stop();
+// 						remoteFeed.spinner = null;
+// 						$('#waitingvideo'+remoteFeed.rfindex).remove();
+// 						if(this.videoWidth)
+// 							$('#remotevideo'+remoteFeed.rfindex).removeClass('hide').show();
+// 						var width = this.videoWidth;
+// 						var height = this.videoHeight;
+// 						$('#curres'+remoteFeed.rfindex).removeClass('hide').text(width+'x'+height).show();
+// 						if(Janus.webRTCAdapter.browserDetails.browser === "firefox") {
+// 							// Firefox Stable has a bug: width and height are not immediately available after a playing
+// 							setTimeout(function() {
+// 								var width = $("#remotevideo"+remoteFeed.rfindex).get(0).videoWidth;
+// 								var height = $("#remotevideo"+remoteFeed.rfindex).get(0).videoHeight;
+// 								$('#curres'+remoteFeed.rfindex).removeClass('hide').text(width+'x'+height).show();
+// 							}, 2000);
+// 						}
+// 					});
+// 				}
+				
+// 				// 스트림 연결
+// 				Janus.attachMediaStream($('#remotevideo'+remoteFeed.rfindex).get(0), stream);
+				
+// 				// 비디오 트랙 없을 경우
+// 				var videoTracks = stream.getVideoTracks();
+// 				if(!videoTracks || videoTracks.length === 0) {
+// 					// No remote video
+// 					$('#remotevideo'+remoteFeed.rfindex).hide();
+// 					if($('#videoremote'+remoteFeed.rfindex + ' .no-video-container').length === 0) {
+// 						$('#videoremote'+remoteFeed.rfindex).append(
+// 							'<div class="no-video-container">' +
+// 								'<i class="fa fa-video-camera fa-5 no-video-icon"></i>' +
+// 								'<span class="no-video-text">No remote video available</span>' +
+// 							'</div>');
+// 					}
+// 				} else {
+// 					$('#videoremote'+remoteFeed.rfindex+ ' .no-video-container').remove();
+// 					$('#remotevideo'+remoteFeed.rfindex).removeClass('hide').show();
+// 				}
+// 				if(!addButtons)
+// 					return;
+// 				if(Janus.webRTCAdapter.browserDetails.browser === "chrome" || Janus.webRTCAdapter.browserDetails.browser === "firefox" ||
+// 						Janus.webRTCAdapter.browserDetails.browser === "safari") {
+// 					$('#curbitrate'+remoteFeed.rfindex).removeClass('hide').show();
+// 					bitrateTimer[remoteFeed.rfindex] = setInterval(function() {
+// 						// Display updated bitrate, if supported
+// 						var bitrate = remoteFeed.getBitrate();
+// 						$('#curbitrate'+remoteFeed.rfindex).text(bitrate);
+// 						// Check if the resolution changed too
+// 						var width = $("#remotevideo"+remoteFeed.rfindex).get(0).videoWidth;
+// 						var height = $("#remotevideo"+remoteFeed.rfindex).get(0).videoHeight;
+// 						if(width > 0 && height > 0)
+// 							$('#curres'+remoteFeed.rfindex).removeClass('hide').text(width+'x'+height).show();
+// 					}, 1000);
+// 				}
 			},
 			oncleanup: function() {
 				Janus.log(" ::: Got a cleanup notification (remote feed " + id + ") :::");
-				if(remoteFeed.spinner)
-					remoteFeed.spinner.stop();
-				remoteFeed.spinner = null;
-				$('#remotevideo'+remoteFeed.rfindex).remove();
-				$('#waitingvideo'+remoteFeed.rfindex).remove();
-				$('#novideo'+remoteFeed.rfindex).remove();
-				$('#curbitrate'+remoteFeed.rfindex).remove();
-				$('#curres'+remoteFeed.rfindex).remove();
-				if(bitrateTimer[remoteFeed.rfindex])
-					clearInterval(bitrateTimer[remoteFeed.rfindex]);
-				bitrateTimer[remoteFeed.rfindex] = null;
-				remoteFeed.simulcastStarted = false;
-				$('#simulcast'+remoteFeed.rfindex).remove();
-				console.log("Unpublished");
-				$('#videolocal').empty();
-				$('#publish').show();
+
+				const id = remoteFeed.rfid || remoteFeed.getId();
+				$(`#remote-box-${id}`).remove();
+				if (bitrateTimer[id]) {
+				    clearInterval(bitrateTimer[id]);
+				    bitrateTimer[id] = null;
+				}
+				console.log(`👋 feed ${id} removed`);
+				
+// 				if(remoteFeed.spinner)
+// 					remoteFeed.spinner.stop();
+// 				remoteFeed.spinner = null;
+// 				$('#remotevideo'+remoteFeed.rfindex).remove();
+// 				$('#waitingvideo'+remoteFeed.rfindex).remove();
+// 				$('#novideo'+remoteFeed.rfindex).remove();
+// 				$('#curbitrate'+remoteFeed.rfindex).remove();
+// 				$('#curres'+remoteFeed.rfindex).remove();
+// 				if(bitrateTimer[remoteFeed.rfindex])
+// 					clearInterval(bitrateTimer[remoteFeed.rfindex]);
+// 				bitrateTimer[remoteFeed.rfindex] = null;
+// 				remoteFeed.simulcastStarted = false;
+// 				$('#simulcast'+remoteFeed.rfindex).remove();
+// 				console.log("Unpublished");
+// 				$('#videolocal').empty();
+// 				$('#publish').show();
 			}
 		});
 }
