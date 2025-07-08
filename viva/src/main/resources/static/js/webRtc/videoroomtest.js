@@ -69,8 +69,8 @@ $(document).ready(function() {
 											janus.destroy();		// 연결 종료
 										});
 
-                    Janus.log("Room List > ");
-                    //roomList();			// 방 목록 불러오기 함수 (현재 비활성화)
+				                    Janus.log("Room List > ");
+				                    //roomList();			// 방 목록 불러오기 함수 (현재 비활성화)
 								},
 								error: function(error) {			// 플러그인 연결 실패
 									Janus.error("  -- Error attaching plugin...", error);

@@ -376,24 +376,7 @@ footer {
 		    <div class="video-grid">
 		    	<!-- 내 화면 포함 -->
 				<div class="remote-grid" id="remoteContainer">
-					<!-- 로컬 비디오도 remote-box 포함 -->
-					<div class="remote-box" id="local-box">
-			          <span>내 화면</span>
-			          <video id="myVideo" autoplay muted playsinline></video>
-			
-			          <div class="bitrate-controls">
-			            <button id="bitrateset">Bandwidth ▼</button>
-			            <ul id="bitrate" class="dropdown-menu">
-			              <li><a href="#" id="0">No limit</a></li>
-			              <li><a href="#" id="128">128kbps</a></li>
-			              <li><a href="#" id="256">256kbps</a></li>
-			              <li><a href="#" id="512">512kbps</a></li>
-			              <li><a href="#" id="1024">1mbps</a></li>
-			              <li><a href="#" id="1500">1.5mbps</a></li>
-			              <li><a href="#" id="2000">2mbps</a></li>
-			            </ul>
-			          </div>
-			        </div>
+					<!-- 비디오 출력 영역 -->
 				</div>
 			</div>
 			
@@ -573,6 +556,38 @@ function createJanusSession() {
           });
         },
 
+     	// ICE 상태 변경 로그
+		iceState: function(state) {
+			Janus.log("ICE state changed to " + state);
+		},
+		
+		// 미디어 전송 상태 (audio/video) 로그
+		mediaState: function(medium, on) {
+			Janus.log("Janus " + (on ? "started" : "stopped") + " receiving our " + medium);
+		},
+		
+		// webRTC 연결 상태
+		webrtcState: function(on) {
+			Janus.log("Janus says our WebRTC PeerConnection is " + (on ? "up" : "down") + " now");
+			// 대역폭 조절 버튼영역 표시
+			$('#bitrate').parent().parent().removeClass('hide').show();
+			// 각 대역폭 메뉴 클릭 시 bitrate 설정 처리
+			$('#bitrate a').click(function() {
+				var id = $(this).attr("id");
+				var bitrate = parseInt(id)*1000;	// kbps -> bps 변환
+				if(bitrate === 0) {
+					Janus.log("Not limiting bandwidth via REMB");
+				} else {
+					Janus.log("Capping bandwidth to " + bitrate + " via REMB");
+				}
+				// 버튼 UI 텍스트 업데이트 및 메뉴 닫기
+				$('#bitrateset').html($(this).html() + '<span class="caret"></span>').parent().removeClass('open');
+				// janus 서버에 bitrate 설정 요청
+				sfutest.send({ message: { request: "configure", bitrate: bitrate }});
+				return false;
+			});
+		},
+        
         onmessage: function (msg, jsep) {
           
           console.log("참가한 방 번호: " + selectedRoomId);
@@ -607,7 +622,6 @@ function createJanusSession() {
             if (unpublished === 'ok') {
               // 본인 퇴장
               console.log("현재 feeds 목록:", feeds.map(f => f.rfid));
-//               console.log("퇴장 대상 ID:", msg.leaving || msg.unpublished);
               cleanupAllFeeds();
             } else {
               console.log("현재 feeds 목록:", feeds.map(f => f.rfid));
@@ -630,15 +644,96 @@ function createJanusSession() {
         },
 
         onlocalstream: function (stream) {		// 내 출력화면
-          const localBox = `
-            <div class="remote-box" id="local-box">
-              <span>내 화면</span>
-              <video id="localvideo" autoplay muted playsinline></video>
-            </div>`;
-          if (!document.getElementById('local-box')) {		// DOM 중복 삽입 방지
-            $('#remoteContainer').append(localBox);
-          }
+        	const remoteId = 'local'; // 고정 ID
+        	const videoElId = `remotevideo-${remoteId}`;
+        	const boxElId = `remote-box-${remoteId}`;
+        	const muteBtnId = `mute-btn-${remoteId}`;
+        	const volumeSliderId = `volume-slider-${remoteId}`;
+        	
+        	// 내 화면 영역
+        	if (!document.getElementById(boxElId)) {
+        	    const localBox = `
+        	      <div class="remote-box" id="${boxElId}">
+        	        <span>내 화면</span>
+        	        <video id="${videoElId}" autoplay muted playsinline></video>
+        	        <div style="margin-top: 4px;">
+        	          <button id="${muteBtnId}" style="cursor: pointer;">🔊</button>
+        	          <input type="range" min="0" max="2" step="0.01" value="1"
+        	            class="volume-slider" data-id="${remoteId}" id="${volumeSliderId}"
+        	            style="width: 80%; margin-top: 4px;" />
+        	        </div>
+
+        	        <!-- 🔻 Bandwidth 설정 (optional) -->
+        	        <div class="bitrate-controls">
+        	          <button id="bitrateset">Bandwidth ▼</button>
+        	          <ul id="bitrate" class="dropdown-menu">
+        	            <li><a href="#" id="0">No limit</a></li>
+        	            <li><a href="#" id="128">128kbps</a></li>
+        	            <li><a href="#" id="256">256kbps</a></li>
+        	            <li><a href="#" id="512">512kbps</a></li>
+        	            <li><a href="#" id="1024">1mbps</a></li>
+        	            <li><a href="#" id="1500">1.5mbps</a></li>
+        	            <li><a href="#" id="2000">2mbps</a></li>
+        	          </ul>
+        	        </div>
+        	      </div>`;
+        	    $('#remoteContainer').append(localBox);
+        	  }
           
+        	const videoElement = document.getElementById(videoElId);
+        	  Janus.attachMediaStream(videoElement, stream);
+
+        	  try {
+        	    const audioCtx = new AudioContext();
+        	    const source = audioCtx.createMediaStreamSource(stream);
+        	    const gainNode = audioCtx.createGain();
+        	    source.connect(gainNode).connect(audioCtx.destination);
+
+        	    audioContexts[remoteId] = {
+        	      ctx: audioCtx,
+        	      gainNode: gainNode,
+        	      muted: false
+        	    };
+
+        	    const slider = document.getElementById(volumeSliderId);
+        	    const muteBtn = document.getElementById(muteBtnId);
+
+        	    slider.addEventListener('input', e => {
+        	      const value = parseFloat(e.target.value);
+        	      const state = audioContexts[remoteId];
+        	      if (!state) return;
+
+        	      state.gainNode.gain.value = value;
+        	      if (value === 0) {
+        	        state.muted = true;
+        	        muteBtn.textContent = '🔇';
+        	      } else {
+        	        state.muted = false;
+        	        muteBtn.textContent = '🔊';
+        	      }
+        	    });
+
+        	    muteBtn.addEventListener('click', () => {
+        	      const state = audioContexts[remoteId];
+        	      if (!state) return;
+
+        	      const slider = document.getElementById(volumeSliderId);
+        	      if (state.muted) {
+        	        // 음소거 해제
+        	        const restoreVolume = parseFloat(slider.value) || 1.0;
+        	        state.gainNode.gain.value = restoreVolume;
+        	        muteBtn.textContent = '🔊';
+        	      } else {
+        	        // 음소거
+        	        state.gainNode.gain.value = 0.0;
+        	        muteBtn.textContent = '🔇';
+        	      }
+        	      state.muted = !state.muted;
+        	    });
+        	  } catch (err) {
+        	    console.warn("⚠️ local stream audio 제어 실패", err);
+        	  }
+        	
           // stream이 비어있는 경우에도 attachMediaStream 처리 (검은 화면 표시)
           Janus.attachMediaStream(document.getElementById('localvideo'), stream);
         },
@@ -648,7 +743,16 @@ function createJanusSession() {
         error: function (err) {
           console.error("Janus 오류", err);
         }
+      });	// end videoroom 플러그인
+      
+      janus.attach({
+    	  plugin: "janus.plugin.textroom",
+    	  success: function(pluginHandle) {
+    	  	textroom = pluginHandle;
+    	    // 채팅방 join 처리
+    	  }
       });
+      
     },
 
     destroyed: cleanupAllFeeds
@@ -672,8 +776,6 @@ function publishOwnFeed() {
     	console.warn("📛 내 stream publish 실패", error.message);
 
     	try{
-    		
-    	
 	    	// ⚠️ 캠/마이크 없음 → 빈 dummyStream 출력
 	        const dummyStream = getSilentDummyStream();
 	
@@ -839,22 +941,37 @@ function newRemoteFeed(id, display) {
         const slider = document.getElementById(volumeSliderId);
         slider.addEventListener('input', e => {
           const value = parseFloat(e.target.value);
-          audioContexts[remoteId].gainNode.gain.value = value;
-          // 음소거 상태에서도 슬라이더 조정되면 해제
-          if (audioContexts[remoteId].muted && value > 0) {
-            audioContexts[remoteId].muted = false;
-            document.getElementById(muteBtnId).textContent = '🔊';
+          
+          state.gainNode.gain.value = value;
+          if (value === 0) {
+            state.muted = true;
+            muteBtn.textContent = '🔇';
+          } else {
+            state.muted = false;
+            muteBtn.textContent = '🔊';
           }
+//           audioContexts[remoteId].gainNode.gain.value = value;
+//           // 음소거 상태에서도 슬라이더 조정되면 해제
+//           if (audioContexts[remoteId].muted && value > 0) {
+//             audioContexts[remoteId].muted = false;
+//             document.getElementById(muteBtnId).textContent = '🔊';
+//           }
         });
         
      	// 음소거 버튼 제어
         const muteBtn = document.getElementById(muteBtnId);
         muteBtn.addEventListener('click', () => {
           const state = audioContexts[remoteId];
+          const slider = document.getElementById(volumeSliderId);
+          if (!state || !slider) return;
+          
           if (state.muted) {
-            state.gainNode.gain.value = parseFloat(slider.value) || 1.0;
+        	// 음소거 해제
+        	const restoreVolume = parseFloat(slider.value) || 1.0;
+            state.gainNode.gain.value = restoreVolume;
             muteBtn.textContent = '🔊';
           } else {
+        	// 음소거
             state.gainNode.gain.value = 0.0;
             muteBtn.textContent = '🔇';
           }
@@ -929,6 +1046,17 @@ document.getElementById("exitBtn").addEventListener("click", function () {
 		navigate('main'); // navigate는 세션정리 없이 화면 전환만
 });
 
+// 내 캠 음소거
+function toggleMute() {
+	const muted = sfutest.isAudioMuted();
+	if (muted) {
+	    sfutest.unmuteAudio();
+	    $('#mute').html("Mute");
+	} else {
+	    sfutest.muteAudio();
+	    $('#mute').html("Unmute");
+	}
+}
 
 </script>
 
