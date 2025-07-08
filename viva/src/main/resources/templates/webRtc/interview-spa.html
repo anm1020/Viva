@@ -188,6 +188,13 @@ footer {
 	min-height: 150px;
 }
 
+.remote-box video {
+  background-color: black;
+  width: 100%;
+  height: 240px; /* 또는 auto, fixed 등 */
+  object-fit: cover;
+}
+
 .bitrate-controls {
 	margin-left: 10px;
 	display: inline-block;
@@ -356,7 +363,14 @@ function navigate(view) {
     document.getElementById(view + '-view').classList.add('active');
 
     if (view === 'list') loadRoomList();
-    if (view === 'videoroom') initJanus(); // 화상통화 화면 진입 시 초기화
+    if (view === 'videoroom'){
+    	initJanus(); // 화상통화 화면 진입 시 초기화
+    }else if (janus) {
+        janus.destroy(); // 다른 view로 전환 시 세션 정리
+        janus = null;
+        sfutest = null;
+        feeds = [];
+    }
 }
 
 //방 생성
@@ -709,7 +723,7 @@ function newRemoteFeed(id, display, audio, video) {
 				const display = remoteFeed.rfdisplay || `user-${id}`;
 
 				// 이미 있는 경우 제거 후 재생성 (중복 방지)
-				$(`#remote-box-${id}`).remove();
+// 				$(`#remote-box-${id}`).remove();
 				
 				// 비디오 영역 동적 생성
 				const remoteBox = $('<div>', {
@@ -806,16 +820,17 @@ function newRemoteFeed(id, display, audio, video) {
 				const videoTracks = stream.getVideoTracks();
 				console.log("🎥 videoTracks", videoTracks);
 				if (!videoTracks || videoTracks.length === 0) {
-				  // No video: hide the video element
-				  $(videoEl).hide();
+					  // 비디오 트랙이 없으면 검은 배경의 placeholder만 유지
+					  const videoEl = document.getElementById(`remotevideo-${id}`);
+					  $(videoEl)
+					    .removeClass('hide')
+					    .css({
+					      backgroundColor: 'black',
+					      display: 'block'
+					    });
 
-				  // Optional: 표시 영역에 '영상 없음' 문구 추가
-				  remoteBox.append(`
-				    <div class="no-video-container">
-				      <i class="fa fa-video-camera fa-5 no-video-icon"></i>
-				      <span class="no-video-text">상대방의 영상 없음</span>
-				    </div>
-				  `);
+					  // 플레이 이벤트 무시 처리
+					  $(videoEl).off('playing');
 				}
 
 
@@ -917,32 +932,48 @@ function newRemoteFeed(id, display, audio, video) {
 // 				}
 			},
 			oncleanup: function() {
-				Janus.log(" ::: Got a cleanup notification (remote feed " + id + ") :::");
+				const rawId = remoteFeed.rfid || remoteFeed.getId();
+			    const index = remoteFeed.rfindex;
+			    const id = `rf${rawId}`;
 
-				const id = remoteFeed.rfid || remoteFeed.getId();
+			    Janus.log(" ::: Got a cleanup notification (remote feed " + id + ") :::");
+			    
+			    // remote box DOM 제거
 				$(`#remote-box-${id}`).remove();
+			    
+				 // 비트레이트 타이머 제거
 				if (bitrateTimer[id]) {
 				    clearInterval(bitrateTimer[id]);
 				    bitrateTimer[id] = null;
 				}
-				console.log(`👋 feed ${id} removed`);
 				
-// 				if(remoteFeed.spinner)
-// 					remoteFeed.spinner.stop();
-// 				remoteFeed.spinner = null;
-// 				$('#remotevideo'+remoteFeed.rfindex).remove();
-// 				$('#waitingvideo'+remoteFeed.rfindex).remove();
-// 				$('#novideo'+remoteFeed.rfindex).remove();
-// 				$('#curbitrate'+remoteFeed.rfindex).remove();
-// 				$('#curres'+remoteFeed.rfindex).remove();
-// 				if(bitrateTimer[remoteFeed.rfindex])
-// 					clearInterval(bitrateTimer[remoteFeed.rfindex]);
-// 				bitrateTimer[remoteFeed.rfindex] = null;
-// 				remoteFeed.simulcastStarted = false;
-// 				$('#simulcast'+remoteFeed.rfindex).remove();
-// 				console.log("Unpublished");
-// 				$('#videolocal').empty();
-// 				$('#publish').show();
+				// Spinner 정리
+				if(remoteFeed.spinner)
+					remoteFeed.spinner.stop();
+				remoteFeed.spinner = null;
+				
+				// feeds 배열에서 해당 feed 제거
+				feeds[remoteFeed.rfindex] = null;
+				
+				// 기타 남은 UI 요소 제거
+				$('#remotevideo'+remoteFeed.rfindex).remove();
+				$('#waitingvideo'+remoteFeed.rfindex).remove();
+				$('#novideo'+remoteFeed.rfindex).remove();
+				$('#curbitrate'+remoteFeed.rfindex).remove();
+				$('#curres'+remoteFeed.rfindex).remove();
+				if(bitrateTimer[remoteFeed.rfindex])
+					clearInterval(bitrateTimer[remoteFeed.rfindex]);
+				bitrateTimer[remoteFeed.rfindex] = null;
+				remoteFeed.simulcastStarted = false;
+				$('#simulcast'+remoteFeed.rfindex).remove();
+				console.log("Unpublished");
+				$('#videolocal').empty();
+				$('#publish').show();
+				$('#remoteContainer').empty();
+
+				
+				console.log(`👋 feed ${id} cleanup 완료`);
+				
 			}
 		});
 }
