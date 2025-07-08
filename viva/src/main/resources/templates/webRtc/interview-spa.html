@@ -675,13 +675,67 @@ function newRemoteFeed(id, display, audio, video) {
 				var addButtons = false;
 				if($('#remotevideo'+remoteFeed.rfindex).length === 0) {
 					addButtons = true;
-					// No remote video yet
+					
+					// 대기용 및 실제 비디오 요소
 					$('#videoremote'+remoteFeed.rfindex).append('<video class="rounded centered" id="waitingvideo' + remoteFeed.rfindex + '" width="100%" height="100%" />');
 					$('#videoremote'+remoteFeed.rfindex).append('<video class="rounded centered relative hide" id="remotevideo' + remoteFeed.rfindex + '" width="100%" height="100%" autoplay playsinline/>');
+					
+					// 해상도/비트레이트 표시용 span
 					$('#videoremote'+remoteFeed.rfindex).append(
 						'<span class="label label-primary hide" id="curres'+remoteFeed.rfindex+'" style="position: absolute; bottom: 0px; left: 0px; margin: 15px;"></span>' +
 						'<span class="label label-info hide" id="curbitrate'+remoteFeed.rfindex+'" style="position: absolute; bottom: 0px; right: 0px; margin: 15px;"></span>');
-					// Show the video, hide the spinner and show the resolution when we get a playing event
+					
+					// 볼륨 슬라이더 UI 추가
+			        $('#videoremote'+remoteFeed.rfindex).append(`
+			            <div style="margin-top: 6px;">
+			                🔊 <input type="range" id="volume-${remoteFeed.rfindex}" min="0" max="1" step="0.01" value="1" style="width: 100px;" />
+			            </div>
+			        `);
+
+			        // 오디오 출력 장치 선택 UI 추가
+			        $('#videoremote'+remoteFeed.rfindex).append(`
+			            <div style="margin-top: 6px;">
+			                🎧 <select id="sink-${remoteFeed.rfindex}">
+			                    <option value="">기본 출력</option>
+			                </select>
+			            </div>
+			        `);
+
+			        // 볼륨 조절 이벤트 바인딩
+			        document.getElementById(`volume-${remoteFeed.rfindex}`).addEventListener('input', function(e) {
+			            const vol = parseFloat(e.target.value);
+			            const video = document.getElementById(`remotevideo${remoteFeed.rfindex}`);
+			            if (video) video.volume = vol;
+			        });
+					
+			        // 오디오 출력 장치 목록 채우기
+			        navigator.mediaDevices.enumerateDevices().then(devices => {
+			            const outputs = devices.filter(d => d.kind === 'audiooutput');
+			            const select = document.getElementById(`sink-${remoteFeed.rfindex}`);
+			            outputs.forEach(d => {
+			                const option = document.createElement('option');
+			                option.value = d.deviceId;
+			                option.textContent = d.label || d.deviceId;
+			                select.appendChild(option);
+			            });
+			        });
+
+			        // 오디오 출력 장치 선택 이벤트 바인딩
+			        document.getElementById(`sink-${remoteFeed.rfindex}`).addEventListener('change', function(e) {
+			            const sinkId = e.target.value;
+			            const videoEl = document.getElementById(`remotevideo${remoteFeed.rfindex}`);
+			            if (!videoEl.setSinkId) {
+			                alert("이 브라우저는 setSinkId를 지원하지 않습니다.");
+			                return;
+			            }
+			            videoEl.setSinkId(sinkId).then(() => {
+			                console.log(`Feed #${remoteFeed.rfindex}의 오디오 출력 장치가 ${sinkId || "기본"}로 설정됨`);
+			            }).catch(err => {
+			                console.error("setSinkId 오류:", err);
+			            });
+			        });
+			        
+					// 영상 준비 이벤트
 					$("#remotevideo"+remoteFeed.rfindex).bind("playing", function () {
 						if(remoteFeed.spinner)
 							remoteFeed.spinner.stop();
@@ -702,7 +756,11 @@ function newRemoteFeed(id, display, audio, video) {
 						}
 					});
 				}
+				
+				// 스트림 연결
 				Janus.attachMediaStream($('#remotevideo'+remoteFeed.rfindex).get(0), stream);
+				
+				// 비디오 트랙 없을 경우
 				var videoTracks = stream.getVideoTracks();
 				if(!videoTracks || videoTracks.length === 0) {
 					// No remote video
