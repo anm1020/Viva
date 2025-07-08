@@ -431,6 +431,7 @@ function formatDate(dateString) {
 function enterRoom(roomId, name) {
   selectedRoomId = roomId;
   displayName = name;
+  console.log("선택된 방 번호 : " + selectedRoomId);
   navigate('videoroom');
 }
 
@@ -456,7 +457,7 @@ function createJanusSession() {
 	  }
 	  feeds = [];
 	
-  janus = new Janus({
+    janus = new Janus({
     server: server,
     success: function () {
       janus.attach({
@@ -475,6 +476,9 @@ function createJanusSession() {
         },
 
         onmessage: function (msg, jsep) {
+          
+          console.log("참가한 방 번호: " + selectedRoomId);
+          // 방 최초 참가시
           if (msg.videoroom === "joined") {
             mypvtid = msg.private_id;
             publishOwnFeed();
@@ -486,6 +490,32 @@ function createJanusSession() {
                 }
               });
             }
+          }
+          
+          // 새로운 유저가 입장한 경우
+          if (msg.videoroom === "event" && msg.publishers) {
+        	  msg.publishers.forEach(pub => {
+        	    if (!feeds.find(f => f.rfid === pub.id)) {
+        	      newRemoteFeed(pub.id, pub.display);
+        	    }
+        	 });
+          }
+
+          // 다른 유저가 퇴장한 경우
+          if (event === "event" && msg.unpublished) {
+            const unpublished = msg.unpublished;
+            if (unpublished === 'ok') {
+              // 본인 퇴장
+              cleanupAllFeeds();
+            } else {
+              console.log(`🧹 publisher ${unpublished} 퇴장`);
+              removeRemoteFeed(unpublished);
+            }
+          }
+
+          if (event === "event" && msg.leaving) {
+            console.log(`🚪 publisher ${msg.leaving} 나감`);
+            removeRemoteFeed(msg.leaving);
           }
 
           if (jsep) sfutest.handleRemoteJsep({ jsep });
