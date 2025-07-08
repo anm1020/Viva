@@ -309,27 +309,27 @@ footer {
 
 
 		<!-- 로컬 비디오 -->
-<!-- 		<section id="local-area"> -->
-<!-- 			<h3> -->
-<!-- 				내 화면 <span id="publisher" class="label hide"></span> <span -->
-<!-- 					class="bitrate-controls hide"> -->
-<!-- 					<button id="bitrateset">Bandwidth ▼</button> -->
-<!-- 					<ul id="bitrate" class="dropdown-menu"> -->
-<!-- 						<li><a href="#" id="0">No limit</a></li> -->
-<!-- 						<li><a href="#" id="128">128kbps</a></li> -->
-<!-- 						<li><a href="#" id="256">256kbps</a></li> -->
-<!-- 						<li><a href="#" id="512">512kbps</a></li> -->
-<!-- 						<li><a href="#" id="1024">1mbps</a></li> -->
-<!-- 						<li><a href="#" id="1500">1.5mbps</a></li> -->
-<!-- 						<li><a href="#" id="2000">2mbps</a></li> -->
-<!-- 					</ul> -->
-<!-- 				</span> -->
-<!-- 			</h3> -->
-<!-- 			<div id="videolocal"> -->
-<!-- 				<video id="myVideo" autoplay muted playsinline width="320" -->
-<!-- 					height="240" border="1"></video> -->
-<!-- 			</div> -->
-<!-- 		</section> -->
+		<section id="local-area">
+			<h3>
+				내 화면 <span id="publisher" class="label hide"></span> <span
+					class="bitrate-controls hide">
+					<button id="bitrateset">Bandwidth ▼</button>
+					<ul id="bitrate" class="dropdown-menu">
+						<li><a href="#" id="0">No limit</a></li>
+						<li><a href="#" id="128">128kbps</a></li>
+						<li><a href="#" id="256">256kbps</a></li>
+						<li><a href="#" id="512">512kbps</a></li>
+						<li><a href="#" id="1024">1mbps</a></li>
+						<li><a href="#" id="1500">1.5mbps</a></li>
+						<li><a href="#" id="2000">2mbps</a></li>
+					</ul>
+				</span>
+			</h3>
+			<div id="videolocal">
+				<video id="myVideo" autoplay muted playsinline width="320"
+					height="240" border="1"></video>
+			</div>
+		</section>
 		<!-- 원격 비디오 -->
 <!-- 		<section id="remote-area"> -->
 <!-- 			<h3>상대 화면</h3> -->
@@ -373,6 +373,8 @@ function navigate(view) {
             janus.destroy();         // Janus 세션 종료
             janus = null;
             sfutest = null;
+            feeds.length = 0;
+            bitrateTimer = {};
             mypvtid = null;
             selectedRoomId = null;
             displayName = null;
@@ -456,24 +458,12 @@ function loadRoomList() {
 
                 // 이벤트 등록
                 div.addEventListener("click", () => enterRoom(room.intrRoomId, room.hostId));
-
-//                 const html = `
-//                     <div class="room-card" onclick="enterRoom(${room.intrRoomId}, '${room.hostId}')">
-//                         <div>
-//                             <span class="room-status-dot ${statusClass}"></span>
-//                             <span>${room.intrRoomId}</span>
-//                         </div>
-//                         <div class="room-title">${room.intrRoomTitle}</div>
-//                         <div class="room-info">${room.hostId}님의 방</div>
-//                         <div class="room-info">생성: ${formatDate(room.createdDt)}</div>
-//                         <div class="room-icon">🔒 🔓</div>
-//                     </div>
-//                 `;
                 listEl.appendChild(div);
             });
         });
 }
 
+// 날짜 포맷
 function formatDate(dateString) {
     const date = new Date(dateString);
     return date.toLocaleString("ko-KR", {
@@ -491,6 +481,10 @@ function enterRoom(roomId, hostId) {
 
 // 브라우저 WebRTC 지원 확인 및 janus 초기화
 function initJanus() {
+	$('#remoteContainer').empty(); // 모든 UI 리셋
+	feeds.length = 0;
+	bitrateTimer = {};
+	
     if (!Janus.isWebrtcSupported()) {
         alert("WebRTC를 지원하지 않는 브라우저입니다.");
         return;
@@ -608,7 +602,7 @@ function createJanusSession() {
                         mypvtid = msg.private_id;
                         publishOwnFeed(true);
                         
-                    	// 🔥 로컬 비디오 영역은 항상 생성 (검은 화면이라도)
+                    	// 로컬 비디오 영역은 항상 생성 (검은 화면이라도)
                         if (!document.getElementById('local-box')) {
                             const localBox = $('<div>', {
                                 class: 'remote-box', id: 'local-box'
@@ -630,8 +624,28 @@ function createJanusSession() {
                     }
                 },
 
+                // 내부에 DOM이 없는 경우 추가 생성 후 attach
                 onlocalstream: function (stream) {
                     Janus.attachMediaStream(document.getElementById("myVideo"), stream);
+                    const localBoxId = 'local-box';
+                    if (!document.getElementById(localBoxId)) {
+                      const localBox = $('<div>', {
+                        class: 'remote-box',
+                        id: localBoxId
+                      });
+                      localBox.append(`<span class="label">내 화면</span>`);
+                      localBox.append(`<video id="localvideo" autoplay muted playsinline class="rounded centered relative"></video>`);
+                      localBox.append(`<span class="label label-primary" id="local-curres"></span>`);
+                      $('#remoteContainer').append(localBox);
+                    }
+
+                    const localVideo = document.getElementById('localvideo');
+                    if (localVideo) {
+                      Janus.attachMediaStream(localVideo, stream);
+                      localVideo.style.backgroundColor = 'black';
+                    } else {
+                      console.warn("❌ localvideo 요소가 없음: attach 실패 방지");
+                    }
                 }
             });
         },
@@ -678,10 +692,10 @@ function publishOwnFeed(useAudio) {
 function newRemoteFeed(id, display, audio, video) {
 	// A new feed has been published, create a new plugin handle and attach to it as a subscriber
 	
-	const remoteBoxId = `remote-box-${id}`;
-	if (document.getElementById(remoteBoxId)) {
-	    console.warn("🔁 remote box already exists. Skip duplication:", id);
-	    return; // 중복 방지
+	// 이미 같은 feed 존재 시 중복 생성 방지
+	if (feeds.some(f => f && f.rfid === id)) {
+	  console.warn(`⛔ 중복 feed (${id}) 방지`);
+	  return;
 	}
 	
 	var remoteFeed = null;
