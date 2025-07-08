@@ -4,8 +4,10 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,6 +23,7 @@ import com.example.demo.security.CustomUserDetails;
 //import com.example.demo.model.entity.User.UserRole;
 import com.example.demo.service.UserService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
@@ -29,6 +32,9 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
 	
 	private final UserService service;
+
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 	
 	// 로그인 및 회원가입 메인
 	@GetMapping("/loginmain")
@@ -217,17 +223,40 @@ public class UserController {
 		
 		
 		// Service에서 현재 로그인 사용자의 정보 조회
-		@GetMapping("/intrMypage")
+//		@GetMapping("/intrMypage")
+//		public String mypage(Model model, Principal principal) {
+//		    // principal.getName() == 현재 로그인한 아이디(또는 PK)
+//		    String userId = principal.getName();
+//
+//		    // DB에서 유저 정보 조회 (UserService가 Repository 사용)
+//		    Users users = service.findByUserId(userId);
+//		    model.addAttribute("users", users);
+//
+//		    return "member/intrMypage"; // mypage.html (Thymeleaf)
+//		}
+		
+		// Service에서 현재 로그인 사용자의 정보 조회
+		@GetMapping("/mypage")
 		public String mypage(Model model, Principal principal) {
-		    // principal.getName() == 현재 로그인한 아이디(또는 PK)
+		    // 현재 로그인한 아이디
 		    String userId = principal.getName();
 
-		    // DB에서 유저 정보 조회 (UserService가 Repository 사용)
+		    // DB에서 유저 정보 조회
 		    Users users = service.findByUserId(userId);
 		    model.addAttribute("users", users);
 
-		    return "member/intrMypage"; // mypage.html (Thymeleaf)
+		    // user_role에 따라 다른 뷰 리턴
+		    if ("mem".equals(users.getUserRole())) {
+		        return "mypage/memMypage";      // 취준생 마이페이지 (memMypage.html)
+		    } else if ("intr".equals(users.getUserRole())) {
+		        return "mypage/intrMypage";     // 면접관 마이페이지 (intrMypage.html)
+		    } else {
+		        // 예외: 권한 이상/없는 경우
+		        return "error/403"; // 혹은 공통 에러 페이지
+		    }
 		}
+		
+		
 		
 		@GetMapping("/memberEdit")
 		public String showEditForm(Model model, Principal principal,
@@ -279,12 +308,14 @@ public class UserController {
 		    // 3. 모델에 담아서 폼으로 전달
 		    model.addAttribute("users", users);
 
-		    return "member/memberEdit"; // editMember.html (Thymeleaf)
+		    return "mypage/memberEdit"; // editMember.html (Thymeleaf)
 		}
 		
 		@PostMapping("/memberUpdate")
 		public String updateMemberInfo(@ModelAttribute("users") Users users, 
 										@RequestParam(name = "skill", required = false) List<String> UserSkill,
+										@RequestParam(name = "changePass", required = false) String changePass,
+										@RequestParam(name = "currentPass", required = false) String currentPass,
 										Principal principal, RedirectAttributes rttr) {
 		    // 1. 로그인 사용자 확인(보안)
 		    String userId = principal.getName();
@@ -304,14 +335,6 @@ public class UserController {
 		                    (users.getUserCareer2() != null ? users.getUserCareer2() : "");
 		    dbUser.setUserCareer(career);
 		    
-		    // 5. 기술(체크박스 여러개 → 콤마로 합쳐서 저장)
-//		    if (users.getUserSkill() != null && users.getUserSkill().length() > 0) {
-//		        String allSkill = String.join(",", users.getUserSkill());
-//		        dbUser.setUserSkill(allSkill);
-//		    } else {
-//		        dbUser.setUserSkill("");
-//		    }
-		    
 		    // 기술 String → 배열로 변환해서 model에 "userSkillArr"로 전달: 체크박스의 th:checked에 사용됨.
 		    if (UserSkill != null && !UserSkill.isEmpty()) {
 		        String allSkill = String.join(",", UserSkill);
@@ -320,9 +343,11 @@ public class UserController {
 		        dbUser.setUserSkill("");
 		    }
 		    
+		    // db비번(현재비번)과 새 비번 일치시 dbUser에 담아서 저장
+		    if (changePass != null && !changePass.isBlank()) {
+		        dbUser.setUserPass(changePass); // 암호화 쓸 땐 encoder 사용
+		    }
 		    // 3. 수정 가능한 필드만 업데이트
-		    dbUser.setUserBirth(users.getUserBirth());
-		    dbUser.setUserGender(users.getUserGender());
 		    dbUser.setUserAdd(users.getUserAdd());
 		    dbUser.setUserAddDetail(users.getUserAddDetail());
 
@@ -331,7 +356,63 @@ public class UserController {
 
 		    // 5. 성공 메시지 + 마이페이지로 이동
 		    rttr.addFlashAttribute("editSuccess", "회원정보가 수정되었습니다!");
-		    return "redirect:/intrMypage"; // or memMypage (role에 따라)
+		    return "redirect:/mypage"; // or memMypage (role에 따라)
+		}
+		
+		// 비번 변경 모달 에러 메세지
+		@PostMapping("/checkPassword")
+		@ResponseBody
+		public boolean checkPassword(@RequestParam("currentPass") String currentPass, Principal principal) {
+		    String userId = principal.getName();
+		    Users dbUser = service.findByUserId(userId);
+		    return dbUser.getUserPass().equals(currentPass); // 암호화 시 passwordEncoder.matches 사용
+		}
+		
+		// 회원 탈퇴 모달
+		// 회원 탈퇴(비활성화) 요청을 처리하는 POST 방식의 엔드포인트
+		@PostMapping("/member/withdraw")
+		@ResponseBody
+		public String withdrawMember(@RequestParam("currentPass") String currentPass, Principal principal,
+									 HttpServletRequest request) {
+		    // 1. 현재 로그인한 사용자의 아이디(유저ID) 얻기
+		    String userId = principal.getName();
+
+		    // 2. DB에서 로그인한 회원의 전체 정보 가져오기
+		    Users dbUser = service.findByUserId(userId);
+
+		    // 3. 예외처리: 해당 회원이 DB에 존재하지 않을 경우(비정상 접근 등)
+		    if(dbUser == null) {
+		        return "fail"; // 클라이언트에 "fail" 반환 → JS에서 안내
+		    }
+
+		    // 4. 비밀번호 검증
+		    // 4-1. 암호화 없이 평문이면, matches는 단순 문자열 비교 (NoOpPasswordEncoder 사용)
+		    // 4-2. 입력한 현재 비밀번호가 DB의 비밀번호와 일치하지 않을 경우
+		    if(!passwordEncoder.matches(currentPass, dbUser.getUserPass())) {
+		        return "fail"; // "비밀번호가 틀립니다" 안내
+		    }
+
+		    // 5. 실제 탈퇴 처리 (계정 비활성화: user_type = 'N')
+		    dbUser.setUserType("N"); // 상태 변경
+		    service.save(dbUser); // 변경된 객체를 DB에 저장(업데이트)
+
+		    // 로그아웃 처리
+		    request.getSession().invalidate(); // 세션 무효화
+		    SecurityContextHolder.clearContext(); // Spring Security 인증정보 삭제.인증 세션 무효화 (로그아웃 효과)
+		    
+		    // 7. 성공시 "success" 반환 → JS에서 안내 후 메인페이지로 이동
+		    return "success";
+		}
+		
+		// 취업사이트 버튼(마이페이지에)
+		@GetMapping("/jobsite")
+		public String jobSitesPage() {
+		    return "mypage/jobsite"; // jobSites.html
+		}
+		
+		@GetMapping("/memReservation")
+		public String memReservation() {
+		    return "mypage/memReservation"; // jobSites.html
 		}
 		
 }
