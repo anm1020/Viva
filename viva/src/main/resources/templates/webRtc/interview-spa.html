@@ -215,6 +215,15 @@ footer {
 #bitrateset:hover+.dropdown-menu, .dropdown-menu:hover {
 	display: block;
 }
+
+.remote-box video {
+  width: 100%;
+  max-width: 480px;       /* 👈 원하는 너비 제한 */
+  height: auto;
+  aspect-ratio: 4 / 3;     /* 또는 16 / 9 등 비율 고정 */
+  object-fit: cover;       /* contain or cover */
+}
+
 </style>
 <!-- 외부 라이브러리 -->
 <script
@@ -772,7 +781,10 @@ function newRemoteFeed(id, display, audio, video) {
 				
 				// 🎥 영상 연결
 				const videoEl = document.getElementById(`remotevideo-${id}`);
+				console.log("현재 여기");
 				Janus.attachMediaStream(videoEl, stream);
+				videoEl.classList.remove('hide');     // 👈 반드시 필요
+				videoEl.style.display = 'block';      // 👈 추가적으로 명시
 
 				// 🎯 해상도/비트레이트 추적
 				$(videoEl).on("playing", function () {
@@ -791,7 +803,21 @@ function newRemoteFeed(id, display, audio, video) {
 					}, 1000);
 				}
 				
-				
+				const videoTracks = stream.getVideoTracks();
+				console.log("🎥 videoTracks", videoTracks);
+				if (!videoTracks || videoTracks.length === 0) {
+				  // No video: hide the video element
+				  $(videoEl).hide();
+
+				  // Optional: 표시 영역에 '영상 없음' 문구 추가
+				  remoteBox.append(`
+				    <div class="no-video-container">
+				      <i class="fa fa-video-camera fa-5 no-video-icon"></i>
+				      <span class="no-video-text">상대방의 영상 없음</span>
+				    </div>
+				  `);
+				}
+
 
 // 				var addButtons = false;
 // 				if($('#remotevideo'+remoteFeed.rfindex).length === 0) {
