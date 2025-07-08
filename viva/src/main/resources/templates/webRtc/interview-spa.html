@@ -356,7 +356,7 @@ footer {
 	</div>
 
 
-	<script>
+<script>
 //video-room-view에 진입 시 초기화
 function navigate(view) {
     document.querySelectorAll('.view').forEach(div => div.classList.remove('active'));
@@ -364,6 +364,7 @@ function navigate(view) {
 
     if (view === 'list') loadRoomList();
     if (view === 'videoroom'){
+        cleanupAllFeeds();       // remote feed + timer 제거
     	initJanus(); // 화상통화 화면 진입 시 초기화
     }else if (janus) {
     	// ✅ 방 나가기 시 전체 정리
@@ -401,6 +402,7 @@ function cleanupAllFeeds() {
     }
 
     // 원격 비디오 DOM 제거
+    $('#local-box').remove();               // 로컬 비디오 박스 제거
     $('#remoteContainer').empty();
 
     // 로컬 비디오 정리
@@ -509,7 +511,7 @@ let sfutest = null;
 let opaqueId = "videoroom-" + Janus.randomString(12);
 let mypvtid = null;
 
-var feeds = [];
+const feeds = {};
 var bitrateTimer = [];
 
 var doSimulcast = (getQueryStringValue("simulcast") === "yes" || getQueryStringValue("simulcast") === "true");
@@ -568,6 +570,22 @@ function createJanusSession() {
                                     video: true
                                 };
                                 sfutest.send({ message: publish, jsep: jsep });
+                             	// ✅ 캠이 없더라도 항상 로컬 영역 생성
+                                if (!document.getElementById('local-box')) {
+                                    const localBox = $('<div>', {
+                                        class: 'remote-box',  // 통일된 스타일
+                                        id: 'local-box'
+                                    });
+
+                                    localBox.append(`<span class="label">내 화면</span>`);
+                                    localBox.append(`<video id="localvideo" autoplay muted playsinline class="rounded centered relative"></video>`);
+                                    localBox.append(`<span class="label label-primary" id="local-curres"></span>`);
+                                    $('#remoteContainer').append(localBox);
+
+                                    const localVideo = document.getElementById('localvideo');
+                                    Janus.attachMediaStream(localVideo, stream);
+                                    localVideo.style.backgroundColor = 'black'; // 캠 없으면 검은 배경
+                                }
                             },
                             error: function (error) {
                                 console.error("미디어 publish 오류", error);
@@ -589,6 +607,17 @@ function createJanusSession() {
                     if (msg.videoroom === "joined") {
                         mypvtid = msg.private_id;
                         publishOwnFeed(true);
+                        
+                    	// 🔥 로컬 비디오 영역은 항상 생성 (검은 화면이라도)
+                        if (!document.getElementById('local-box')) {
+                            const localBox = $('<div>', {
+                                class: 'remote-box', id: 'local-box'
+                            });
+                            localBox.append(`<span class="label">내 화면</span>`);
+                            localBox.append(`<video id="localvideo" autoplay muted playsinline class="rounded centered relative"></video>`);
+                            localBox.append(`<span class="label label-primary" id="local-curres"></span>`);
+                            $('#remoteContainer').append(localBox);
+                        }
                     }
                     if (msg["publishers"]) {	// 기존 참가자 구독처리
                     	const list = msg["publishers"];
@@ -631,6 +660,13 @@ function publishOwnFeed(useAudio) {
                 video: true
             };
             sfutest.send({ message: publish, jsep: jsep });
+            
+         	// 스트림을 수신하고 UI에 바인딩
+            sfutest.onlocalstream = function (stream) {
+                const videoEl = document.getElementById('localvideo');
+                Janus.attachMediaStream(videoEl, stream);
+                videoEl.style.backgroundColor = 'black'; // 캠 없어도 영역 유지
+            };
         },
         error: function (error) {
             console.error("미디어 publish 오류", error);
@@ -641,6 +677,13 @@ function publishOwnFeed(useAudio) {
 //[jsflux] 새로운 유저 들어왔을때
 function newRemoteFeed(id, display, audio, video) {
 	// A new feed has been published, create a new plugin handle and attach to it as a subscriber
+	
+	const remoteBoxId = `remote-box-${id}`;
+	if (document.getElementById(remoteBoxId)) {
+	    console.warn("🔁 remote box already exists. Skip duplication:", id);
+	    return; // 중복 방지
+	}
+	
 	var remoteFeed = null;
 	janus.attach(
 		{
