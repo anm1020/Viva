@@ -34,6 +34,7 @@ public class SecurityConfig {
             @Override
             public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, org.springframework.security.core.Authentication authentication)
                     throws IOException, ServletException {
+            	 System.out.println(">>> [DEBUG] onAuthenticationSuccess principal class: " + authentication.getPrincipal().getClass().getName());
                 // 로그인 폼에서 넘어온 role 값(취준생/면접관 구분)
                 String formRole = request.getParameter("role"); // "mem" 또는 "intr"
                 // 실제 로그인된 사용자의 role
@@ -102,4 +103,6 @@ public class SecurityConfig {
     	return org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance();
 //    	return new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();	
     }
+    
+    
 }

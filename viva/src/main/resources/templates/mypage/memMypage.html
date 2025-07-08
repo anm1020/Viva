@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
+  <script src="https://code.jquery.com/jquery-latest.js"></script>
   <meta charset="UTF-8">
   <title>면접관 마이페이지</title>
   <style>
@@ -136,13 +137,17 @@
         <div class="sidebar-menu">
           <a href="#" class="active">내 정보</a>
           <a th:href="@{/memberEdit}">내 정보 수정</a>
-          <a href="#">후기 관리</a>
+          <a href="#">내 후기 관리</a>
           <a href="#">일정 관리</a>
           <a href="#">이력서 관리</a>
+          <a href="#">AI 대화 내역</a>
+          <a th:href="@{/memReservation}">결제 내역</a>
+          <a th:href="@{/jobsite}">취업 사이트</a>
         </div>
       </div>
       <div class="sidebar-bottom">
-        <a href="#" style="color:#d34040;">회원 탈퇴</a>
+      	<!-- 페이지 이동 없이 자바스크립트로만 동작 -->
+        <a href="#" id="withdrawBtn" style="color:#d34040; text-decoration:underline;">회원 탈퇴</a>
       </div>
     </nav>
 
@@ -170,9 +175,84 @@
     </section>
   </div>
   
+ <!-- 탈퇴 팝업 Modal (처음에는 display:none; 숨겨둠) -->
+<div id="withdrawModal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:9999;">
+  <div style="background:#fff; width:350px; margin:120px auto; padding:32px 24px 16px 24px; border-radius:10px; box-shadow:0 4px 24px rgba(0,0,0,0.16); position:relative;">
+    <h2 style="margin-bottom:18px;">정말로 탈퇴하시겠습니까?</h2>
+    <form id="withdrawForm">
+      <!-- 비밀번호 입력 -->
+      <div style="margin-bottom:10px;">
+        <label>현재 비밀번호</label><br>
+        <input type="password" name="currentPass" style="width:100%;" required />
+      </div>
+      <div style="margin-bottom:18px;">
+        <label>비밀번호 확인</label><br>
+        <input type="password" name="confirmPass" style="width:100%;" required />
+      </div>
+      <!-- 버튼 영역 -->
+      <div style="display:flex; justify-content:space-between;">
+        <button type="submit" style="background:#d34040; color:#fff; border:none; padding:7px 20px; border-radius:5px;">확인</button>
+        <button type="button" id="cancelWithdraw" style="background:#ccc; color:#222; border:none; padding:7px 20px; border-radius:5px;">취소</button>
+      </div>
+    </form>
+  </div>
+</div>
+  
   <!-- 회원정보 수정 후 메세지 -->
 <script th:if="${editSuccess != null}" th:inline="javascript">
 	 alert('[[${editSuccess}]]');
+</script>
+  
+  
+<script>
+$(function(){
+  // 1. "회원 탈퇴" 링크 클릭 시 팝업 열기
+  $("#withdrawBtn").on("click", function(e){
+    e.preventDefault(); // 링크 기본동작 막기(새로고침X)
+    $("#withdrawModal").show();
+  });
+
+  // 2. 취소 버튼 클릭 시 팝업 닫기
+  $("#cancelWithdraw").on("click", function(){
+    $("#withdrawModal").hide();
+    $("#withdrawForm")[0].reset(); // 입력값 초기화
+  });
+
+  // 3. 폼 제출(확인) 시 AJAX로 탈퇴 요청
+  $("#withdrawForm").on("submit", function(e){
+    e.preventDefault();
+
+    // 입력값 가져오기
+    var currentPass = $("input[name='currentPass']").val();
+    var confirmPass = $("input[name='confirmPass']").val();
+
+    // 1차 체크: 비밀번호 일치 확인
+    if(currentPass !== confirmPass){
+      alert("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+
+    // AJAX로 서버에 탈퇴 요청
+    $.ajax({
+      type: "POST",
+      url: "/member/withdraw", // 컨트롤러 매핑에 맞춰서
+      data: { currentPass: currentPass },
+      success: function(result){
+        if(result === "success"){
+          alert("회원 탈퇴가 완료되었습니다.");
+          window.location.href = "/main"; // 탈퇴 후 이동할 페이지
+        }else if(result === "fail"){
+          alert("비밀번호가 틀립니다.");
+        }else{
+          alert("오류가 발생했습니다. 다시 시도해주세요.");
+        }
+      },
+      error: function(){
+        alert("요청 처리 중 오류가 발생했습니다.");
+      }
+    });
+  });
+});
 </script>
   
 </body>
