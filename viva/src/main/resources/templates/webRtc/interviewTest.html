@@ -155,12 +155,71 @@ footer {
 }
 
 /*** 비디오 영역 css ***/
-#videoroom-view {
-	padding: 20px;
+/* 🔷 전체 wrapper: 비디오 + 채팅 수평 배치 */
+.video-chat-wrapper {
+  display: flex;
+  gap: 20px;
+  height: 100%;
 }
 
-#local-area, #remote-area {
-	margin-bottom: 20px;
+/* 🔷 비디오 그리드 영역 */
+.video-grid {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 🔷 채팅창 영역 */
+.chat-panel {
+  flex: 1;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  height: 600px; /* 원하는 높이 설정 */
+}
+
+/* 채팅창 내부 구성 */
+.chat-title {
+  font-weight: bold;
+  padding: 10px;
+  background-color: #cfd8ff;
+  border-bottom: 1px solid #ccc;
+  text-align: center;
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  font-size: 0.9rem;
+}
+
+.chat-input-area {
+  display: flex;
+  border-top: 1px solid #ccc;
+}
+
+.chat-input-area input {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-right: 1px solid #ccc;
+}
+
+.chat-input-area button {
+  padding: 8px 12px;
+  border: none;
+  background-color: #607d8b;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.chat-input-area button:hover {
+  background-color: #455a64;
 }
 
 .label {
@@ -177,7 +236,7 @@ footer {
 
 .remote-grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	grid-template-columns: repeat(2, 1fr); /* 2열 고정 */
 	gap: 10px;
 }
 
@@ -312,32 +371,45 @@ footer {
 	<div id="videoroom-view" class="view">
 		<h2>화상 통화</h2>
 
-		<div class="remote-grid" id="remoteContainer"></div>
-
-
-		<!-- 로컬 비디오 -->
-		<section id="local-area">
-			<h3>
-				내 화면 <span id="publisher" class="label hide"></span> <span
-					class="bitrate-controls hide">
-					<button id="bitrateset">Bandwidth ▼</button>
-					<ul id="bitrate" class="dropdown-menu">
-						<li><a href="#" id="0">No limit</a></li>
-						<li><a href="#" id="128">128kbps</a></li>
-						<li><a href="#" id="256">256kbps</a></li>
-						<li><a href="#" id="512">512kbps</a></li>
-						<li><a href="#" id="1024">1mbps</a></li>
-						<li><a href="#" id="1500">1.5mbps</a></li>
-						<li><a href="#" id="2000">2mbps</a></li>
-					</ul>
-				</span>
-			</h3>
-			<div id="videolocal">
-				<video id="myVideo" autoplay muted playsinline width="320"
-					height="240" border="1"></video>
+		<div class="video-chat-wrapper">
+		    <!-- 🔵 비디오 그리드 -->
+		    <div class="video-grid">
+		    	<!-- 내 화면 포함 -->
+				<div class="remote-grid" id="remoteContainer">
+					<!-- 로컬 비디오도 remote-box 포함 -->
+					<div class="remote-box" id="local-box">
+			          <span>내 화면</span>
+			          <video id="myVideo" autoplay muted playsinline></video>
+			
+			          <div class="bitrate-controls">
+			            <button id="bitrateset">Bandwidth ▼</button>
+			            <ul id="bitrate" class="dropdown-menu">
+			              <li><a href="#" id="0">No limit</a></li>
+			              <li><a href="#" id="128">128kbps</a></li>
+			              <li><a href="#" id="256">256kbps</a></li>
+			              <li><a href="#" id="512">512kbps</a></li>
+			              <li><a href="#" id="1024">1mbps</a></li>
+			              <li><a href="#" id="1500">1.5mbps</a></li>
+			              <li><a href="#" id="2000">2mbps</a></li>
+			            </ul>
+			          </div>
+			        </div>
+				</div>
 			</div>
-		</section>
-		<button id="exitBtn">종료</button>
+			
+			<!-- 🔵 채팅창 -->
+		    <div class="chat-panel">
+		      <div class="chat-title">채팅창</div>
+		      <div class="chat-messages" id="chatMessages"></div>
+		      <div class="chat-input-area">
+		        <input type="text" id="chatInput" placeholder="내용 입력" />
+		        <button id="sendChatBtn">전송</button>
+		      </div>
+		  	</div>
+		</div>
+	    <div style="margin-top: 20px;">
+	    	<button id="exitBtn">종료</button>
+	    </div>
 	</div>
 
 <script>
@@ -353,6 +425,7 @@ var selectedRoomId = null;
 var displayName = null;
 var feeds = [];
 var isDestroying = false; // 중복 detach 방지용 플래그
+const audioContexts = {};  // { [feedId]: { ctx, gainNode } }
 
 // ✅ navigate 처리 (화면 전환 시 정리 포함)
 function navigate(view) {
@@ -427,6 +500,31 @@ function formatDate(dateString) {
   });
 }
 
+//참가자 목록을 담는 전역 배열
+let participants = [];
+
+//참가자 목록 콘솔 출력 함수
+function logParticipants() {
+  console.log("📋 현재 참가자 목록:");
+  participants.forEach(p => {
+    console.log(`- ID: ${p.id}, Display: ${p.display}`);
+  });
+}
+
+// ✅ 참가자 추가 함수
+function addParticipant(id, display) {
+  if (!participants.find(p => p.id === id)) {
+    participants.push({ id, display });
+    logParticipants();
+  }
+}
+
+// ✅ 참가자 제거 함수
+function removeParticipant(id) {
+  participants = participants.filter(p => p.id !== id);
+  logParticipants();
+}
+
 // ✅ 방 입장
 function enterRoom(roomId, name) {
   selectedRoomId = roomId;
@@ -486,6 +584,7 @@ function createJanusSession() {
             if (msg.publishers) {
               msg.publishers.forEach(pub => {
                 if (!feeds.find(f => f.rfid === pub.id)) {
+                  addParticipant(pub.id, pub.display);       // 👈 참가자 추가
                   newRemoteFeed(pub.id, pub.display);
                 }
               });
@@ -496,25 +595,34 @@ function createJanusSession() {
           if (msg.videoroom === "event" && msg.publishers) {
         	  msg.publishers.forEach(pub => {
         	    if (!feeds.find(f => f.rfid === pub.id)) {
+        	      addParticipant(pub.id, pub.display);       // 👈 참가자 추가
         	      newRemoteFeed(pub.id, pub.display);
         	    }
         	 });
           }
 
           // 다른 유저가 퇴장한 경우
-          if (event === "event" && msg.unpublished) {
+          if (msg.videoroom === "event" && msg.unpublished) {
             const unpublished = msg.unpublished;
             if (unpublished === 'ok') {
               // 본인 퇴장
+              console.log("현재 feeds 목록:", feeds.map(f => f.rfid));
+//               console.log("퇴장 대상 ID:", msg.leaving || msg.unpublished);
               cleanupAllFeeds();
             } else {
+              console.log("현재 feeds 목록:", feeds.map(f => f.rfid));
+              console.log("퇴장 대상 ID:", msg.leaving || msg.unpublished);
               console.log(`🧹 publisher ${unpublished} 퇴장`);
+              
+              removeParticipant(unpublished);                   // 👈 참가자 제거
               removeRemoteFeed(unpublished);
+              
             }
           }
 
-          if (event === "event" && msg.leaving) {
+          if (msg.videoroom === "event" && msg.leaving) {
             console.log(`🚪 publisher ${msg.leaving} 나감`);
+            removeParticipant(msg.leaving);                // 👈 참가자 제거
             removeRemoteFeed(msg.leaving);
           }
 
@@ -530,6 +638,8 @@ function createJanusSession() {
           if (!document.getElementById('local-box')) {		// DOM 중복 삽입 방지
             $('#remoteContainer').append(localBox);
           }
+          
+          // stream이 비어있는 경우에도 attachMediaStream 처리 (검은 화면 표시)
           Janus.attachMediaStream(document.getElementById('localvideo'), stream);
         },
 
@@ -548,23 +658,104 @@ function createJanusSession() {
 // ✅ 내 영상 publish
 function publishOwnFeed() {
   sfutest.createOffer({
-    media: { audioRecv: false, videoRecv: false, audioSend: true, videoSend: true },
+    media: { 
+    	audioRecv: false, videoRecv: false, 
+    	audioSend: true, videoSend: true
+    },
     success: function (jsep) {
       sfutest.send({
         message: { request: "configure", audio: true, video: true },
         jsep
       });
     },
-    error: function (error) {
-      console.error("내 stream publish 실패", error);
+    error: async function (error) {
+    	console.warn("📛 내 stream publish 실패", error.message);
+
+    	try{
+    		
+    	
+	    	// ⚠️ 캠/마이크 없음 → 빈 dummyStream 출력
+	        const dummyStream = getSilentDummyStream();
+	
+	        // 검은 화면 출력 DOM 생성
+	        const localBox = `
+	          <div class="remote-box" id="local-box">
+	            <span>내 화면</span>
+	            <video id="localvideo" autoplay muted playsinline></video>
+	          </div>`;
+	        if (!document.getElementById('local-box')) {
+	          $('#remoteContainer').append(localBox);
+	        }
+	        
+	        // 검정화면용 스트림 attach
+	        const videoElem = document.getElementById('localvideo');
+	        videoElem.srcObject = dummyStream;
+	
+	        // ✅ 3. Janus에 dummy stream을 수동 attach 및 publish
+	        sfutest.createOffer({
+	          stream: dummyStream,
+	          media: {
+	            audioRecv: false,
+	            videoRecv: false,
+	            audioSend: true,
+	            videoSend: true
+	          },
+	          success: function (jsep) {
+	            sfutest.send({
+	              message: { request: "configure", audio: true, video: true },
+	              jsep
+	            });
+	          },
+	          error: function (err) {
+	            console.error("📛 dummyStream publish 실패", err);
+	          }
+	        });
+        
+	    }catch(e){
+	    	console.error("❌ dummyStream 구성 실패", e);   	
+	    }
     }
   });
 }
 
+// 캠없는 경우 더미 데이터
+function getSilentDummyStream() {
+	  const stream = new MediaStream();
+
+	  // 🔇 dummy audio track
+	  const audioCtx = new AudioContext();
+	  const oscillator = audioCtx.createOscillator();
+	  const dst = oscillator.connect(audioCtx.createMediaStreamDestination());
+	  oscillator.start();
+	  const audioTrack = dst.stream.getAudioTracks()[0];
+	  stream.addTrack(audioTrack);
+
+	  // 📷 dummy video track (검정 화면)
+	  const canvas = Object.assign(document.createElement("canvas"), { width: 320, height: 240 });
+	  const ctx = canvas.getContext("2d");
+	  ctx.fillStyle = "black";
+	  ctx.fillRect(0, 0, canvas.width, canvas.height);
+	  const videoTrack = canvas.captureStream().getVideoTracks()[0];
+	  stream.addTrack(videoTrack);
+
+	  return stream;
+	}
+
 // ✅ remote feed 추가
 function newRemoteFeed(id, display) {
-  if (feeds.find(f => f.rfid === id)) return;
 
+  //이미 등록된 feed인지 확인 (중복 방지)
+  if (feeds.find(f => f.rfid === id)) {
+    console.warn(`⚠️ Feed ${id} already exists, skipping newRemoteFeed`);
+    return;
+  }
+  
+  //이미 DOM에 해당 ID의 video 박스가 존재하는 경우
+  if (document.getElementById(`remote-box-${id}`)) {
+    console.warn(`⚠️ remote-box-${id} already exists in DOM, skipping`);
+    return;
+  }
+  
   janus.attach({
     plugin: "janus.plugin.videoroom",
     opaqueId,
@@ -603,15 +794,74 @@ function newRemoteFeed(id, display) {
     },
 
     onremotestream: function (stream) {
-      if (document.getElementById(`remote-box-${id}`)) return;
+    	
+    	const remoteId = id;
+    	const videoElId = `remotevideo-${remoteId}`;
+    	const boxElId = `remote-box-${remoteId}`;
+    	const muteBtnId = `mute-btn-${remoteId}`;
+    	const volumeSliderId = `volume-slider-${remoteId}`;
+    	
+    	if (document.getElementById(boxElId)) return;
+      
+    	// remote-box HTML 생성 및 삽입
+      	const html = `
+        	<div class="remote-box" id="${boxElId}">
+	          	<span>${display}</span>
+	          	<video id="${videoElId}" autoplay playsinline></video>
+	          	<div style="margin-top: 4px;">
+	            	<button id="${muteBtnId}" style="cursor: pointer;">🔊</button>
+	          		<input type="range" min="0" max="2" step="0.01" value="1" 
+	                	class="volume-slider" data-id="${remoteId}" style="width: 80%; margin-top: 4px;" />
+	            </div>
+        	</div>`;
+      	$('#remoteContainer').append(html);
+      	
+      	// 비디오 스트림 연결
+        const videoElement = document.getElementById(videoElId);
+        Janus.attachMediaStream(videoElement, stream);
 
-      const html = `
-        <div class="remote-box" id="remote-box-${id}">
-          <span>${display}</span>
-          <video id="remotevideo-${id}" autoplay playsinline></video>
-        </div>`;
-      $('#remoteContainer').append(html);
-      Janus.attachMediaStream(document.getElementById(`remotevideo-${id}`), stream);
+        // 오디오 컨텍스트 구성
+        const audioCtx = new AudioContext();
+        const source = audioCtx.createMediaStreamSource(stream);
+        const gainNode = audioCtx.createGain();
+
+        // 오디오 흐름: source -> gainNode -> 출력
+        source.connect(gainNode).connect(audioCtx.destination);
+
+        // 전역 저장소에 등록
+        audioContexts[remoteId] = {
+          ctx: audioCtx,
+          gainNode: gainNode,
+          muted: false  // 초기 상태: 음소거 아님
+        };
+
+     	// 볼륨 슬라이더 제어
+        const slider = document.getElementById(volumeSliderId);
+        slider.addEventListener('input', e => {
+          const value = parseFloat(e.target.value);
+          audioContexts[remoteId].gainNode.gain.value = value;
+          // 음소거 상태에서도 슬라이더 조정되면 해제
+          if (audioContexts[remoteId].muted && value > 0) {
+            audioContexts[remoteId].muted = false;
+            document.getElementById(muteBtnId).textContent = '🔊';
+          }
+        });
+        
+     	// 음소거 버튼 제어
+        const muteBtn = document.getElementById(muteBtnId);
+        muteBtn.addEventListener('click', () => {
+          const state = audioContexts[remoteId];
+          if (state.muted) {
+            state.gainNode.gain.value = parseFloat(slider.value) || 1.0;
+            muteBtn.textContent = '🔊';
+          } else {
+            state.gainNode.gain.value = 0.0;
+            muteBtn.textContent = '🔇';
+          }
+          state.muted = !state.muted;
+        });
+      	
+//       	Janus.attachMediaStream(document.getElementById(`remotevideo-${id}`), stream);
     },
 
     oncleanup: function () {
@@ -628,6 +878,10 @@ function newRemoteFeed(id, display) {
 function removeRemoteFeed(id) {
   console.log(`🧹 remote feed 제거: ${id}`);
   $(`#remote-box-${id}`).remove();
+  if (audioContexts[id]) {
+	audioContexts[id].ctx.close();
+	delete audioContexts[id];
+  }
   feeds = feeds.filter(f => f.rfid !== id);
 }
 
