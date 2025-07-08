@@ -274,6 +274,9 @@ footer {
 			<div class="content-box">
 				<h2>면접 메인</h2>
 				<div class="button-group">
+					<script>
+						console.log("[[${sessionId}]]");
+					</script>
 					<button class="nav-button" onclick="navigate('new')">New
 						Meeting</button>
 					<button class="nav-button" onclick="navigate('list')">Join</button>
@@ -286,9 +289,13 @@ footer {
 	<!-- [2] 방 생성 화면 -->
 	<div id="new-view" class="view">
 		<h2>면접 방 생성</h2>
+		<script>
+			console.log("[[${userId}]]");
+		</script>
 		<form id="createRoomForm">
-			<label for="intrRoomTitle">방 제목:</label> <input type="text"
-				id="intrRoomTitle" name="intrRoomTitle" required />
+			<label for="intrRoomTitle">방 제목:</label> 
+			<input type="text" id="intrRoomTitle" name="intrRoomTitle" required />
+			<input type="hidden" id="host_id" name="host_id" th:value="${userId}">
 			<button type="submit">방생성</button>
 		</form>
 		<button onclick="navigate('main')">← 뒤로가기</button>
@@ -363,11 +370,14 @@ if (createForm) {
   createForm.addEventListener("submit", function(e) {
     e.preventDefault();
     const title = document.getElementById("intrRoomTitle").value;
-
+	const host_id = document.getElementById("host_id").value;
     fetch("/api/meeting/roomcreate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ intrRoomTitle: title })
+      body: JSON.stringify({ 
+    	  intrRoomTitle: title,
+    	  hostId: host_id
+      })
     })
     .then(res => res.json())
     .then(data => {

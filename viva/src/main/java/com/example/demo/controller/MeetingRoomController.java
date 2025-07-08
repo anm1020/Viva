@@ -24,8 +24,11 @@ public class MeetingRoomController {
 	// 방 생성
 	@PostMapping("/roomcreate")
 	public ResponseEntity<InterviewRoomDTO> createRoom(@RequestBody InterviewRoomDTO room) {
-		String test_intrId = "rtc_test2";
-		room.setHostId(test_intrId);
+		System.out.println("방생성자 : " + room.getHostId());
+		
+		// 추후 방생성자의 role이 취준생인지 면접관인지 체크하고 면접관일 경우에만 방생성 
+		
+		room.setHostId(room.getHostId());
 		room.setStatusCd("waiting");
 
 		InterviewRoomDTO newRoom = service.createRoom(room);
