@@ -366,11 +366,46 @@ function navigate(view) {
     if (view === 'videoroom'){
     	initJanus(); // 화상통화 화면 진입 시 초기화
     }else if (janus) {
-        janus.destroy(); // 다른 view로 전환 시 세션 정리
-        janus = null;
-        sfutest = null;
-        feeds = [];
+    	// ✅ 방 나가기 시 전체 정리
+        if (janus) {
+            cleanupAllFeeds();       // remote feed + timer 제거
+            janus.destroy();         // Janus 세션 종료
+            janus = null;
+            sfutest = null;
+            mypvtid = null;
+            selectedRoomId = null;
+            displayName = null;
+        }
     }
+}
+
+function cleanupAllFeeds() {
+    // remote feeds 정리
+    for (let i = 1; i < feeds.length; i++) {
+        if (feeds[i]) {
+            try {
+                feeds[i].detach();
+            } catch (e) {
+                console.warn(`feed #${i} detach 실패`, e);
+            }
+            feeds[i] = null;
+        }
+    }
+
+    // 비트레이트 타이머 제거
+    for (let key in bitrateTimer) {
+        if (bitrateTimer[key]) {
+            clearInterval(bitrateTimer[key]);
+            bitrateTimer[key] = null;
+        }
+    }
+
+    // 원격 비디오 DOM 제거
+    $('#remoteContainer').empty();
+
+    // 로컬 비디오 정리
+    $('#videolocal').empty();
+    $('#publish').show();
 }
 
 //방 생성
