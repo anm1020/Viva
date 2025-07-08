@@ -1,18 +1,26 @@
-package com.example.demo.model.dto;
-
-import lombok.*;
-import java.time.LocalDateTime;
-
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class ReservationDTO {
-    private Long   resId;         // 생성 후 응답용
-    private String resUserId;     // 요청 시 필수
-    private String resIntrId;     // 요청 시 필수
-    private LocalDateTime resReservedDt; // 요청 시 필수
-    private String resStatus;     // 응답 시 보여줄 상태 (optional)
-    private String  interviewerId;
-    private String  userId;
-    private LocalDateTime dateTime;
-    private String  status;
-    
-}
+//package com.example.demo.model.dto;
+//
+//import java.sql.Timestamp;
+//
+//import lombok.AllArgsConstructor;
+//import lombok.Builder;
+//import lombok.Data;
+//import lombok.Getter;
+//import lombok.NoArgsConstructor;
+//import lombok.Setter;
+//
+//@Data 
+//@NoArgsConstructor 
+//@AllArgsConstructor 
+//@Builder
+//public class ReservationDTO {
+//	   // ── 요청용 필드 ───────────────────────────
+//    private String intrId;  // 면접관 ID (요청 시 필수)
+//    private String date;    // yyyy-MM-dd
+//    private String time;    // HH:mm
+//
+//    // ── 응답·조회용 필드 ───────────────────────
+//    private Long   resId;         // 저장 후 반환할 PK
+//    private Timestamp resCreateDt;// 생성 시각
+//    private String status;        // pending/confirmed/cancelled
+//}

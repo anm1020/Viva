@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>예약 결과</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+  <h1>예약 결과</h1>
+
+  <div th:if="${reservation != null}">
+    <p>예약번호: <span th:text="${reservation.resId}">—</span></p>
+    <p>
+      예약일시:
+      <span th:text="${reservation.reservedDate}">yyyy-MM-dd</span>
+      <span th:text="${reservation.reservedTime}">HH:mm</span>
+    </p>
+    <p>상태:
+      <span th:switch="${reservation.resStatus}">
+        <span th:case="'pending'">결제 대기</span>
+        <span th:case="'confirmed'">결제 완료</span>
+        <span th:case="'cancelled'">취소됨</span>
+        <span th:case="*">-</span>
+      </span>
+    </p>
+
+    <!-- 카드 결제 링크 -->
+    <p th:if="${reservation.resStatus == 'pending'}">
+      <a th:href="@{/payment/charge(resId=${reservation.resId})}">💳 카드 결제</a>
+    </p>
+
+    <!-- ✅ 포인트 결제 버튼 -->
+    <p th:if="${reservation.resStatus == 'pending'}">
+      <button
+        id="btn-point-pay"
+        th:data-userid="${userId}"
+        th:data-resid="${reservation.resId}"
+        data-amount="1000">
+        💰 포인트로 결제
+      </button>
+    </p>
+  </div>
+
+  <div th:if="${reservation == null}">
+    <p>예약 정보를 찾을 수 없습니다.</p>
+    <p th:text="${error}"></p>
+  </div>
+
+  <p><a href="/reservation/mylist">내 예약 목록으로 돌아가기</a></p>
+
+  <!-- ✅ 포인트 결제 AJAX -->
+  <script>
+    $('#btn-point-pay').on('click', function() {
+      const userId = $(this).data('userid');
+      const resId = $(this).data('resid');
+      const amount = $(this).data('amount');
+
+      if (!confirm(amount + ' 포인트로 결제하시겠습니까?')) return;
+
+      $.ajax({
+        type: 'POST',
+        url: '/point/use',
+        data: {
+          userId: userId,
+          resId: resId,
+          amount: amount
+        },
+        success: function(response) {
+          alert("포인트 결제 완료!");
+          location.href = "/reservation/mylist";
+        },
+        error: function(xhr) {
+          alert("결제 실패: " + xhr.responseText);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

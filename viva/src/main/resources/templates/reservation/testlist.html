@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>면접관 목록</title></head>
+<body>
+  <h1>면접관 목록 (테스트용)</h1>
+  <ul>
+    <li th:each="intr : ${interviewers}">
+      <span th:text="${intr.userName}">홍길동</span>
+
+      <!-- ✅ 일반 사용자(user)만 예약 버튼 보이게 -->
+      <form th:if="${session.user != null and session.user.userRole != 'intr'}"
+            th:action="@{/reservation/book}" method="get" style="display:inline;">
+        <input type="hidden" name="intrId" th:value="${intr.userId}"/>
+        <input type="hidden" name="intrName" th:value="${intr.userName}"/>
+        <button type="submit">예약하기</button>
+      </form>
+
+      <!-- ✅ 면접관인 경우 아무것도 안보여주거나 -->
+      <span th:if="${session.user != null and session.user.userRole == 'intr'}"
+            style="color:gray;">(면접관은 예약할 수 없습니다)</span>
+    </li>
+  </ul>
+</body>
+</html>

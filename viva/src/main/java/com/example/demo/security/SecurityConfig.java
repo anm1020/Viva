@@ -45,6 +45,10 @@ public class SecurityConfig {
                     response.sendRedirect("/loginmain?roleError=true");
                     return;
                 }
+             // ✅ 세션에 유저 정보 저장
+                request.getSession().setAttribute("user", userDetails.getUsers());
+                request.getSession().setAttribute("userId", userDetails.getUsers().getUserId());
+
                 // 로그인 성공 시: 메인 페이지로 이동, alert 표시용 파라미터 추가
                 response.sendRedirect("/main?loginSuccess=true");
             }
@@ -66,8 +70,20 @@ public class SecurityConfig {
                 		"/main",				// 메인 페이지
                 		"/index.html"
                 		).permitAll()	
+                
+             //  로그인한 사용자만 접근 가능한 경로
+                .requestMatchers(
+                    "/reservation/**",    // 예약 관련
+                    "/point/**",          // 포인트 관련
+                    "/payment/**"         // 결제 관련
+                ).authenticated()
+
                 .anyRequest().authenticated() 	// 그 외에는 로그인 필요
             )
+
+
+            
+            
             // 폼 로그인(아이디/비번 입력 방식) 세부 설정
             .formLogin(form -> form
                 .loginPage("/loginmain")          		 // 로그인 페이지
@@ -77,6 +93,8 @@ public class SecurityConfig {
                 .successHandler(customSuccessHandler())  // 로그인 성공 시 실행할 핸들러 지정(위에서 정의)
                 .failureUrl("/loginmain?error=true")	 // 로그인 실패 시 이동할 URL (파라미터로 실패 alert)
                 .permitAll()							 // 로그인 폼 관련 요청 모두 허용
+                
+                
                 
             )
             // 소셜 로그인

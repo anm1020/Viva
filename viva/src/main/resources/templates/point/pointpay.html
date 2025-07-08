@@ -1,0 +1,37 @@
+<!-- templates/point/pointpay.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>포인트 결제</title>
+  <script src="https://code.jquery.com/jquery-latest.js"></script>
+</head>
+<body>
+  <h2>포인트로 결제하기</h2>
+  
+  <p>현재 포인트: <span id="myPoint">-</span>원</p>
+  <p>결제 금액: <input type="number" id="amount" value="100" />원</p>
+
+  <button id="btn-use-point">포인트로 결제</button>
+
+  <script>
+    const userId = 'testuser'; // ★ 로그인 사용자 ID 세션으로 바꾸면 좋음
+
+    // 현재 포인트 불러오기
+    $.get('/point/balance', { userId }, function(point) {
+      $('#myPoint').text(point);
+    });
+
+    $('#btn-use-point').on('click', function() {
+      const amount = $('#amount').val();
+
+      $.post('/point/use', { userId, amount }, function(res) {
+        alert(res);
+        location.reload();
+      }).fail(function(err) {
+        alert('포인트 부족 또는 오류');
+      });
+    });
+  </script>
+</body>
+</html>

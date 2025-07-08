@@ -37,7 +37,9 @@
   <div class="grid">
     <div class="card" th:each="i : ${interviewers}">
       <a th:href="@{'/interviewer/' + ${i.intrId}}">
-        <img th:src="@{${i.intrImage}}" alt="프로필 이미지" />
+<!--         <img th:src="@{${i.intrImage}}" alt="프로필 이미지" /> -->
+<img th:src="@{/images/1.png}" alt="프로필 이미지" />
+
         <div class="name" th:text="${i.userName}">면접관 이름</div>
         <div class="category" th:text="${i.userSkill}">직무</div>
         <div class="rating">⭐ 5.0</div>
@@ -69,4 +71,3 @@ function toggleTag(tagEl) {
 
 </body>
 </html>
-

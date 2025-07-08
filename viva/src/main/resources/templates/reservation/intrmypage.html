@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>면접관 예약 일정</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    h2 { margin-top: 2rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: center; }
+    th { background-color: #f0f0f0; }
+    label, select, input, button { margin: 0.5rem; }
+  </style>
+</head>
+<body>
+
+  <h1>면접관 마이페이지</h1>
+
+  <!-- ✅ 1. 받은 예약 일정 -->
+  <h2>예약 일정</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>예약번호</th>
+        <th>예약자 ID</th>
+        <th>예약일</th>
+        <th>시간</th>
+        <th>상태</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:if="${#lists.isEmpty(reservations)}">
+        <td colspan="5">예약 내역이 없습니다.</td>
+      </tr>
+      <tr th:each="r : ${reservations}">
+        <td th:text="${r.resId}">1</td>
+        <td th:text="${r.memId}">user01</td>
+        <td th:text="${r.reservedDate}">2025-07-10</td>
+        <td th:text="${r.reservedTime}">10:00</td>
+        <td th:text="${r.resStatus}">pending</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ✅ 2. 비활성화된 날짜/시간 -->
+  <h2>비활성화한 시간</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>날짜</th>
+        <th>시간</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:if="${#lists.isEmpty(disabledList)}">
+        <td colspan="2">비활성화된 시간 없음</td>
+      </tr>
+      <tr th:each="d : ${disabledList}">
+        <td th:text="${d.disabledDate}">2025-07-11</td>
+        <td th:text="${d.disabledTime}">13:00</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ✅ 3. 비활성화 등록 폼 (달력) -->
+  <h2>날짜/시간 비활성화 등록</h2>
+  <form th:action="@{/reservation/blockDate}" method="post">
+    <label>
+      날짜:
+      <input type="text" id="datePicker" name="date" required>
+    </label>
+    <label>
+      시간:
+      <select name="time" required>
+        <option value="">-- 시간 선택 --</option>
+        <option value="09:00">09:00</option>
+        <option value="10:00">10:00</option>
+        <option value="11:00">11:00</option>
+        <option value="13:00">13:00</option>
+        <option value="14:00">14:00</option>
+        <option value="15:00">15:00</option>
+      </select>
+    </label>
+    <button type="submit">비활성화 등록</button>
+  </form>
+
+  <script>
+    // flatpickr 달력 초기화
+    flatpickr("#datePicker", {
+      dateFormat: "Y-m-d",
+      minDate: "today"
+    });
+  </script>
+
+
+  <h1>면접관 예약 일정</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>예약번호</th>
+        <th>회원 ID</th>
+        <th>예약일</th>
+        <th>예약시간</th>
+        <th>예약 생성일</th>
+        <th>상태</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:if="${#lists.isEmpty(reservations)}">
+        <td colspan="6">예약 내역이 없습니다.</td>
+      </tr>
+      <tr th:each="r : ${reservations}">
+        <td th:text="${r.resId}">1</td>
+        <td th:text="${r.memId}">mem01</td>
+        <td th:text="${r.reservedDate}">2025-07-09</td>
+        <td th:text="${r.reservedTime}">12:00</td>
+        <td th:text="${#dates.format(r.resCreateDt, 'yyyy-MM-dd HH:mm')}">2025-07-06 17:00</td>
+        <td th:text="${r.resStatus}">결제전</td>
+      </tr>
+    </tbody>
+  </table>
+</body>
+</html>
