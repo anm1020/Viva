@@ -1132,8 +1132,8 @@ function attachTextRoom(display, selectedRoomId) {
             jsep: jsep,
             media: { audio: false, video: false, data: true },
             success: function (jsep) {
-              const body = { request: "ack" };
-              textroomPlugin.send({ message: body, jsep: jsep });
+              const ack = { request: "ack" };
+              textroomPlugin.send({ message: ack, jsep: jsep });
             },
             error: function (err) {
               console.error("❌ JSEP createAnswer error", err);
@@ -1158,20 +1158,32 @@ function attachTextRoom(display, selectedRoomId) {
     ondata: function (data) {
       const json = JSON.parse(data);
       console.log("📥 채팅 메시지 수신:", json);
-// 	  console.log("↪️ from:", json.from, "/ myUsername:", myUsername, "/ display: ", json.display);
 	  
       if (json.textroom === "message" && json.text) {
     		// ✅ 추천: 무조건 append (중복 방지 필요 시 username 기준으로 체크)
     	  	console.log("✅ message 수신, append 실행");
     		// myDataId와 json.from이 일치할 때 내 메시지로 인식
+    		const sender = json.from;
+    		if (sender === myUsername) {
+    	          console.log("💬 내 메시지, 중복 표시 생략");
+    	          return;
+    	    }
+    		
     		// 참가자 목록에서 displayName 찾기
-    		const senderDisplay = json.display || json.from;
-    		appendChatMessage(senderDisplay, json.text);
-    	  
-      } else if (json.textroom === "join") {			// 방에 참가할 경우
-    	    Janus.log(`👋 ${json.username} joined`);
-      } else if (json.textroom === "leave") {			// 방을 떠날 경우
-        Janus.log(`👋 ${json.username} left`);
+    		const senderDisplay = participants.find(p => p.username === sender)?.display || sender;
+            appendChatMessage(displayName, json.text);    	  
+      }
+      
+      if (json.textroom === "join") {			// 방에 참가할 경우
+    	  Janus.log(`👋 ${json.username} joined`);
+          if (!participants.find(p => p.username === json.username)) {
+            participants.push({ username: json.username, display: json.display });
+          }
+      }
+      
+      if (json.textroom === "leave") {			// 방을 떠날 경우
+    	  Janus.log(`👋 ${json.username} left`);
+          participants = participants.filter(p => p.username !== json.username);
       }
     },
 
@@ -1187,7 +1199,7 @@ function createTextRoom(roomId) {
     textroom: "create",
     transaction: Janus.randomString(12),
     room: Number(roomId),
-    description: "Text room for video chat",
+    description: "채팅방",
     secret: "adminpwd" // 관리 비밀번호 (선택)
   };
 
@@ -1208,7 +1220,7 @@ function createTextRoom(roomId) {
 // TextRoom 사용자 등록
 function registerTextRoom(display, selectedRoomId) {
   console.log("registerTextRoom 호출 성공");
-  myUsername = display;  // 예: user_AB12
+  myUsername = display;  
   myDataId = Janus.randomString(12);
 
   const register = {
@@ -1216,13 +1228,14 @@ function registerTextRoom(display, selectedRoomId) {
     transaction: Janus.randomString(12),
     room: Number(selectedRoomId),
     username: myUsername,
-    display: myUsername,
-    id: myDataId
+    display: display
   };
+  
   textroomPlugin.data({
     text: JSON.stringify(register),
     success: () => {
-    	console.log("✅ TextRoom 등록 성공")
+    	console.log("✅ TextRoom 등록 성공");
+    	participants.push({ username: myUsername, display: display });
     },
     error: function (reason) {
       console.error("TextRoom 등록 실패:", reason);
@@ -1233,25 +1246,21 @@ function registerTextRoom(display, selectedRoomId) {
 
 // 채팅 전송 함수
 function sendChatMessage(msg) {
-	if (!myUsername) {
-	    console.warn("❗ myUsername이 설정되지 않았습니다. 채팅 전송 중단");
-	    return;
-	  }
+  if (!myUsername || !textroomPlugin) return;
 	
-  const message = {
+  const payload = {
     textroom: "message",
     transaction: Janus.randomString(12),
     room: Number(selectedRoomId),
     text: msg,
     to: "all",				 	// 모든 참가자에게
-    from: myDataId,				// 식별자
-    display: myUsername			// 보여줄 이름
+    from: myUsername			// 발신인
   };
 
-  console.log("📤 채팅 메시지 전송:", message);
+  console.log("📤 채팅 메시지 전송:", payload);
   
   textroomPlugin.data({
-    text: JSON.stringify(message),
+    text: JSON.stringify(payload),
     success: () => console.log("✅ 채팅 메시지 전송 성공"),
     error: (err) => console.error("❌ 채팅 메시지 전송 실패", err)
   });
