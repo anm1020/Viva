@@ -423,7 +423,12 @@ function navigate(view) {
   document.getElementById(view + '-view').classList.add('active');
 
   if (view === 'list') loadRoomList();
-  if (view === 'videoroom') initJanus(); // 방 입장 시 초기화
+  if (view === 'videoroom'){
+	  if(janus !== null){
+	  	janus.destroy();
+	  }
+	  initJanus(); // 방 입장 시 초기화
+  }
   
 }
 
@@ -519,8 +524,13 @@ function removeParticipant(id) {
 function enterRoom(roomId, hostId, name) {
   selectedRoomId = roomId;
   displayName = name;
-  hostId = hostId;
+  window.hostId = hostId;
   console.log("선택된 방 번호 : " + selectedRoomId);
+  
+  // 🔻 기존 영상 DOM 초기화
+  $('#remoteContainer').empty();
+  $('#local-box').remove();
+  
   navigate('videoroom');
 }
 
@@ -764,8 +774,8 @@ function createJanusSession() {
 function publishOwnFeed() {
   sfutest.createOffer({
     media: { 
-    	audioRecv: false, videoRecv: false, 
-    	audioSend: true, videoSend: true
+      audioRecv: false, videoRecv: false, 
+      audioSend: true, videoSend: true
     },
     success: function (jsep) {
       sfutest.send({
@@ -774,49 +784,43 @@ function publishOwnFeed() {
       });
     },
     error: async function (error) {
-    	console.warn("📛 내 stream publish 실패", error.message);
+      console.warn("📛 내 stream publish 실패", error.message);
 
-    	try{
-	    	// ⚠️ 캠/마이크 없음 → 빈 dummyStream 출력
-	        const dummyStream = getSilentDummyStream();
-	
-	        // 검은 화면 출력 DOM 생성
-	        const localBox = `
-	          <div class="remote-box" id="local-box">
-	            <span>내 화면</span>
-	            <video id="localvideo" autoplay muted playsinline></video>
-	          </div>`;
-	        if (!document.getElementById('local-box')) {
-	          $('#remoteContainer').append(localBox);
-	        }
-	        
-	        // 검정화면용 스트림 attach
-	        const videoElem = document.getElementById('localvideo');
-	        videoElem.srcObject = dummyStream;
-	
-	        // ✅ 3. Janus에 dummy stream을 수동 attach 및 publish
-	        sfutest.createOffer({
-	          stream: dummyStream,
-	          media: {
-	            audioRecv: false,
-	            videoRecv: false,
-	            audioSend: true,
-	            videoSend: true
-	          },
-	          success: function (jsep) {
-	            sfutest.send({
-	              message: { request: "configure", audio: true, video: true },
-	              jsep
-	            });
-	          },
-	          error: function (err) {
-	            console.error("📛 dummyStream publish 실패", err);
-	          }
-	        });
-        
-	    }catch(e){
-	    	console.error("❌ dummyStream 구성 실패", e);   	
-	    }
+      try {
+        // ⚠️ 캠/마이크 없음 → dummyStream 사용
+        const dummyStream = getSilentDummyStream();
+
+        // ⚠️ local-box는 onlocalstream에서만 생성 → 여기선 비디오 연결만
+        const videoElem = document.getElementById('localvideo');
+        if (videoElem) {
+          videoElem.srcObject = dummyStream;
+        } else {
+          console.warn("⚠️ localvideo element가 없음. onlocalstream에서 처리 필요");
+        }
+
+        // Janus에 dummy stream attach 후 publish
+        sfutest.createOffer({
+          stream: dummyStream,
+          media: {
+            audioRecv: false,
+            videoRecv: false,
+            audioSend: true,
+            videoSend: true
+          },
+          success: function (jsep) {
+            sfutest.send({
+              message: { request: "configure", audio: true, video: true },
+              jsep
+            });
+          },
+          error: function (err) {
+            console.error("📛 dummyStream publish 실패", err);
+          }
+        });
+
+      } catch (e) {
+        console.error("❌ dummyStream 구성 실패", e);   
+      }
     }
   });
 }
