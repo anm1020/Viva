@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.model.dto.InterviewRoomDTO;
+import com.example.demo.model.dto.UserDTO;
 import com.example.demo.service.InterviewRoomService;
 
 import lombok.RequiredArgsConstructor;

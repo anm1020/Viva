@@ -22,4 +22,10 @@ public class MeetingPageController {
 		
 		return "webRtc/interviewTest"; // templates/webRtc/interview-spa.html
     }
+	
+	@GetMapping("/demoTest")
+	public String demoTest() {
+		return "webRtc/webRtcDemoTest";
+	}
+	
 }

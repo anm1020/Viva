@@ -363,6 +363,7 @@ footer {
 	<!-- [3] 방 목록 화면 -->
 	<div id="list-view" class="view">
 		<h2>면접 방 목록</h2>
+		<input type="hidden" id="user_id" name="user_id" th:value="${userId}">
 		<div id="roomList" class="room-list"></div>
 		<button onclick="navigate('main')">← 뒤로가기</button>
 	</div>
@@ -560,7 +561,7 @@ function createJanusSession() {
           });
           
           // textroom 연결
-          attachTextRoom(displayName);
+          attachTextRoom(displayName, selectedRoomId);
           
         },
 
@@ -1058,25 +1059,52 @@ function toggleMute() {
 }
 
 // textRoom 플러그인 attach 함수
-function attachTextRoom(display) {
+function attachTextRoom(display, selectedRoomId) {
   janus.attach({
     plugin: "janus.plugin.textroom",
     opaqueId: "textroom-" + Janus.randomString(12),		// 방번호
     media: { audio: false, video: false }, 				// media: false 옵션을 명시해야 DataChannel이 정상 연결
+    data: true,
     success: function (pluginHandle) {
       textroomPlugin = pluginHandle;
       Janus.log("🎯 TextRoom plugin attached");
 
-    },
-
-    ondataopen: function () {
-      Janus.log("📡 Data channel opened");
-      
-      // 우리가 보낼 DataChannel 열기
+   	  // setup 요청은 성공 직후에 바로 보냄
       const body = { request: "setup" };
       textroomPlugin.send({ message: body });
+      console.log(body);
       
-      registerTextRoom(display);
+      if (textroomPlugin.webrtcStuff.pc) {
+    	  console.log("📡 PeerConnection 생성됨");
+    	} else {
+    	  console.warn("⚠️ PeerConnection 생성되지 않음");
+    	}
+      
+    },
+
+    onmessage: function(msg, jsep) {
+        if (jsep) {
+          console.log("📨 JSEP received:", jsep);
+          textroomPlugin.createAnswer({
+            jsep: jsep,
+            media: { audio: false, video: false, data: true },
+            success: function (jsep) {
+              const body = { request: "ack" };
+              textroomPlugin.send({ message: body, jsep: jsep });
+            },
+            error: function (err) {
+              console.error("❌ JSEP createAnswer error", err);
+            }
+          });
+        }
+     },
+    
+    ondataopen: function () {
+      Janus.log("📡 Data channel opened");
+   	  // 채팅방 생성
+      createTextRoom(selectedRoomId); 
+      // 사용자 등록(join)
+   	  registerTextRoom(display, selectedRoomId);		// join만 호출
     },
 
     // 수신 핸들러
@@ -1086,7 +1114,7 @@ function attachTextRoom(display) {
       
       if (json.textroom === "message" && json.text) {
     	// 내 메시지는 건너뜀 (중복 방지)
-      	if (!json.from || json.from === myDataId) {
+      	if (json.from !== myDataId) {
         	appendChatMessage(json.from, json.text);
       	}
       } else if (json.textroom === "join") {			// 방에 참가할 경우
@@ -1102,8 +1130,26 @@ function attachTextRoom(display) {
   });
 }
 
+//textroom 채팅방 생성 요청
+function createTextRoom(roomId) {
+  const createRequest = {
+    textroom: "create",
+    transaction: Janus.randomString(12),
+    room: roomId,
+    description: "Text room for video chat",
+    secret: "adminpwd" // 관리 비밀번호 (선택)
+  };
+
+  textroomPlugin.data({
+    text: JSON.stringify(createRequest),
+    success: () => console.log("✅ TextRoom 생성 요청 전송"),
+    error: (err) => console.error("❌ TextRoom 생성 실패", err)
+  });
+}
+
 // TextRoom 사용자 등록
-function registerTextRoom(display) {
+function registerTextRoom(display, selectedRoomId) {
+  console.log("registerTextRoom 호출 성공");
   myUsername = display;  // 예: user_AB12
   myDataId = Janus.randomString(12);
 
@@ -1112,7 +1158,8 @@ function registerTextRoom(display) {
     transaction: Janus.randomString(12),
     room: selectedRoomId,
     username: myUsername,
-    display: displayName
+    display: displayName,
+    id: myDataId
   };
   textroomPlugin.data({
     text: JSON.stringify(register),
