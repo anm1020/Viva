@@ -1157,11 +1157,8 @@ function attachTextRoom(display, selectedRoomId) {
       console.log("📥 채팅 메시지 수신:", json);
       
       if (json.textroom === "message" && json.text) {
-    	// 내 메시지는 건너뜀 (중복 방지)
-//       	if (json.from !== myDataId) {
-//         	appendChatMessage(json.from, json.text);
-//       	}
     	// ✅ 추천: 무조건 append (중복 방지 필요 시 username 기준으로 체크)
+    	  console.log("✅ message 수신, append 실행");
     	  appendChatMessage(json.from || "?", json.text);
       } else if (json.textroom === "join") {			// 방에 참가할 경우
     	    Janus.log(`👋 ${json.username} joined`);
@@ -1216,6 +1213,7 @@ function registerTextRoom(display, selectedRoomId) {
   };
   textroomPlugin.data({
     text: JSON.stringify(register),
+    success: () => console.log("✅ TextRoom 등록 성공"),
     error: function (reason) {
       console.error("TextRoom 등록 실패:", reason);
     }
