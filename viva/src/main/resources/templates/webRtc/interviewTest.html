@@ -608,13 +608,9 @@ function createJanusSession() {
             mypvtid = msg.private_id;
             publishOwnFeed();
 
-            // 👇 본인 참가자 등록
-            addParticipant(msg.id, displayName);
-            
             if (msg.publishers) {
               msg.publishers.forEach(pub => {
                 if (!feeds.find(f => f.rfid === pub.id)) {
-                  addParticipant(pub.id, pub.display);       // 👈 참가자 추가
                   newRemoteFeed(pub.id, pub.display);
                 }
               });
@@ -625,7 +621,6 @@ function createJanusSession() {
           if (msg.videoroom === "event" && msg.publishers) {
         	  msg.publishers.forEach(pub => {
         	    if (!feeds.find(f => f.rfid === pub.id)) {
-        	      addParticipant(pub.id, pub.display);       // 👈 참가자 추가
         	      newRemoteFeed(pub.id, pub.display);
         	    }
         	 });
@@ -956,12 +951,6 @@ function newRemoteFeed(id, display) {
             state.muted = false;
             muteBtn.textContent = '🔊';
           }
-//           audioContexts[remoteId].gainNode.gain.value = value;
-//           // 음소거 상태에서도 슬라이더 조정되면 해제
-//           if (audioContexts[remoteId].muted && value > 0) {
-//             audioContexts[remoteId].muted = false;
-//             document.getElementById(muteBtnId).textContent = '🔊';
-//           }
         });
         
      	// 음소거 버튼 제어
@@ -984,7 +973,6 @@ function newRemoteFeed(id, display) {
           state.muted = !state.muted;
         });
       	
-//       	Janus.attachMediaStream(document.getElementById(`remotevideo-${id}`), stream);
     },
 
     oncleanup: function () {
@@ -1163,15 +1151,14 @@ function attachTextRoom(display, selectedRoomId) {
     		// ✅ 추천: 무조건 append (중복 방지 필요 시 username 기준으로 체크)
     	  	console.log("✅ message 수신, append 실행");
     		// myDataId와 json.from이 일치할 때 내 메시지로 인식
-    		const sender = json.from;
-    		if (sender === myUsername) {
-    	          console.log("💬 내 메시지, 중복 표시 생략");
-    	          return;
-    	    }
-    		
     		// 참가자 목록에서 displayName 찾기
-    		const senderDisplay = participants.find(p => p.username === sender)?.display || sender;
-            appendChatMessage(displayName, json.text);    	  
+    		const senderDisplay = participants.find(p => p.id === json.from)?.display || json.from;
+            
+    		if (json.from !== myUsername) {
+    			appendChatMessage(senderDisplay, json.text);
+    		} else {
+    		    console.log("💬 본인 메시지, 표시 생략");
+    		}
       }
       
       if (json.textroom === "join") {			// 방에 참가할 경우
@@ -1228,14 +1215,15 @@ function registerTextRoom(display, selectedRoomId) {
     transaction: Janus.randomString(12),
     room: Number(selectedRoomId),
     username: myUsername,
-    display: display
+    display: display,
+    id: myDataId
   };
   
   textroomPlugin.data({
     text: JSON.stringify(register),
     success: () => {
     	console.log("✅ TextRoom 등록 성공");
-    	participants.push({ username: myUsername, display: display });
+    	participants.push({ id: myUsername, display: display });
     },
     error: function (reason) {
       console.error("TextRoom 등록 실패:", reason);
