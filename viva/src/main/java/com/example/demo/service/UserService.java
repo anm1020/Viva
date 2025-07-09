@@ -47,6 +47,10 @@ public class UserService {
 		return usersRepository.findByUserId(userId);
 	}
 
+	public void deleteUserById(String userId) {
+		
+	}
+
 	// 상세 정보 조회 (원하면 사용)
 //    public User getUserByUserId(String userId) {
 //        return userRepository.findByUserId(userId);

@@ -51,7 +51,7 @@ public class Users {
     private String userAddDetail;
 
 //  @Enumerated(EnumType.STRING)
-    @Column(name = "user_role", columnDefinition = "ENUM('mem','intr')")
+    @Column(name = "user_role", columnDefinition = "ENUM('mem','intr','admin')")
     private String userRole;
 
     @Column(name = "user_skill", length = 3000)
@@ -59,12 +59,13 @@ public class Users {
 
     @Column(name = "user_career", length = 255)
     private String userCareer;
-    												// DEFAULT 'N'" value="N"
+    
+    // 면접관 계정 활성화 상태 - 초기 가입시 N, 관리자 확인 후 Y 전환		// DEFAULT 'N'" value="N"
     @Column(name = "user_outh", length = 1, columnDefinition = "ENUM('Y', 'N') DEFAULT 'N'")
     private String userOuth;
 
 //  @Enumerated(EnumType.STRING)							 DEFAULT 'Y'
-    @Column(name = "user_type", columnDefinition = "ENUM('Y', 'N')")
+    @Column(name = "user_type", columnDefinition = "ENUM('Y', 'N') DEFAULT 'Y'")	// 계정 활성화 상태
     private String userType;
 
     @CreationTimestamp
@@ -76,9 +77,9 @@ public class Users {
 //        mem, intr
 //    }
     
-//    public enum UserType {
-//        Y, N
-//    }
+    public enum UserType {
+        Y, N
+    }
    
     // 비밀번호 확인
     @Transient

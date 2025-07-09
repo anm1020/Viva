@@ -39,11 +39,11 @@
     -->
 
     <!-- 면접관이면: /intrMypage로 이동 -->
-    <a th:if="${role == 'intr'}" th:href="@{/intrMypage}" style="text-decoration:none; color:inherit; font-weight:bold;">
+    <a th:if="${role == 'intr'}" th:href="@{/mypage}" style="text-decoration:none; color:inherit; font-weight:bold;">
         <span th:text="'환영합니다, ' + ${displayName} + '님!'"></span>
     </a>
     <!-- 취준생이면: /memMypage로 이동 -->
-    <a th:if="${role == 'mem'}" th:href="@{/memMypage}" style="text-decoration:none; color:inherit; font-weight:bold;">
+    <a th:if="${role == 'mem'}" th:href="@{/mypage}" style="text-decoration:none; color:inherit; font-weight:bold;">
         <span th:text="'환영합니다, ' + ${displayName} + '님!'"></span>
     </a>
     <!-- 로그아웃 버튼(항상 노출) -->
