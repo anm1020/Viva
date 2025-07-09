@@ -13,4 +13,9 @@ public interface IntrDisabledRepository extends JpaRepository<IntrDisabled, Long
 
     // 특정 날짜+시간이 비활성화되었는지 조회
     boolean existsByIntrIdAndDisabledDateAndDisabledTime(String intrId, String disabledDate, String disabledTime);
+    
+    // id(PK) 기준 삭제 메서드
+    void deleteById(Long id);
+    
+    
 }

@@ -2,6 +2,8 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
   <script src="https://code.jquery.com/jquery-latest.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <meta charset="UTF-8">
   <title>면접관 마이페이지</title>
   <style>
@@ -138,7 +140,7 @@
           <a href="#" class="active">내 정보</a>
           <a th:href="@{/memberEdit}">내 정보 수정</a>
           <a href="#">후기 관리</a>
-          <a href="#">일정 관리</a>
+         <a href="#" id="menuSchedule">일정 관리</a><!-- 이슬 수정 -->
           <a href="#">이력서 관리</a>
           <a th:href="@{/jobsite}">취업 사이트</a>
         </div>
@@ -150,7 +152,7 @@
     </nav>
 
     <!-- 메인 컨텐츠 -->
-    <section class="main-content">
+    <section class="main-content" id="contentArea"><!--id="contentArea" 추가-s -->
       <div class="info-cards">
         <!-- 회원 정보 -->
         <div class="member-info">
@@ -170,8 +172,11 @@
           <!-- <div class="point-value" th:text="${user.point}">5200</div>
         </div> -->
       </div>
+       <!-- ✅ 일정 관리 영역 (Ajax로 로드) -->
+  <div id="contentArea"><!-- 여기에 fragment가 동적으로 들어옴 --></div>
     </section>
   </div>
+  
   
  <!-- 탈퇴 팝업 Modal (처음에는 display:none; 숨겨둠) -->
 <div id="withdrawModal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:9999;">
@@ -252,6 +257,33 @@ $(function(){
   });
 });
 </script>
-  
+<!-- 이슬면접관 마이페이지 -->
+<!-- ✅ 일정 관리 fragment 로드 -->
+  <script>
+    $(function() {
+      $("#menuSchedule").on("click", function(e) {
+        e.preventDefault();
+
+        // 기존 active 제거 후 현재 메뉴에 적용
+        $(".sidebar-menu a").removeClass("active");
+        $(this).addClass("active");
+
+        // fragment 로드
+        $("#contentArea").load("/reservation/intrmypage", function(response, status, xhr) {
+          if (status === "success") {
+            console.log("✅ fragment 로드 성공");
+
+            // flatpickr 초기화
+            flatpickr("#datePicker", {
+              dateFormat: "Y-m-d",
+              minDate: "today"
+            });
+          } else {
+            console.error("❌ fragment 로드 실패", status, xhr.status, xhr.statusText);
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>

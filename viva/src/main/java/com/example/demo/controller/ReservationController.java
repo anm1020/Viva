@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,6 +24,7 @@ import com.example.demo.service.PaymentService;
 import com.example.demo.service.PointService;
 import com.example.demo.service.ReservationService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
@@ -246,7 +248,7 @@ public class ReservationController {
 
 	// 면접관 자신의 예약 일정(마이페이지) 확인용
 	@GetMapping("/intrmypage")
-	public String intrReservationList(HttpSession session, Model model) {
+	public String intrReservationList(HttpSession session, Model model,HttpServletRequest request) {
 
 		// 세션에서 로그인된 사용자 가져오기
 		Users user = (Users) session.getAttribute("user");
@@ -265,26 +267,53 @@ public class ReservationController {
 		model.addAttribute("disabledList", disabledList);
 		model.addAttribute("reservations", reservations);
 		model.addAttribute("user", user);
+		model.addAttribute("users", user);
 		model.addAttribute("point", point);
-
-		// 예약 목록 보여줄 HTML 페이지 (예: reservation/intr_list.html)
-		return "reservation/intrmypage";
+		// AJAX 요청이면 fragment만 반환
+		if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
+		    return "mypage/intrschedule :: fragment"; // ← fragment 이름 명시
+		}
+		return "mypage/intrMypage";
+		
 	}
 
-	// 면접관이 정한 날 불가능
+	// 면접관 불가능날자 등록
 	@PostMapping("/blockDate")
-	public String blockDate(@RequestParam("date") String date, @RequestParam("time") String time, HttpSession session) {
+	public ResponseEntity<Object> blockDate(@RequestParam("date") String date, @RequestParam("time") String time, HttpSession session) {
 
 		// 세션에서 로그인된 사용자 확인
 		Users user = (Users) session.getAttribute("user");
 		if (user == null || !"intr".equals(user.getUserRole())) {
-			return "redirect:/login"; // 로그인 안 되어있거나 intr이 아니면 차단
+			return ResponseEntity.status(401).build();
 		}
-
+		 String intrId = user.getUserId();
+		 // 2. 중복 체크
+	    boolean exists = service.isDisabled(intrId, date, time); // 서비스에 위임
+	    if (exists) {
+	        return ResponseEntity.status(409).body("duplicate"); // 409 Conflict
+	    }
 		// 서비스 호출 → 날짜+시간 비활성화로 저장
 		service.saveDisabledDate(user.getUserId(), date, time);
 
 		// 다시 마이페이지로 리다이렉트
-		return "redirect:/reservation/intrmypage";
+		//return "redirect:/reservation/intrmypage";
+		
+		return ResponseEntity.ok("success"); // ✅ redirect NO!
+		
+
 	}
+	
+	// 비활성화된 날짜/시간 삭제
+	@PostMapping("/deleteDisabled")
+	public ResponseEntity<?> unblockDate(@RequestParam("id") Long id, HttpSession session) {
+	    Users user = (Users) session.getAttribute("user");
+	    if (user == null || !"intr".equals(user.getUserRole())) {
+	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("unauthorized");
+	    }
+
+	    service.deleteDisabledTime(id);
+	    return ResponseEntity.ok("success");
+	    
+	        }
+
 }
