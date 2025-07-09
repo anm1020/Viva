@@ -1062,27 +1062,31 @@ function attachTextRoom(display) {
   janus.attach({
     plugin: "janus.plugin.textroom",
     opaqueId: "textroom-" + Janus.randomString(12),		// 방번호
+    media: { audio: false, video: false }, 				// media: false 옵션을 명시해야 DataChannel이 정상 연결
     success: function (pluginHandle) {
       textroomPlugin = pluginHandle;
       Janus.log("🎯 TextRoom plugin attached");
 
-      // 우리가 보낼 DataChannel 열기
-      const body = {
-        request: "setup"
-      };
-      textroomPlugin.send({ message: body });
     },
 
     ondataopen: function () {
       Janus.log("📡 Data channel opened");
+      
+      // 우리가 보낼 DataChannel 열기
+      const body = { request: "setup" };
+      textroomPlugin.send({ message: body });
+      
       registerTextRoom(display);
     },
 
+    // 수신 핸들러
     ondata: function (data) {
       const json = JSON.parse(data);
+      console.log("📥 채팅 메시지 수신:", json);
+      
       if (json.textroom === "message" && json.text) {
     	// 내 메시지는 건너뜀 (중복 방지)
-      	if (json.from !== myUsername) {
+      	if (!json.from || json.from === myDataId) {
         	appendChatMessage(json.from, json.text);
       	}
       } else if (json.textroom === "join") {			// 방에 참가할 경우
@@ -1129,8 +1133,12 @@ function sendChatMessage(msg) {
     from: myUsername
   };
 
+  console.log("📤 채팅 메시지 전송:", message);
+  
   textroomPlugin.data({
-    text: JSON.stringify(message)
+    text: JSON.stringify(message),
+    success: () => console.log("✅ 채팅 메시지 전송 성공"),
+    error: (err) => console.error("❌ 채팅 메시지 전송 실패", err)
   });
 
   // 내 메세지 출력(다른 참가자에게도 전송, 여기선 중복 방지)
