@@ -557,7 +557,7 @@ function createJanusSession() {
           sfutest.send({
             message: {
               request: "join",
-              room: selectedRoomId,
+              room: Number(selectedRoomId),
               ptype: "publisher",
               display: displayName
             }
@@ -608,6 +608,9 @@ function createJanusSession() {
             mypvtid = msg.private_id;
             publishOwnFeed();
 
+            // 👇 본인 참가자 등록
+            addParticipant(msg.id, displayName);
+            
             if (msg.publishers) {
               msg.publishers.forEach(pub => {
                 if (!feeds.find(f => f.rfid === pub.id)) {
@@ -875,7 +878,7 @@ function newRemoteFeed(id, display) {
       remoteFeed.send({
         message: {
           request: "join",
-          room: selectedRoomId,
+          room: Number(selectedRoomId),
           ptype: "subscriber",
           feed: id,
           private_id: mypvtid
@@ -889,7 +892,7 @@ function newRemoteFeed(id, display) {
           jsep,
           media: { audioSend: false, videoSend: false },
           success: function (jsep) {
-            feeds.find(f => f.rfid === id)?.send({ message: { request: "start", room: selectedRoomId }, jsep });
+            feeds.find(f => f.rfid === id)?.send({ message: { request: "start", room: Number(selectedRoomId) }, jsep });
           },
           error: function (err) {
             console.error("remote SDP 오류", err);
@@ -1155,11 +1158,16 @@ function attachTextRoom(display, selectedRoomId) {
     ondata: function (data) {
       const json = JSON.parse(data);
       console.log("📥 채팅 메시지 수신:", json);
-      
+// 	  console.log("↪️ from:", json.from, "/ myUsername:", myUsername, "/ display: ", json.display);
+	  
       if (json.textroom === "message" && json.text) {
-    	// ✅ 추천: 무조건 append (중복 방지 필요 시 username 기준으로 체크)
-    	  console.log("✅ message 수신, append 실행");
-    	  appendChatMessage(json.from || "?", json.text);
+    		// ✅ 추천: 무조건 append (중복 방지 필요 시 username 기준으로 체크)
+    	  	console.log("✅ message 수신, append 실행");
+    		// myDataId와 json.from이 일치할 때 내 메시지로 인식
+    		// 참가자 목록에서 displayName 찾기
+    		const senderDisplay = json.display || json.from;
+    		appendChatMessage(senderDisplay, json.text);
+    	  
       } else if (json.textroom === "join") {			// 방에 참가할 경우
     	    Janus.log(`👋 ${json.username} joined`);
       } else if (json.textroom === "leave") {			// 방을 떠날 경우
@@ -1178,7 +1186,7 @@ function createTextRoom(roomId) {
   const createRequest = {
     textroom: "create",
     transaction: Janus.randomString(12),
-    room: roomId,
+    room: Number(roomId),
     description: "Text room for video chat",
     secret: "adminpwd" // 관리 비밀번호 (선택)
   };
@@ -1206,29 +1214,38 @@ function registerTextRoom(display, selectedRoomId) {
   const register = {
     textroom: "join",
     transaction: Janus.randomString(12),
-    room: selectedRoomId,
+    room: Number(selectedRoomId),
     username: myUsername,
-    display: displayName,
+    display: myUsername,
     id: myDataId
   };
   textroomPlugin.data({
     text: JSON.stringify(register),
-    success: () => console.log("✅ TextRoom 등록 성공"),
+    success: () => {
+    	console.log("✅ TextRoom 등록 성공")
+    },
     error: function (reason) {
       console.error("TextRoom 등록 실패:", reason);
     }
   });
+  
 }
 
 // 채팅 전송 함수
 function sendChatMessage(msg) {
+	if (!myUsername) {
+	    console.warn("❗ myUsername이 설정되지 않았습니다. 채팅 전송 중단");
+	    return;
+	  }
+	
   const message = {
     textroom: "message",
     transaction: Janus.randomString(12),
-    room: selectedRoomId,
+    room: Number(selectedRoomId),
     text: msg,
-    to: "all", // 모든 참가자에게
-    from: myUsername
+    to: "all",				 	// 모든 참가자에게
+    from: myDataId,				// 식별자
+    display: myUsername			// 보여줄 이름
   };
 
   console.log("📤 채팅 메시지 전송:", message);
