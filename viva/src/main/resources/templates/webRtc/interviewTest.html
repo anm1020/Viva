@@ -550,6 +550,8 @@ function initJanus() {
 // ✅ 세션 생성
 function createJanusSession() {
   
+	console.log("세션 생성 제대로 수행되나?");
+	
 	if (janus !== null) {
 	    janus.destroy();
 	    janus = null;
