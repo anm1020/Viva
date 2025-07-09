@@ -752,15 +752,6 @@ function createJanusSession() {
           console.error("Janus 오류", err);
         }
       });	// end videoroom 플러그인
-      
-      janus.attach({
-    	  plugin: "janus.plugin.textroom",
-    	  success: function(pluginHandle) {
-    	  	textroom = pluginHandle;
-    	    // 채팅방 join 처리
-    	  }
-      });
-      
     },
 
     destroyed: cleanupAllFeeds
@@ -1089,8 +1080,15 @@ function attachTextRoom(display) {
 
     ondata: function (data) {
       const json = JSON.parse(data);
-      if (json.text) {
-        appendChatMessage(json.from, json.text);
+      if (json.textroom === "message" && json.text) {
+    	// 내 메시지는 건너뜀 (중복 방지)
+      	if (json.from !== myUsername) {
+        	appendChatMessage(json.from, json.text);
+      	}
+      } else if (json.textroom === "join") {			// 방에 참가할 경우
+    	    Janus.log(`👋 ${json.username} joined`);
+      } else if (json.textroom === "leave") {			// 방을 떠날 경우
+        Janus.log(`👋 ${json.username} left`);
       }
     },
 
@@ -1127,13 +1125,15 @@ function sendChatMessage(msg) {
     transaction: Janus.randomString(12),
     room: selectedRoomId,
     text: msg,
-    to: "all" // 모든 참가자에게
+    to: "all", // 모든 참가자에게
+    from: myUsername
   };
 
   textroomPlugin.data({
     text: JSON.stringify(message)
   });
 
+  // 내 메세지 출력(다른 참가자에게도 전송, 여기선 중복 방지)
   appendChatMessage("나", msg);
 }
 
@@ -1147,12 +1147,22 @@ function appendChatMessage(sender, msg) {
 }
 
 // 이벤트 바인딩
+const input = document.getElementById("chatInput");
+const sendBtn = document.getElementById("sendChatBtn");
+
 document.getElementById("sendChatBtn").addEventListener("click", () => {
-  const input = document.getElementById("chatInput");
   const message = input.value.trim();
   if (message !== "") {
     sendChatMessage(message);
     input.value = "";
+  }
+});
+
+//Enter 키 입력 이벤트
+input.addEventListener("keypress", function (e) {
+  if (e.key === "Enter" && !e.shiftKey) {		// 엔터키 감지 && Shift+Enter 줄바꿈 허용
+    e.preventDefault(); // 줄바꿈 방지
+    sendBtn.click();    // 전송 버튼 클릭과 동일한 효과
   }
 });
 
