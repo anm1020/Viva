@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.demo.model.entity.Payment;
+import com.example.demo.model.entity.Reservation;
 import com.example.demo.model.entity.Users;
 import com.example.demo.repository.PaymentRepository;
 import com.example.demo.service.PointService;
@@ -98,19 +99,29 @@ public class PointController {
 	@ResponseBody
 	public ResponseEntity<String> usePoint(@RequestParam("userId") String userId, @RequestParam("amount") int amount,
 			@RequestParam("resId") Long resId, HttpSession session) {
+		   // 1. 세션에서 사용자 확인
 		 Users user = (Users) session.getAttribute("user");
 		    if (user == null) {
 		        return ResponseEntity.badRequest().body("로그인 필요");
 		    }
-
+		    // 2. 사용자 포인트 차감
 		    boolean success = service.use(user.getUserId(), amount);
 		    if (!success) {
 		        return ResponseEntity.badRequest().body("포인트 부족");
 		    } 
 
-		    // 포인트 결제니까 markReservationAsPaid 호출
+		    // 3. 예약 상태 변경 (confirmed)
 		    resservice.markReservationAsPaid(resId);
+		    
+		 // 4. 면접관에게 포인트 지급
+		    Reservation reservation = resservice.findById(resId);
+		    if (reservation != null) {
+		        String intrId = reservation.getIntrId();
+		        service.charge(intrId, amount);  // 면접관 포인트 적립
+		    }
+		    // 포인트 결제니까 markReservationAsPaid 호출
+		    //resservice.markReservationAsPaid(resId);
 
-		    return ResponseEntity.ok("포인트 결제 완료");
+		    return ResponseEntity.ok("포인트 결제 완료 + 면접관 포인트 지급 완료");
 }
 }

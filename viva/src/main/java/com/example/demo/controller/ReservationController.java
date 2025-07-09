@@ -52,20 +52,8 @@ public class ReservationController {
 		model.addAttribute("interviewers", interviewers);
 		return "reservation/testlist";
 	}
-//	public String testListInterviewers(Model model) {
-//		// Users 엔티티에 @NoArgsConstructor, @Setter 있으니 new + setter 로 값 설정
-//		Users intr = new Users();
-//		intr.setUserId("test_user"); // 실제 존재하는 사용자 ID
-//		intr.setUserName("테스트면접관"); // 화면에 보여줄 이름
-//
-//		// 단 하나의 면접관 리스트로 모델 세팅
-//		model.addAttribute("interviewers", List.of(intr));
-//		return "reservation/testlist";
-//	}
 
-	/**
-	 * 1) 예약 페이지 열기 (book.html)
-	 */
+	// 예약 페이지 열기
 	@GetMapping("/book")
 	public String showBookPage(@RequestParam("intrId") String intrId, Model model, HttpSession session) {
 		// (1) 예약하려는 면접관 ID
@@ -77,10 +65,10 @@ public class ReservationController {
 		// 날짜별 예약된 시간 가져오기
 		Map<String, List<String>> slots = service.getReservedSlotsByIntrId(intrId);
 		model.addAttribute("reservedSlots", slots);
-		
+
 		// 비활성화된 시간도 함께 조회해서 전달
-	    Map<String, List<String>> disabledSlots = service.getDisabledSlotsByIntrIdGrouped(intrId);
-	    model.addAttribute("disabledSlots", disabledSlots);
+		Map<String, List<String>> disabledSlots = service.getDisabledSlotsByIntrIdGrouped(intrId);
+		model.addAttribute("disabledSlots", disabledSlots);
 		// 로그인한 사용자 이름 보여주기
 		// 사용자 정보 (session에서 Users 꺼내기)
 		Users user = (Users) session.getAttribute("user");
@@ -95,6 +83,7 @@ public class ReservationController {
 		return "reservation/book";
 	}
 
+	// 예약 저장
 	@PostMapping("/save")
 	// public ResponseEntity<Integer> save
 	public ResponseEntity<?> save(@RequestBody Reservation res, HttpSession session) {
@@ -109,26 +98,23 @@ public class ReservationController {
 
 		String memId = user.getUserId();
 		res.setMemId(memId);
-		res.setResStatus("pending");//상태저장
-		
+		res.setResStatus("pending");// 상태저장
 
-	    // 2) 면접관의 비활성화된 시간인지 검사
-	    boolean disabled = service.isDisabled(res.getIntrId(), res.getReservedDate(), res.getReservedTime());
-	    if (disabled) {
-	        return ResponseEntity.badRequest().body("해당 시간은 면접관이 예약을 받을 수 없는 시간입니다.");
-	    }
+		// 2) 면접관의 비활성화된 시간인지 검사
+		boolean disabled = service.isDisabled(res.getIntrId(), res.getReservedDate(), res.getReservedTime());
+		if (disabled) {
+			return ResponseEntity.badRequest().body("해당 시간은 면접관이 예약을 받을 수 없는 시간입니다.");
+		}
 
 		// 저장된 예약 엔티티 받아오기
 		Reservation reservation = service.save(res);
 
-		//  저장된 예약의 PK 반환!
+		// 저장된 예약의 PK 반환!
 		return ResponseEntity.ok(reservation.getResId());
 
 	}
 
-	/**
-	 * 3) 예약 결과 페이지 (result.html)
-	 */
+	// 예약 결과 페이지 (result.html)
 	@GetMapping("/result")
 	public String showResultPage(@RequestParam("resId") Long resId,
 			@RequestParam(value = "error", required = false) String error, Model model, HttpSession session) {
@@ -149,10 +135,7 @@ public class ReservationController {
 
 	}
 
-	/**
-	 * "/myReservations" 경로 매핑 메서드 추가 ─── 로그인된 회원의 “결제 전”/“결제 완료” 예약을 조회해서 View에
-	 * 전달합니다.
-	 */
+	// 로그인된 회원의 “결제 전”/“결제 완료” 예약을 조회해서 View에 전달
 	@GetMapping("/myReservations")
 	public String myReservations(Model model, @AuthenticationPrincipal UserDetails userDetails // 인증된 사용자 정보 주입
 			, HttpSession session) {
@@ -175,7 +158,7 @@ public class ReservationController {
 		return "reservation/mylist";
 	}
 
-	// ── 변경 폼 보여주기 (edit.html) ─────────────────
+	// 예약변경 폼 보여주기 (edit.html) ─────────────────
 	@GetMapping("/edit")
 	public String showEditForm(@RequestParam("resId") Long resId, Model model) {
 		Reservation r = service.findById(resId);
@@ -198,34 +181,34 @@ public class ReservationController {
 		return "redirect:/reservation/mylist";
 	}
 
+	// 예약 취소
 	@GetMapping("/cancel")
 	public String cancel(@RequestParam("resId") Long resId, HttpSession session) {
-	    // 1. 세션에서 사용자 확인
-	    Users user = (Users) session.getAttribute("user");
-	    if (user == null) {
-	        return "redirect:/loginmain";
-	    }
+		// 1. 세션에서 사용자 확인
+		Users user = (Users) session.getAttribute("user");
+		if (user == null) {
+			return "redirect:/loginmain";
+		}
 
-	    String userId = user.getUserId();
+		String userId = user.getUserId();
 
-	    // 2. 예약 상태를 'cancelled'로 변경 (삭제 X)
-	    service.cancelReservation(resId);  // 예약 상태 업데이트
+		// 2. 예약 상태를 'cancelled'로 변경 (삭제 X)
+		service.cancelReservation(resId); // 예약 상태 업데이트
 
-	    // 3. 해당 예약이 결제된 상태인지 확인
-	    boolean wasPaid = paymentService.isPaidReservation(resId);
+		// 3. 해당 예약이 결제된 상태인지 확인
+		boolean wasPaid = paymentService.isPaidReservation(resId);
 
-	    // 4. 결제된 상태였다면 결제 금액을 포인트로 환불
-	    if (wasPaid) {
-	        int amount = paymentService.getPayAmountByResId(resId);  // 예약 ID로 결제 금액 조회
-	        pointservice.refundPoint(userId, amount); // 포인트 환불
-	    }
+		// 4. 결제된 상태였다면 결제 금액을 포인트로 환불
+		if (wasPaid) {
+			int amount = paymentService.getPayAmountByResId(resId); // 예약 ID로 결제 금액 조회
+			pointservice.refundPoint(userId, amount); // 포인트 환불
+		}
 
-	    // 5. 마이페이지로 이동
-	    return "redirect:/reservation/mylist";
+		// 5. 마이페이지로 이동
+		return "redirect:/reservation/mylist";
 	}
-	/**
-	 * 내 예약 목록
-	 */
+
+	// 내 예약 목록
 	@GetMapping("/mylist")
 	public String myList(Model model, HttpSession session) {
 
@@ -270,20 +253,25 @@ public class ReservationController {
 		if (user == null || !"intr".equals(user.getUserRole())) {
 			return "redirect:/login"; // 로그인하지 않았거나 일반회원이면 로그인 페이지로
 		}
+		String userId = user.getUserId();
 
 		// 서비스 호출해서 예약 목록 가져오기
 		List<Reservation> reservations = service.getIntrReservations(user.getUserId());
 
 		List<IntrDisabled> disabledList = service.getDisabledDatesByIntrId(user.getUserId());
+		// 포인트 조회
+		int point = pointservice.getPoint(userId);
 		// 뷰로 전달
 		model.addAttribute("disabledList", disabledList);
 		model.addAttribute("reservations", reservations);
+		model.addAttribute("user", user);
+		model.addAttribute("point", point);
 
 		// 예약 목록 보여줄 HTML 페이지 (예: reservation/intr_list.html)
 		return "reservation/intrmypage";
 	}
 
-	//면접관날짜 막
+	// 면접관이 정한 날 불가능
 	@PostMapping("/blockDate")
 	public String blockDate(@RequestParam("date") String date, @RequestParam("time") String time, HttpSession session) {
 
