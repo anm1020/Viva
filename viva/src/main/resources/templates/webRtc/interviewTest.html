@@ -414,6 +414,8 @@ var textroomPlugin = null;
 var myUsername = null;
 var myDataId = null;
 var textRoomChannel = null;
+const userId = "[[${userId}]]";
+const hostId = null;
 
 // ✅ navigate 처리 (화면 전환 시 정리 포함)
 function navigate(view) {
@@ -474,7 +476,7 @@ function loadRoomList() {
           <div class="room-info">생성: ${formatDate(room.createdDt)}</div>
           <div class="room-icon">🔒 🔓</div>
         `;
-        div.addEventListener("click", () => enterRoom(room.intrRoomId, room.hostId));
+        div.addEventListener("click", () => enterRoom(room.intrRoomId, room.hostId, userId));
         listEl.appendChild(div);
       });
     });
@@ -514,9 +516,10 @@ function removeParticipant(id) {
 }
 
 // ✅ 방 입장
-function enterRoom(roomId, name) {
+function enterRoom(roomId, hostId, name) {
   selectedRoomId = roomId;
   displayName = name;
+  hostId = hostId;
   console.log("선택된 방 번호 : " + selectedRoomId);
   navigate('videoroom');
 }
@@ -1023,11 +1026,17 @@ function cleanupAllFeeds() {
   $('#remoteContainer').empty();
   $('#local-box').remove();
   
+  // Audio context 정리
+  Object.values(audioContexts).forEach(state => state.ctx.close());
+  Object.keys(audioContexts).forEach(k => delete audioContexts[k]);
+  
   // 핸들 및 세션 초기화
   if (sfutest) sfutest.detach();
   sfutest = null;
   myid = null;
   mypvtid = null;
+  myUsername = null;
+  myDataId = null;
   selectedRoomId = null;
   displayName = null;
   
@@ -1036,7 +1045,38 @@ function cleanupAllFeeds() {
     janus.destroy();
     janus = null;
   }
+  
 }
+
+// // VideoRoom 삭제 요청
+// function destroyVideoRoom(roomId) {
+// 	const body = {
+// 	    request: "destroy",
+// 	    room: roomId,
+// 	    secret: "adminpwd" // Janus config에서 설정한 관리용 비밀번호
+// 	};
+
+// 	sfutest.send({
+// 	    message: body,
+// 	    success: () => console.log(`🧹 VideoRoom ${roomId} 삭제 요청 완료`)
+// 	});
+// }
+
+// // TextRoom 삭제 요청
+// function destroyTextRoom(roomId) {
+// 	const destroyRequest = {
+// 	    textroom: "destroy",
+// 	    room: roomId,
+// 	    transaction: Janus.randomString(12),
+// 	    secret: "adminpwd" // textroom용 비밀번호도 같음
+// 	};
+
+// 	textroomPlugin.data({
+// 	    text: JSON.stringify(destroyRequest),
+// 	    success: () => console.log(`🧹 TextRoom ${roomId} 삭제 요청 완료`),
+// 	    error: (err) => console.error("❌ TextRoom 삭제 실패", err)
+// 	});
+// }
 
 // 종료버튼 클릭시
 document.getElementById("exitBtn").addEventListener("click", function () {
@@ -1101,8 +1141,12 @@ function attachTextRoom(display, selectedRoomId) {
     
     ondataopen: function () {
       Janus.log("📡 Data channel opened");
-   	  // 채팅방 생성
-      createTextRoom(selectedRoomId); 
+   	  // 채팅방 생성 : 방 생성자만 가능
+   	  if (userId === hostId) {
+      	createTextRoom(selectedRoomId); 
+      	window.__textroomCreated__ = true;  // 플래그 설정
+   	  }
+
       // 사용자 등록(join)
    	  registerTextRoom(display, selectedRoomId);		// join만 호출
     },
@@ -1114,9 +1158,11 @@ function attachTextRoom(display, selectedRoomId) {
       
       if (json.textroom === "message" && json.text) {
     	// 내 메시지는 건너뜀 (중복 방지)
-      	if (json.from !== myDataId) {
-        	appendChatMessage(json.from, json.text);
-      	}
+//       	if (json.from !== myDataId) {
+//         	appendChatMessage(json.from, json.text);
+//       	}
+    	// ✅ 추천: 무조건 append (중복 방지 필요 시 username 기준으로 체크)
+    	  appendChatMessage(json.from || "?", json.text);
       } else if (json.textroom === "join") {			// 방에 참가할 경우
     	    Janus.log(`👋 ${json.username} joined`);
       } else if (json.textroom === "leave") {			// 방을 떠날 경우
@@ -1143,7 +1189,14 @@ function createTextRoom(roomId) {
   textroomPlugin.data({
     text: JSON.stringify(createRequest),
     success: () => console.log("✅ TextRoom 생성 요청 전송"),
-    error: (err) => console.error("❌ TextRoom 생성 실패", err)
+    error: (err) => {
+      if (err?.error_code === 418) {
+          console.warn("⚠️ TextRoom 이미 존재함 → 무시하고 진행");
+          // 이미 존재해도 register는 해야 하므로 continue
+      } else {
+          console.error("❌ TextRoom 생성 실패", err);
+      }
+    }
   });
 }
 
