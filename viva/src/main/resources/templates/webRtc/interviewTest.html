@@ -409,6 +409,10 @@ var displayName = null;
 var feeds = [];
 var isDestroying = false; // 중복 detach 방지용 플래그
 const audioContexts = {};  // { [feedId]: { ctx, gainNode } }
+var textroomPlugin = null;
+var myUsername = null;
+var myDataId = null;
+var textRoomChannel = null;
 
 // ✅ navigate 처리 (화면 전환 시 정리 포함)
 function navigate(view) {
@@ -554,6 +558,10 @@ function createJanusSession() {
               display: displayName
             }
           });
+          
+          // textroom 연결
+          attachTextRoom(displayName);
+          
         },
 
      	// ICE 상태 변경 로그
@@ -1057,6 +1065,96 @@ function toggleMute() {
 	    $('#mute').html("Unmute");
 	}
 }
+
+// textRoom 플러그인 attach 함수
+function attachTextRoom(display) {
+  janus.attach({
+    plugin: "janus.plugin.textroom",
+    opaqueId: "textroom-" + Janus.randomString(12),		// 방번호
+    success: function (pluginHandle) {
+      textroomPlugin = pluginHandle;
+      Janus.log("🎯 TextRoom plugin attached");
+
+      // 우리가 보낼 DataChannel 열기
+      const body = {
+        request: "setup"
+      };
+      textroomPlugin.send({ message: body });
+    },
+
+    ondataopen: function () {
+      Janus.log("📡 Data channel opened");
+      registerTextRoom(display);
+    },
+
+    ondata: function (data) {
+      const json = JSON.parse(data);
+      if (json.text) {
+        appendChatMessage(json.from, json.text);
+      }
+    },
+
+    error: function (err) {
+      console.error("🛑 TextRoom attach error:", err);
+    }
+  });
+}
+
+// TextRoom 사용자 등록
+function registerTextRoom(display) {
+  myUsername = display;  // 예: user_AB12
+  myDataId = Janus.randomString(12);
+
+  const register = {
+    textroom: "join",
+    transaction: Janus.randomString(12),
+    room: selectedRoomId,
+    username: myUsername,
+    display: displayName
+  };
+  textroomPlugin.data({
+    text: JSON.stringify(register),
+    error: function (reason) {
+      console.error("TextRoom 등록 실패:", reason);
+    }
+  });
+}
+
+// 채팅 전송 함수
+function sendChatMessage(msg) {
+  const message = {
+    textroom: "message",
+    transaction: Janus.randomString(12),
+    room: selectedRoomId,
+    text: msg,
+    to: "all" // 모든 참가자에게
+  };
+
+  textroomPlugin.data({
+    text: JSON.stringify(message)
+  });
+
+  appendChatMessage("나", msg);
+}
+
+// 채팅 메세지 DOM 추가
+function appendChatMessage(sender, msg) {
+  const chatBox = document.getElementById("chatMessages");
+  const p = document.createElement("p");
+  p.textContent = `[${sender}] ${msg}`;
+  chatBox.appendChild(p);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// 이벤트 바인딩
+document.getElementById("sendChatBtn").addEventListener("click", () => {
+  const input = document.getElementById("chatInput");
+  const message = input.value.trim();
+  if (message !== "") {
+    sendChatMessage(message);
+    input.value = "";
+  }
+});
 
 </script>
 
