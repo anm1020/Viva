@@ -1146,7 +1146,6 @@ function toggleMute() {
 
 // textRoom 플러그인 attach 함수
 function attachTextRoom(display, selectedRoomId) {
-  console.log("Session ID:", janus.getSessionId());
   if (textroomPlugin !== null) {
 	  console.log("TextRoom plugin already attached.");
 	  registerTextRoom(myUsername, roomId);  // 기존 플러그인이 있는 경우 바로 register
@@ -1162,6 +1161,8 @@ function attachTextRoom(display, selectedRoomId) {
       Janus.log("🎯 TextRoom plugin attached");
       textroomPlugin = pluginHandle;
       
+	  console.log("Session ID:", janus.getSessionId());
+	  console.log("Plugin ID:", textroomPlugin.getId());
 	// setup 요청은 성공 직후에 바로 보냄
       const body = { request: "setup" };
       textroomPlugin.send({ message: body });
