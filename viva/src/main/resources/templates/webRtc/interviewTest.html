@@ -410,7 +410,7 @@ var displayName = null;
 var feeds = [];
 var isDestroying = false; // 중복 detach 방지용 플래그
 const audioContexts = {};  // { [feedId]: { ctx, gainNode } }
-var textroomPlugin = null;
+// var textroomPlugin = null;
 var myUsername = null;
 var myDataId = null;
 var textRoomChannel = null;
@@ -1152,7 +1152,7 @@ function attachTextRoom(display, selectedRoomId) {
     media: { audio: false, video: false, data: true },
     data: true,
     success: function (pluginHandle) {
-      textroomPlugin = pluginHandle;
+      const textroomPlugin = pluginHandle;
       Janus.log("🎯 TextRoom plugin attached");
 
    	  // setup 요청은 성공 직후에 바로 보냄
