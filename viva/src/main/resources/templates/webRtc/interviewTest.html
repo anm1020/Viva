@@ -416,6 +416,7 @@ var myDataId = null;
 var textRoomChannel = null;
 const userId = "[[${userId}]]";
 let hostId = null;
+let isDataChannelReady = false;
 
 // ✅ navigate 처리 (화면 전환 시 정리 포함)
 function navigate(view) {
@@ -1169,6 +1170,9 @@ function attachTextRoom(display, selectedRoomId) {
     	
     	if (msg.textroom === "event" && msg.result === "ok") {
     	    console.log("✅ setup 완료 응답");
+    	    
+    	 	// 사용자 등록(join)
+  	   	  	registerTextRoom(display, selectedRoomId);		// join만 호출
     	}
     	
         if (jsep) {
@@ -1196,14 +1200,18 @@ function attachTextRoom(display, selectedRoomId) {
       console.log("hostId : " + hostId);
 
       if (textroomPlugin && textroomPlugin.webrtcStuff && textroomPlugin.webrtcStuff.pc) {
+    	  console.log("ICE 상태:", textroomPlugin.webrtcStuff.pc.iceConnectionState);
+    	  console.log("Signaling 상태:", textroomPlugin.webrtcStuff.pc.signalingState);
+    	  
     	  const pc = textroomPlugin.webrtcStuff.pc;
     	  console.log("✅ PeerConnection 상태:", pc.iceConnectionState, pc.signalingState);
+    	  isDataChannelReady = true;
+	      
+    	  
     	} else {
     	  console.warn("⚠️ PeerConnection 아직 없음");
     	}
       
-      // 사용자 등록(join)
-   	  registerTextRoom(display, selectedRoomId);		// join만 호출
     },
 
     // 수신 핸들러
@@ -1280,7 +1288,7 @@ function registerTextRoom(display, selectedRoomId) {
 
 // 채팅 전송 함수
 function sendChatMessage(msg) {
-  if (!myUsername || !textroomPlugin) return;
+  if (!myUsername || !textroomPlugin || !isDataChannelReady) return;
 	
   const payload = {
     textroom: "message",
