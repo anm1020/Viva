@@ -1124,36 +1124,6 @@ function cleanupAllFeeds() {
   
 }
 
-// // VideoRoom 삭제 요청
-// function destroyVideoRoom(roomId) {
-// 	const body = {
-// 	    request: "destroy",
-// 	    room: roomId,
-// 	    secret: "adminpwd" // Janus config에서 설정한 관리용 비밀번호
-// 	};
-
-// 	sfutest.send({
-// 	    message: body,
-// 	    success: () => console.log(`🧹 VideoRoom ${roomId} 삭제 요청 완료`)
-// 	});
-// }
-
-// // TextRoom 삭제 요청
-// function destroyTextRoom(roomId) {
-// 	const destroyRequest = {
-// 	    textroom: "destroy",
-// 	    room: roomId,
-// 	    transaction: Janus.randomString(12),
-// 	    secret: "adminpwd" // textroom용 비밀번호도 같음
-// 	};
-
-// 	textroomPlugin.data({
-// 	    text: JSON.stringify(destroyRequest),
-// 	    success: () => console.log(`🧹 TextRoom ${roomId} 삭제 요청 완료`),
-// 	    error: (err) => console.error("❌ TextRoom 삭제 실패", err)
-// 	});
-// }
-
 // 종료버튼 클릭시
 document.getElementById("exitBtn").addEventListener("click", function () {
 	if (janus) {
@@ -1179,7 +1149,8 @@ function attachTextRoom(display, selectedRoomId) {
   janus.attach({
     plugin: "janus.plugin.textroom",
     opaqueId: "textroom-" + Janus.randomString(12),		// 방번호
-    media: false,
+    media: { audio: false, video: false, data: true },
+    data: true,
     success: function (pluginHandle) {
       textroomPlugin = pluginHandle;
       Janus.log("🎯 TextRoom plugin attached");
@@ -1189,21 +1160,23 @@ function attachTextRoom(display, selectedRoomId) {
       textroomPlugin.send({ message: body });
       console.log(body);
       
-      if (textroomPlugin.webrtcStuff.pc) {
-    	  console.log("📡 PeerConnection 생성됨");
-    	} else {
-    	  console.warn("⚠️ PeerConnection 생성되지 않음");
-    	}
-      
     },
 
     onmessage: function(msg, jsep) {
+    	console.log("📩 onmessage 수신:", msg);
+    	console.log("jsep 수신:", jsep);
+    	
+    	if (msg.textroom === "event" && msg.result === "ok") {
+    	    console.log("✅ setup 완료 응답");
+    	}
+    	
         if (jsep) {
           console.log("📨 JSEP received:", jsep);
           textroomPlugin.createAnswer({
             jsep: jsep,
-            media: false,
+            media: { audio: false, video: false, data: true },
             success: function (jsep) {
+              console.log("📤 JSEP answer 전송");
               const ack = { request: "ack" };
               textroomPlugin.send({ message: ack, jsep: jsep });
             },
@@ -1211,6 +1184,8 @@ function attachTextRoom(display, selectedRoomId) {
               console.error("❌ JSEP createAnswer error", err);
             }
           });
+        } else {
+            console.warn("⚠️ JSEP 없음, PeerConnection 생성 안됨");
         }
      },
     
@@ -1219,6 +1194,13 @@ function attachTextRoom(display, selectedRoomId) {
       console.log("userId : " + userId);
       console.log("hostId : " + hostId);
 
+      if (textroomPlugin && textroomPlugin.webrtcStuff && textroomPlugin.webrtcStuff.pc) {
+    	  const pc = textroomPlugin.webrtcStuff.pc;
+    	  console.log("✅ PeerConnection 상태:", pc.iceConnectionState, pc.signalingState);
+    	} else {
+    	  console.warn("⚠️ PeerConnection 아직 없음");
+    	}
+      
       // 사용자 등록(join)
    	  registerTextRoom(display, selectedRoomId);		// join만 호출
     },
