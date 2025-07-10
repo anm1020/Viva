@@ -1146,6 +1146,13 @@ function toggleMute() {
 
 // textRoom 플러그인 attach 함수
 function attachTextRoom(display, selectedRoomId) {
+	
+  if (textroomPlugin !== null) {
+	  console.log("TextRoom plugin already attached.");
+	  registerTextRoom(myUsername, roomId);  // 기존 플러그인이 있는 경우 바로 register
+	  return;
+  }
+	
   janus.attach({
     plugin: "janus.plugin.textroom",
     opaqueId: "textroom-" + Janus.randomString(12),		// 방번호
@@ -1154,7 +1161,7 @@ function attachTextRoom(display, selectedRoomId) {
     success: function (pluginHandle) {
       Janus.log("🎯 TextRoom plugin attached");
       textroomPlugin = pluginHandle;
-
+      
 	// setup 요청은 성공 직후에 바로 보냄
       const body = { request: "setup" };
       textroomPlugin.send({ message: body });
@@ -1170,9 +1177,6 @@ function attachTextRoom(display, selectedRoomId) {
     	
     	if (msg.textroom === "event" && msg.result === "ok") {
     	    console.log("✅ setup 완료 응답");
-    	    
-    	 	// 사용자 등록(join)
-  	   	  	registerTextRoom(display, selectedRoomId);		// join만 호출
     	}
     	
         if (jsep) {
@@ -1211,6 +1215,8 @@ function attachTextRoom(display, selectedRoomId) {
     	  console.log("✅ PeerConnection 상태:", pc.iceConnectionState, pc.signalingState);
     	  isDataChannelReady = true;
 	      
+    	  // 사용자 등록(join)
+	   	  registerTextRoom(display, selectedRoomId);		// join만 호출
     	  
     	} else {
     	  console.warn("⚠️ PeerConnection 아직 없음");
