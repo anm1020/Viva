@@ -1,6 +1,7 @@
 package com.example.demo.model.entity;
 
 import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -17,41 +18,36 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "interview_rooms")
+@Table(name = "text_rooms")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class InterviewRoom {
-
+public class TextRoom {
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)			// mysql auto_increment 연결
-	@Column(name = "intr_room_id")
-	private Integer intrRoomId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "text_room_id")
+    private Integer textRoomId;
 
-	@Column(name = "intr_room_title", length = 200)
-	private String intrRoomTitle;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "intr_room_id", nullable = false)
+    private InterviewRoom intrRoomId;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "host_id")
-	private Users host;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "host_id")
+    private Users host;
 
-	@Column(name = "created_dt")
-	private LocalDateTime createdDt;
+    @Column(name = "text_room_title", length = 200)
+    private String textRoomTitle;
 
-	@Column(name = "started_dt")
-	private LocalDateTime startedDt;
+    @Column(name = "created_dt")
+    private LocalDateTime createdDt;
 
-	@Column(name = "ended_dt")
-	private LocalDateTime endedDt;
+    @Column(name = "status_cd", length = 20)
+    private String statusCd;
 
-	@Column(name = "status_cd", length = 20)
-	private String statusCd;
-
-	// insert 수행시 createDt값 자동으로 저장
-	@PrePersist
+    @PrePersist
     public void prePersist() {
         this.createdDt = LocalDateTime.now();
     }
-	
 }

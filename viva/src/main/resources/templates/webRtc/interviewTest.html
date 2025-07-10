@@ -415,7 +415,7 @@ var myUsername = null;
 var myDataId = null;
 var textRoomChannel = null;
 const userId = "[[${userId}]]";
-const hostId = null;
+let hostId = null;
 
 // ✅ navigate 처리 (화면 전환 시 정리 포함)
 function navigate(view) {
@@ -439,6 +439,7 @@ if (createForm) {
     e.preventDefault();
     const title = document.getElementById("intrRoomTitle").value;
 	const host_id = document.getElementById("host_id").value;
+	console.log("hostId : " + host_id);
     fetch("/api/meeting/roomcreate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -450,9 +451,76 @@ if (createForm) {
     .then(res => res.json())
     .then(data => {
       alert(`방 생성 완료: ${data.intrRoomTitle}`);
+      
+      const roomId = data.intrRoomId;
+      const hostId = data.hostId;
+
+   	  // ✅ Janus 세션 시작 → 방 생성 → 종료
+      createRoomsOnJanus(roomId, hostId);
+      
       navigate('list');
     });
   });
+}
+
+// 방 생성용 janus 세션 생성
+function createRoomsOnJanus(roomId, hostId) {
+	  Janus.init({
+	    debug: "all",
+	    callback: function () {
+	      const janus = new Janus({
+	        server: server, // Janus 서버 주소
+	        success: function () {
+	          // 1️⃣ 비디오룸 플러그인 attach
+	          janus.attach({
+	            plugin: "janus.plugin.videoroom",
+	            success: function (videohandle) {
+	              videohandle.send({
+	                message: {
+	                  request: "create",
+	                  room: roomId,
+	                  description: `Room for host ${hostId}`,
+	                  publishers: 6
+	                }
+	              });
+
+	              console.log("📹 Video room created");
+	            },
+	            error: function (err) {
+	              console.error("Video plugin attach error", err);
+	            }
+	          });
+
+	          // 2️⃣ 텍스트룸 플러그인 attach
+	          janus.attach({
+	            plugin: "janus.plugin.textroom",
+	            success: function (texthandle) {
+	              texthandle.send({
+	                message: {
+	                  request: "create",
+	                  room: roomId,
+	                  description: `Text room for host ${hostId}`,
+	                  secret: "adminpwd"
+	                }
+	              });
+
+	              console.log("💬 Text room created");
+	            },
+	            data: true, // ✅ textroom은 필수!
+	            error: function (err) {
+	              console.error("Text plugin attach error", err);
+	            }
+	          });
+	        },
+	        error: function (err) {
+	          console.error("Janus session error", err);
+	        },
+	        destroyed: function () {
+	          console.log("Janus session destroyed");
+	        }
+	      });
+	    }
+	  });
 }
 
 // ✅ 방 목록
@@ -521,11 +589,14 @@ function removeParticipant(id) {
 }
 
 // ✅ 방 입장
-function enterRoom(roomId, hostId, name) {
+function enterRoom(roomId, host, name) {
   selectedRoomId = roomId;
   displayName = name;
-  window.hostId = hostId;
+  hostId = host;
+  
   console.log("선택된 방 번호 : " + selectedRoomId);
+  console.log("선택된 방 hostId : " + hostId);
+  console.log("입장 유저 Id : " + displayName);
   
   // 🔻 기존 영상 DOM 초기화
   $('#remoteContainer').empty();
@@ -550,7 +621,7 @@ function initJanus() {
 // ✅ 세션 생성
 function createJanusSession() {
   
-	console.log("세션 생성 제대로 수행되나?");
+	console.log("세션 생성 : createJanusSession 진입");
 	
 	if (janus !== null) {
 	    janus.destroy();
@@ -574,6 +645,7 @@ function createJanusSession() {
               display: displayName
             }
           });
+          console.log("세션 생성 : 성공");
           
           // textroom 연결
           attachTextRoom(displayName, selectedRoomId);
@@ -615,6 +687,7 @@ function createJanusSession() {
         onmessage: function (msg, jsep) {
           
           console.log("참가한 방 번호: " + selectedRoomId);
+          console.log("[DEBUG] onmessage 수신 msg:", msg);
           // 방 최초 참가시
           if (msg.videoroom === "joined") {
             mypvtid = msg.private_id;
@@ -666,6 +739,9 @@ function createJanusSession() {
         },
 
         onlocalstream: function (stream) {		// 내 출력화면
+        	
+        	console.log("onlocalstream 진입");
+        	
         	const remoteId = 'local'; // 고정 ID
         	const videoElId = `remotevideo-${remoteId}`;
         	const boxElId = `remote-box-${remoteId}`;
@@ -703,8 +779,9 @@ function createJanusSession() {
         	  }
           
         	const videoElement = document.getElementById(videoElId);
-        	  Janus.attachMediaStream(videoElement, stream);
+        	Janus.attachMediaStream(videoElement, stream);
 
+        	// 음향 조절
         	  try {
         	    const audioCtx = new AudioContext();
         	    const source = audioCtx.createMediaStreamSource(stream);
@@ -774,6 +851,7 @@ function createJanusSession() {
 
 // ✅ 내 영상 publish
 function publishOwnFeed() {
+  console.log("publishOwnFeed 정상 호출");
   sfutest.createOffer({
     media: { 
       audioRecv: false, videoRecv: false, 
@@ -784,6 +862,7 @@ function publishOwnFeed() {
         message: { request: "configure", audio: true, video: true },
         jsep
       });
+      console.log("publishOwnFeed 성공");
     },
     error: async function (error) {
       console.warn("📛 내 stream publish 실패", error.message);
@@ -1138,11 +1217,8 @@ function attachTextRoom(display, selectedRoomId) {
     
     ondataopen: function () {
       Janus.log("📡 Data channel opened");
-   	  // 채팅방 생성 : 방 생성자만 가능
-   	  if (userId === hostId) {
-      	createTextRoom(selectedRoomId); 
-      	window.__textroomCreated__ = true;  // 플래그 설정
-   	  }
+      console.log("userId : " + userId);
+      console.log("hostId : " + hostId);
 
       // 사용자 등록(join)
    	  registerTextRoom(display, selectedRoomId);		// join만 호출
@@ -1182,30 +1258,6 @@ function attachTextRoom(display, selectedRoomId) {
 
     error: function (err) {
       console.error("🛑 TextRoom attach error:", err);
-    }
-  });
-}
-
-//textroom 채팅방 생성 요청
-function createTextRoom(roomId) {
-  const createRequest = {
-    textroom: "create",
-    transaction: Janus.randomString(12),
-    room: Number(roomId),
-    description: "채팅방",
-    secret: "adminpwd" // 관리 비밀번호 (선택)
-  };
-
-  textroomPlugin.data({
-    text: JSON.stringify(createRequest),
-    success: () => console.log("✅ TextRoom 생성 요청 전송"),
-    error: (err) => {
-      if (err?.error_code === 418) {
-          console.warn("⚠️ TextRoom 이미 존재함 → 무시하고 진행");
-          // 이미 존재해도 register는 해야 하므로 continue
-      } else {
-          console.error("❌ TextRoom 생성 실패", err);
-      }
     }
   });
 }
