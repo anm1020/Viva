@@ -1179,8 +1179,7 @@ function attachTextRoom(display, selectedRoomId) {
   janus.attach({
     plugin: "janus.plugin.textroom",
     opaqueId: "textroom-" + Janus.randomString(12),		// 방번호
-    media: { audio: false, video: false }, 				// media: false 옵션을 명시해야 DataChannel이 정상 연결
-    data: true,
+    media: false,
     success: function (pluginHandle) {
       textroomPlugin = pluginHandle;
       Janus.log("🎯 TextRoom plugin attached");
@@ -1203,7 +1202,7 @@ function attachTextRoom(display, selectedRoomId) {
           console.log("📨 JSEP received:", jsep);
           textroomPlugin.createAnswer({
             jsep: jsep,
-            media: { audio: false, video: false, data: true },
+            media: false,
             success: function (jsep) {
               const ack = { request: "ack" };
               textroomPlugin.send({ message: ack, jsep: jsep });
@@ -1247,6 +1246,7 @@ function attachTextRoom(display, selectedRoomId) {
     	  Janus.log(`👋 ${json.username} joined`);
           if (!participants.find(p => p.username === json.username)) {
             participants.push({ username: json.username, display: json.display });
+            appendChatMessage(json.username, "님이 접속하였습니다.");
           }
       }
       
@@ -1256,6 +1256,11 @@ function attachTextRoom(display, selectedRoomId) {
       }
     },
 
+ 	// webRTC 연결 상태
+	webrtcState: function(on) {
+		Janus.log("Janus says our WebRTC PeerConnection is " + (on ? "up" : "down") + " now");	
+	},
+    
     error: function (err) {
       console.error("🛑 TextRoom attach error:", err);
     }
@@ -1280,11 +1285,11 @@ function registerTextRoom(display, selectedRoomId) {
   textroomPlugin.data({
     text: JSON.stringify(register),
     success: () => {
-    	console.log("✅ TextRoom 등록 성공");
+    	console.log("✅ TextRoom 접속 성공");
     	participants.push({ id: myUsername, display: display });
     },
     error: function (reason) {
-      console.error("TextRoom 등록 실패:", reason);
+      console.error("TextRoom 접속 실패:", reason);
     }
   });
   
