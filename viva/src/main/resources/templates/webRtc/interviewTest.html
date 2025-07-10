@@ -1184,6 +1184,10 @@ function attachTextRoom(display, selectedRoomId) {
               console.log("📤 JSEP answer 전송");
               const ack = { request: "ack" };
               textroomPlugin.send({ message: ack, jsep: jsep });
+              
+              console.log("현재 참가자 수:", participants.length);  // 최소 2명 이상인지
+              participants.forEach(p => console.log(p.username, p.display));
+              
             },
             error: function (err) {
               console.error("❌ JSEP createAnswer error", err);
@@ -1219,6 +1223,14 @@ function attachTextRoom(display, selectedRoomId) {
       const json = JSON.parse(data);
       console.log("📥 채팅 메시지 수신:", json);
 	  
+      if (json.textroom === "success" && json.participants) {
+    	  json.participants.forEach(p => {
+    		  addParticipant(p.username, p.display);
+    	  });
+    	  console.log("✅ TextRoom 등록 성공 - 현재 참가자 목록");
+    	  logParticipants();
+      }    
+      
       if (json.textroom === "message" && json.text) {
     		// ✅ 추천: 무조건 append (중복 방지 필요 시 username 기준으로 체크)
     	  	console.log("✅ message 수신, append 실행");
@@ -1235,15 +1247,16 @@ function attachTextRoom(display, selectedRoomId) {
       
       if (json.textroom === "join") {			// 방에 참가할 경우
     	  Janus.log(`👋 ${json.username} joined`);
-          if (!participants.find(p => p.username === json.username)) {
-            participants.push({ username: json.username, display: json.display });
-            appendChatMessage(json.username, "님이 접속하였습니다.");
+      
+          if (!participants.find(p => p.id === json.username)) {
+	    	  addParticipant(json.username, json.display);
+	          appendChatMessage(json.username, "님이 접속하였습니다.");
           }
       }
       
       if (json.textroom === "leave") {			// 방을 떠날 경우
     	  Janus.log(`👋 ${json.username} left`);
-          participants = participants.filter(p => p.username !== json.username);
+          participants = participants.filter(p => p.id !== json.username);
       }
     },
 
@@ -1270,14 +1283,15 @@ function registerTextRoom(display, selectedRoomId) {
     room: Number(selectedRoomId),
     username: myUsername,
     display: display,
-    id: myDataId
+    id: myDataId,
+    get_participants: true
   };
   
   textroomPlugin.data({
     text: JSON.stringify(register),
     success: () => {
     	console.log("✅ TextRoom 접속 성공");
-    	participants.push({ id: myUsername, display: display });
+    	addParticipant(myUsername, display);
     },
     error: function (reason) {
       console.error("TextRoom 접속 실패:", reason);
