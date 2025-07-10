@@ -410,7 +410,7 @@ var displayName = null;
 var feeds = [];
 var isDestroying = false; // 중복 detach 방지용 플래그
 const audioContexts = {};  // { [feedId]: { ctx, gainNode } }
-// var textroomPlugin = null;
+var textroomPlugin = null;
 var myUsername = null;
 var myDataId = null;
 var textRoomChannel = null;
@@ -649,7 +649,6 @@ function createJanusSession() {
           
           // textroom 연결
           attachTextRoom(displayName, selectedRoomId);
-          
         },
 
      	// ICE 상태 변경 로그
@@ -1152,14 +1151,16 @@ function attachTextRoom(display, selectedRoomId) {
     media: { audio: false, video: false, data: true },
     data: true,
     success: function (pluginHandle) {
-      const textroomPlugin = pluginHandle;
       Janus.log("🎯 TextRoom plugin attached");
+      textroomPlugin = pluginHandle;
 
-   	  // setup 요청은 성공 직후에 바로 보냄
+	// setup 요청은 성공 직후에 바로 보냄
       const body = { request: "setup" };
       textroomPlugin.send({ message: body });
       console.log(body);
-      
+
+   	  // 🔁 핸들 넘겨줌
+//       if (callback) callback(textroomPlugin);
     },
 
     onmessage: function(msg, jsep) {
@@ -1306,9 +1307,26 @@ function sendChatMessage(msg) {
 function appendChatMessage(sender, msg) {
   const chatBox = document.getElementById("chatMessages");
   const p = document.createElement("p");
+  
+  const safeSender = escapeHtml(sender);
+  const safeMsg = escapeHtml(msg);
+  
   p.textContent = `[${sender}] ${msg}`;
   chatBox.appendChild(p);
   chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+//HTML 이스케이프 처리 함수 (XSS 방지용)
+function escapeHtml(str) {
+  return str.replace(/[&<>"']/g, function (match) {
+    return {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[match];
+  });
 }
 
 // 이벤트 바인딩
