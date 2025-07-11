@@ -1,7 +1,10 @@
 package com.example.demo.model.entity;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,35 +24,41 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @Entity
-@Table(name = "payment")
+@Table(name = "payments")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Payment {
 
-	 @Id
-	    @GeneratedValue(strategy = GenerationType.IDENTITY)
-	    @Column(name = "pay_id")
-	    private Long payId;                      // 결제 PK
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "pay_id")
+	private Long payId; // 결제 PK
 
-	    @Column(name = "pay_amount", nullable = false, precision = 12, scale = 2)
-	    private BigDecimal payAmount;            // 결제 금액
+	@Column(name = "pay_amount", precision = 12, scale = 2)
+	private BigDecimal payAmount; // 결제 금액
 
-	    @Enumerated(EnumType.STRING)
-	    @Column(name = "pay_status", nullable = false)
-	    private PayStatus payStatus;             // 결제 상태
+	@Enumerated(EnumType.STRING)
+	@Column(name = "pay_status")
+	private PayStatus payStatus; // 결제 상태
 
-	    @Column(name = "pay_resno", nullable = false)
-	    private String payResno;                 // 예약 번호 (FK)
+	@Column(name = "pay_resno")
+	private String payResno; // 예약 번호 
 
-	    @Column(name = "pay_create_dt", nullable = false, updatable = false)
-	    private LocalDateTime payCreateDt;       // 결제 시각
+	@Column(name = "res_id")
+	private Long resId; // 예약 ID (FK)
 
-	    public enum PayStatus {
-	        ready,      // 준비 중
-	        paid,       // 결제 완료
-	        failed,     // 결제 실패
-	        cancelled,  // 결제 취소
-	        refunded    // 환불 완료
-	    }
+	@Column(name = "pay_create_dt", updatable = false)
+	@CreationTimestamp
+	private Timestamp payCreateDt; // 결제 시각
+	
+	@Column(name = "user_id")
+	private String userId; // 회원번호 (FK)
+
+	public enum PayStatus {
+		ready, // 준비 중
+		paid, // 결제 완료
+		cancelled, // 결제 취소
+		refunded // 환불 완료
 	}
+}

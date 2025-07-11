@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>포인트 충전</title>
+  <script src="https://code.jquery.com/jquery-latest.js"></script>
+  <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
+</head>
+<body>
+  <h2 th:text="'안녕하세요, ' + ${userName} + '님 👋'"></h2>
+  <p>현재 보유 포인트: <span th:text="${point}">0</span>원</p>
+
+  <button class="charge-btn" data-amount="5000">💸 5000원 충전</button>
+  <button class="charge-btn" data-amount="10000">💸 10000원 충전</button>
+
+  <script th:inline="javascript">
+    const userId = /*[[${userId}]]*/ 'guest';
+    const userTel = /*[[${userTel}]]*/ '010-0000-0000';
+
+    IMP.init("imp14397622"); // 포트원 ID
+
+    $('.charge-btn').on('click', function () {
+      const amount = $(this).data('amount');
+
+      IMP.request_pay({
+        pay_method: 'card',
+        channelKey : "channel-key-01764171-b249-4c16-9d18-e9174fa8e611",
+        merchant_uid: 'order_' + new Date().getTime(),
+        name: `${amount}원 포인트 충전`,
+        amount: amount,
+        buyer_tel: userTel
+      }, function (rsp) {
+        if (!rsp.success) {
+          alert('결제 실패: ' + rsp.error_msg);
+          return;
+        }
+
+        $.ajax({
+          type: 'POST',
+          url: '/point/save',
+          contentType: 'application/json',
+          data: JSON.stringify({
+            userId: userId,
+            payResno: rsp.merchant_uid,
+            payAmount: rsp.paid_amount,
+            resId: 0
+          }),
+          success: function (data) {
+            alert('충전 성공! + ' + data.amount + '원');
+            location.href = '/reservation/mylist';
+          },
+          error: function () {
+            alert('충전 처리 중 오류 발생');
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

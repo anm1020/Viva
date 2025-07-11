@@ -2,6 +2,9 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
   <script src="https://code.jquery.com/jquery-latest.js"></script>
+   <link rel="stylesheet" th:href="@{/css/reservation.css}" />
+   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
   <meta charset="UTF-8">
   <title>면접관 마이페이지</title>
   <link rel="stylesheet" th:href="@{/css/main.css}">
@@ -131,6 +134,12 @@
       .info-cards { flex-direction: column; gap: 14px; }
     }
   </style>
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  var reservedSlots = /*[[${reservedSlotsJson}]]*/ {};
+  console.log("📦 reservedSlots 확인:", reservedSlots);
+  /*]]>*/
+</script>
 </head>
 <body>
 <div th:replace="fragments/header :: header"></div>
@@ -144,7 +153,7 @@
           <a href="#" class="active">내 정보</a>
           <a th:href="@{/memberEdit}">내 정보 수정</a>
           <a href="#">내 후기 관리</a>
-          <a href="#">일정 관리</a>
+           <a href="#" id="loadReservations">일정 관리</a><!-- 이슬회원일정 -->
           <a href="#">이력서 관리</a>
           <a href="#">AI 대화 내역</a>
           <a th:href="@{/memReservation}">결제 내역</a>
@@ -178,6 +187,9 @@
           <!-- <div class="point-value" th:text="${user.point}">5200</div>
         </div> -->
       </div>
+         
+         <!-- '내 예약 목록'-->
+  <div id="reservationContainer"></div>
     </section>
   </div>
   
@@ -260,6 +272,158 @@ $(function(){
   });
 });
 </script>
+
+<!-- 일정관리 -->
+<script>
+	// 일정관리 탭 클릭 시 예약 목록 fragment 로딩
+	$(function(){
+	  $('#loadReservations').on('click', function(e){
+	    e.preventDefault();
+
+	    // 1) 탭 active 토글
+	    $('.sidebar-menu a').removeClass('active');
+	    $(this).addClass('active');
+
+	    // 2) 카드 요소만 숨기기
+	    $('.member-info, .stat-info').hide();
+
+	    // 3) AJAX 로드
+	    $('#reservationContainer').load('/reservation/mylist', function(resp, status, xhr){
+	      if (status !== 'success') {
+	        alert('예약 목록 로드 실패: ' + xhr.statusText);
+	        return;
+	      }
+
+	      // 4) reservedSlotsJson 추출
+	      const $jsonScript = $('#reservationContainer').find('#reservedSlotsJson');
+	      if ($jsonScript.length) {
+	        try {
+	          window.reservedSlots = JSON.parse($jsonScript.text());
+	          console.log("✅ reservedSlots loaded:", window.reservedSlots);
+	        } catch (e) {
+	          console.error("❌ reservedSlots 파싱 실패:", e);
+	          window.reservedSlots = {};
+	        }
+	      } else {
+	        console.warn("⚠️ reservedSlotsJson 태그 없음");
+	        window.reservedSlots = {};
+	      }
+
+	      // 5) 스케줄러 초기화 함수 호출
+	      if (typeof window.initReservationSchedule === 'function') {
+	        window.initReservationSchedule();
+	      } else {
+	        console.warn("⚠️ initReservationSchedule 함수가 없음");
+	      }
+	    });
+	  });
+	});
+</script>
+
+<!-- 예약변경 -->
+<script>
+// 💡 스케줄러 초기화 함수
+window.initReservationSchedule = function() {
+  $(document).on('click', '.action-link.change', function(e){
+    e.preventDefault();
+
+    const $tr = $(this).closest('tr');
+    const resId = $tr.find('td:eq(0)').text().trim();
+    const intrName = $tr.find('td:eq(1)').text().trim();
+    const datePart = $tr.find('td:eq(2)').text().split(' ')[0];
+
+    $('#infoResId').text(resId);
+    $('#infoIntrName').text(intrName);
+
+    flatpickr("#calendarPicker", {
+      inline: true,
+      dateFormat: "Y-m-d",
+      defaultDate: datePart,
+      onChange: function(_, dateStr){
+        window.disableTimeButtons(dateStr);  // ✅ 비활성화 호출
+      }
+    });
+
+    window.disableTimeButtons(datePart); // ✅ 초기 날짜도 비활성화 체크
+    $('#schedulerPanel').slideDown();
+  });
+
+  // 시간 버튼 선택
+  $(document).on('click', '.time-buttons button', function(){
+    if ($(this).hasClass('disabled')) return;
+    $('.time-buttons button').removeClass('active');
+    $(this).addClass('active');
+  });
+
+  // 저장 버튼
+  $(document).on('click', '#saveChange', function(){
+    const resId = $('#infoResId').text();
+    const newDate = $('#calendarPicker').val();
+    const newTime = $('.time-buttons button.active').data('time');
+
+    if (!newDate || !newTime) {
+      alert("날짜와 시간을 선택해주세요.");
+      return;
+    }
+
+    $.post('/reservation/reschedule', { resId, newDate, newTime })
+      .done(() => {
+        alert('예약이 변경되었습니다.');
+        $('#reservationContainer').load('/reservation/mylist');
+      })
+      .fail(xhr => {
+        alert('변경 실패: ' + xhr.responseText);
+      });
+  });
+
+  // 취소 버튼
+  $(document).on('click', '#cancelChange', function(){
+    $('#schedulerPanel').slideUp();
+  });
+};
+
+// 💡 예약된 시간 비활성화 함수
+window.disableTimeButtons = function(dateStr){
+  const taken = (window.reservedSlots && window.reservedSlots[dateStr]) ? window.reservedSlots[dateStr] : [];
+
+  $('.time-buttons button').each(function(){
+    const $btn = $(this);
+    const time = $btn.data('time');
+
+    if (taken.includes(time)) {
+      $btn.prop('disabled', true).addClass('disabled');
+    } else {
+      $btn.prop('disabled', false).removeClass('disabled');
+    }
+  });
+};
+</script>
+
+
+
+<!-- 환불 -->
+<script>
+$(document).on('click', '.action-link.cancel', function(e){
+  e.preventDefault();
+  const resId = $(this).data('res-id');
+  console.log("🧾 취소할 예약 resId:", resId);  
+
+  if (!confirm("정말 취소하시겠습니까?")) return;
+
+
+  $.get('/reservation/cancel?resId=' + resId)
+    .done(function(){
+      alert("예약이 취소되었습니다. 포인트가 환불됩니다.");
+      $('#reservationContainer').load('/reservation/mylist'); // 프래그먼트 다시 불러오기
+    })
+    .fail(function(xhr){
+      alert("취소 실패: " + xhr.responseText);
+    });
+});
+</script>
+
+
+
   
 </body>
 </html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>게시글 상세</title>
+  <style>
+    table {
+      width: 700px;
+      margin: 40px auto;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+    th {
+      width: 150px;
+      background-color: #f8f8f8;
+    }
+    .btns {
+      width: 700px;
+      margin: 20px auto;
+      text-align: right;
+    }
+    .btns a {
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<h2 style="text-align: center;">게시글 상세보기</h2>
+
+<table>
+  <tr>
+    <th>제목</th>
+    <td th:text="${board.title}">제목입니다</td>
+  </tr>
+  <tr>
+    <th>작성자</th>
+    <td th:text="${board.userId}">작성자</td>
+  </tr>
+  <tr>
+    <th>조회수</th>
+    <td th:text="${board.viewCount}">0</td>
+  </tr>
+  <tr>
+    <th>작성일</th>
+    <td th:text="${#temporals.format(board.createdAt, 'yyyy-MM-dd HH:mm')}">2025-07-11</td>
+  </tr>
+  <tr>
+    <th>내용</th>
+    <td><pre th:text="${board.content}">본문 내용</pre></td>
+  </tr>
+</table>
+
+<div class="btns">
+  <a th:href="@{/board/list}">목록으로</a>
+ <!-- 로그인된 사용자와 작성자가 같은 경우만 보여주기 -->
+<div class="btns" th:if="${session.user != null and session.user.userId == board.userId}">
+  <a th:href="@{/board/edit/{id}(id=${board.id})}">수정</a>
+  <a th:href="@{/board/delete/{id}(id=${board.id})}"
+     onclick="return confirm('정말 삭제할까요?')">삭제</a>
+</div>
+</div>
+
+</body>
+</html>

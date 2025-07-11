@@ -71,6 +71,7 @@ public class Users {
     @CreationTimestamp
     @Column(name = "created_dt", updatable = false)
     private LocalDateTime createdDt;
+   
 
 //    public enum UserRole {	 필요없음
 //        mem, intr

@@ -2,53 +2,66 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>결제 페이지</title>
+  <title>포인트 충전</title>
   <script src="https://code.jquery.com/jquery-latest.js"></script>
   <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
 </head>
 <body>
 
-  <h2>면접관 예약 결제</h2>
-  <p>면접관: <strong th:text="${intrName}">[이름]</strong></p>
-  <p>예약 일시: <strong th:text="${reservedDate} + ' ' + ${reservedTime}">[날짜 시간]</strong></p>
-  <p>결제 금액: <strong th:text="${amount} + '원'">[금액]</strong></p>
+  <button id="btn-pay">카카오페이 결제하기</button>
+ 
 
-  <button id="btn-pay">결제하기</button>
-
-  <script>
+  <script th:inline="javascript">
     $('#btn-pay').on('click', function() {
+    	
+    	
+      // 1) SDK 초기화
       IMP.init("imp14397622");
 
+      // 2) 결제 요청
+      
       IMP.request_pay({
-        channelKey:  "channel-key-01764171-b249-4c16-9d18-e9174fa8e611",
-        pay_method:  'card',
-        merchant_uid:'resv_' + new Date().getTime(),
-        name:        '면접관 예약 결제',
-        amount:      /*[[${amount}]]*/ 100,
-        buyer_name:  /*[[${userName}]]*/ '홍길동'
+        channelKey : "channel-key-01764171-b249-4c16-9d18-e9174fa8e611",
+        pay_method:   'card',
+        merchant_uid: 'order_' + new Date().getTime(),
+        name:         '테스트 결제',
+        amount:       100,
+        buyer_tel:    '010-0000-0000'
       }, function(rsp) {
+        console.log('IAMPORT response:', rsp);
+
         if (!rsp.success) {
           return alert('결제 실패: ' + rsp.error_msg);
         }
+
+        var userId = /*[[${session.userId}]]*/ 'UNKNOWN';
+        var resId = /*[[${resId}]]*/ 'UNKNOWN';
+        console.log("예약번호(resId):", resId);
+        // 3) 결제 성공하면 AJAX 호출로 imp_uid 등 전송
         $.ajax({
           type: 'POST',
-          url:  '/payment/save',
+          url: '/payment/save',
           contentType: 'application/json',
           data: JSON.stringify({
-            imp_uid:      rsp.imp_uid,
-            merchant_uid: rsp.merchant_uid,
-            amount:       rsp.paid_amount
+            "payResno": rsp.merchant_uid,
+            "payAmount": rsp.paid_amount,
+            "payStatus": rsp.status,
+            "resId": resId,
+            "userId": userId
+            	 
           }),
+         
           success: function(data) {
-            if (data.success) {
-              alert('결제 완료: ' + data.amount + '원');
-              window.location.href = '/payment/result?success=true&amount=' + data.amount;
+            if (data==1) {
+              alert('충전 완료: ' + amount + '원');
+              location.href = "result?amount="+rsp.paid_amount
             } else {
               alert('검증 실패: ' + data.message);
             }
           },
-          error: function() {
-            alert('서버 오류 발생');
+          error: function(xhr, status, err) {
+            console.error('AJAX error', status, err);
+            alert('서버 통신 중 오류가 발생했습니다.');
           }
         });
       });
@@ -56,3 +69,5 @@
   </script>
 </body>
 </html>
+
+

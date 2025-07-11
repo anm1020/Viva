@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<title>내 예약 목록</title>
+<style>
+table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 1rem;
+}
+
+th, td {
+	border: 1px solid #ccc;
+	padding: .5rem;
+}
+</style>
+</head>
+<body>
+	<h1>내 예약 목록</h1>
+	<!-- ▶ 포인트 표시 -->
+	<p>
+		<strong>보유 포인트:</strong> <span th:text="${point}"></span>원
+
+		<!-- ▶ 충전하기 버튼 -->
+		<a th:href="@{/point/chargePage(userId=${userId})}"> 💰 포인트 충전하러
+			가기 </a>
+	</p>
+	<table>
+		<thead>
+			<tr>
+				<th>예약번호</th>
+				<th>면접관 ID</th>
+				<th>면접관 이름</th>
+				<th>예약일시</th>
+				<th>예약한 날짜</th>
+				<th>상태</th>
+				<th>결제</th>
+				<th>변경</th>
+				<th>취소</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr th:if="${#lists.isEmpty(myReservations)}">
+				<td colspan="7">예약 내역이 없습니다.</td>
+			</tr>
+			<tr th:each="r : ${myReservations}">
+				<!-- PK -->
+				<td th:text="${r.resId}">1</td>
+				<!-- intrId 가 이제 String 이므로 .userId가 아닌 바로 출력 -->
+				<td th:text="${r.intrId}">intr01</td>
+				<!-- 이름이 필요하면 컨트롤러에서 Map으로 넘겨주고 intrNames[r.intrId] 로 꺼내세요 -->
+				<td th:text="${intrNames[r.intrId]}">면접관이름</td>
+				<!-- 예약일시: reservedDate + reservedTime -->
+				<td th:text="${r.reservedDate + ' ' + r.reservedTime}">
+					2025-07-09 12:00</td>
+				<!-- 생성일시 -->
+				<td th:text="${#dates.format(r.resCreateDt, 'yyyy-MM-dd HH:mm')}">
+					2025-07-06 17:00</td>
+				<!-- 상태 표시 -->
+				<td><span th:switch="${r.resStatus}"> <span
+						th:case="'pending'"
+						style="background: #ffeb3b; color: #333; padding: 2px 8px; border-radius: 4px;">
+							결제 전 </span> <span th:case="'confirmed'"
+						style="background: #4caf50; color: #fff; padding: 2px 8px; border-radius: 4px;">
+							결제 완료 </span> <span th:case="'cancelled'"
+						style="background: #999; color: #fff; padding: 2px 8px; border-radius: 4px;">
+							취소됨 </span> <span th:case="*"> 알 수 없음 </span>
+				</span></td>
+
+				<!-- 결제 버튼/완료 -->
+				<td>
+					<!-- 상태가 결제 전인 경우만 표시 -->
+					<div th:if="${r.resStatus == 'pending'}">
+						<a th:href="@{/payment/charge(resId=${r.resId})}"
+							style="color: blue;"> 카드결제</a><br />
+
+						<!-- 포인트 결제 form -->
+						<form th:action="@{/point/use}" method="post">
+							<input type="hidden" name="userId" th:value="${userId}" /> <input
+								type="hidden" name="amount" value="100" /> <input type="hidden"
+								name="resId" th:value="${r.resId}" />
+							<button type="submit">포인트 결제</button>
+						</form>
+
+					</div>
+					
+					 <!-- 변경 버튼: 취소 상태가 아니면 표시 -->
+				<td><a th:if="${r.resStatus != 'cancelled'}"
+					th:href="@{/reservation/edit(resId=${r.resId})}" class="button">
+						변경 </a></td>
+						
+				<!--취소버튼 -->
+				<td><a th:if="${r.resStatus != 'cancelled'}"
+					th:href="@{/reservation/cancel(resId=${r.resId})}"
+					onclick="return confirm('정말 이 예약을 취소하시겠습니까?');"> 취소하기 </a></td>
+			</tr>
+		</tbody>
+	</table>
+
+	<p>
+		<a href="/reservation/testlist">목록으로 돌아가기</a>
+	</p>
+</body>
+</html>
