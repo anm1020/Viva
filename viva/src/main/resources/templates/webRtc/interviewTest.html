@@ -1148,7 +1148,7 @@ function toggleMute() {
 let stompClient = null;
 
 function connectChat(roomId) {
-  const socket = new SockJS("/ws-chat");
+  const socket = new SockJS("http://52.78.112.81:8080/ws-chat");
   stompClient = Stomp.over(socket);
 
   stompClient.connect({}, function () {
