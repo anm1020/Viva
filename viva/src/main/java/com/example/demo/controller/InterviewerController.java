@@ -3,7 +3,9 @@ package com.example.demo.controller;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.List;
+import java.util.Optional;
 
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,8 +19,8 @@ import com.example.demo.model.entity.Interviewer;
 import com.example.demo.model.entity.Review;
 import com.example.demo.model.entity.Users;
 import com.example.demo.repository.ReviewRepository;
-import com.example.demo.repository.UsersRepository;
 import com.example.demo.service.InterviewerService;
+import com.example.demo.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,7 +30,7 @@ public class InterviewerController {
 
     private final InterviewerService interviewerService;
     private final ReviewRepository reviewRepository;
-    private final UsersRepository usersRepository;
+    private final UserService userService;
     
     // 리스트 페이지 
     @GetMapping("/interviewer")
@@ -58,7 +60,9 @@ public class InterviewerController {
     @GetMapping("/interviewer/form")
     public String showForm(Principal principal, Model model) {
         String userId = principal.getName();
-        Users user = usersRepository.findByUserId(userId);
+        Users user = userService.findByUserId(userId)
+        		.orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));;
+                
         if (user == null || !"intr".equals(user.getUserRole())) {
             // 면접관이 아니면 접근 불가
             return "redirect:/interviewer?error=not_intr";
@@ -75,7 +79,9 @@ public class InterviewerController {
                                   @RequestParam(name = "intrCate", required = false) String intrCate,
                                   @RequestParam(name = "intrContent", required = false) String intrContent) {
         String userId = principal.getName();
-        Users user = usersRepository.findByUserId(userId);
+        Users user = userService.findByUserId(userId)
+        		.orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));;
+          
         if (user == null || !"intr".equals(user.getUserRole())) {
             // 면접관이 아니면 저장 불가
             return "redirect:/interviewer?error=not_intr";
