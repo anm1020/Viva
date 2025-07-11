@@ -233,31 +233,35 @@ public class UserController {
 //		    return "member/intrMypage"; // mypage.html (Thymeleaf)
 //		}
 
-	// Service에서 현재 로그인 사용자의 정보 조회
+		// Service에서 현재 로그인 사용자의 정보 조회
 	@GetMapping("/mypage")
 	public String mypage(Model model, Principal principal) {
+		
+		
+	    // 현재 로그인한 아이디
+	    String userId = principal.getName();
 
-		// 현재 로그인한 아이디
-		String userId = principal.getName();
-
-		// DB에서 유저 정보 조회
-		Users users = service.findByUserId(userId).orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
-		model.addAttribute("users", users);
-
-		// 포인트
-		int point = pointService.getPoint(userId);
-		model.addAttribute("point", point);
-
-		// user_role에 따라 다른 뷰 리턴
-		if ("mem".equals(users.getUserRole())) {
-			return "mypage/memMypage"; // 취준생 마이페이지 (memMypage.html)
-		} else if ("intr".equals(users.getUserRole())) {
-			return "mypage/intrMypage"; // 면접관 마이페이지 (intrMypage.html)
-		} else {
-			// 예외: 권한 이상/없는 경우
-
-			return "error/403"; // 혹은 공통 에러 페이지
-		}
+	    // DB에서 유저 정보 조회
+	    Users users = service.findByUserId(userId)
+	    	    .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
+	    model.addAttribute("users", users);
+	    
+	    // 포인트
+	    int point =pointService.getPoint(userId);
+	    model.addAttribute("point", point);
+	    
+	    // user_role에 따라 다른 뷰 리턴
+	    if ("mem".equals(users.getUserRole())) {
+	        return "mypage/memMypage";      // 취준생 마이페이지 (memMypage.html)
+	    } else if ("intr".equals(users.getUserRole())) {
+	        return "mypage/intrMypage";     // 면접관 마이페이지 (intrMypage.html)
+	    } else {
+	        // 예외: 권한 이상/없는 경우
+	    	
+	    	
+	    	
+	        return "error/403"; // 혹은 공통 에러 페이지
+	    }
 	}
 
 	@GetMapping("/memberEdit")

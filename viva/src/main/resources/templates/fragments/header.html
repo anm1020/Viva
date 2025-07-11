@@ -18,7 +18,6 @@
 				<a th:href="@{/interviewer}">면접관</a> 
 				<a th:href="@{/board/list}">게시판</a>
 
-
 				<!-- 관리자 모드 -->
 				<span th:if="${session.role == 'admin'}"> 환영합니다, <span
 					th:text="${session.displayName}"
