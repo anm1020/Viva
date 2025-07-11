@@ -21,6 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.demo.model.entity.Users;
 import com.example.demo.security.CustomUserDetails;
+import com.example.demo.service.PointService;
 //import com.example.demo.model.entity.User.UserRole;
 import com.example.demo.service.UserService;
 
@@ -33,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
 	
 	private final UserService service;
+	private final PointService pointservice;
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
@@ -239,6 +241,8 @@ public class UserController {
 		// Service에서 현재 로그인 사용자의 정보 조회
 		@GetMapping("/mypage")
 		public String mypage(Model model, Principal principal) {
+			
+			
 		    // 현재 로그인한 아이디
 		    String userId = principal.getName();
 
@@ -246,7 +250,11 @@ public class UserController {
 		    Users users = service.findByUserId(userId)
 		    	    .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
 		    model.addAttribute("users", users);
-
+		    
+		    // 포인트
+		    int point =pointservice.getPoint(userId);
+		    model.addAttribute("point", point);
+		    
 		    // user_role에 따라 다른 뷰 리턴
 		    if ("mem".equals(users.getUserRole())) {
 		        return "mypage/memMypage";      // 취준생 마이페이지 (memMypage.html)
@@ -254,6 +262,9 @@ public class UserController {
 		        return "mypage/intrMypage";     // 면접관 마이페이지 (intrMypage.html)
 		    } else {
 		        // 예외: 권한 이상/없는 경우
+		    	
+		    	
+		    	
 		        return "error/403"; // 혹은 공통 에러 페이지
 		    }
 		}

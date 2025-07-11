@@ -174,8 +174,10 @@
         <!-- 포인트만 표시하는 활동통계 -->
         <div class="stat-info">
           <h2>나의 포인트</h2>
-          <!-- <div class="point-value" th:text="${user.point}">5200</div>
-        </div> -->
+           <div class="point-value" th:text="${point + 'P'}">
+          <!--  <div th:text="${point + 'P'}"></div> -->
+           	</div>	
+        </div> 
       </div>
        <!-- ✅ 일정 관리 영역 (Ajax로 로드) -->
   <div id="contentArea"><!-- 여기에 fragment가 동적으로 들어옴 --></div>
