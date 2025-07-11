@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>게시글 수정</title>
+  <style>
+    form { width: 600px; margin: 30px auto; }
+    label { display: block; margin-top: 10px; }
+    input[type="text"], textarea {
+      width: 100%; padding: 8px; margin-top: 5px;
+    }
+    button { margin-top: 15px; padding: 10px 20px; }
+  </style>
+</head>
+<body>
+
+<h2>게시글 수정</h2>
+
+<form th:action="@{/board/edit}" th:object="${board}" method="post">
+  <input type="hidden" th:field="*{id}" />
+  <label>제목</label>
+  <input type="text" th:field="*{title}" required />
+
+  <label>내용</label>
+  <textarea th:field="*{content}" rows="10" required></textarea>
+
+  <!-- 작성자는 수정 불가, 보여주기만 -->
+  <label>작성자</label>
+  <input type="text" th:value="${board.userId}" readonly />
+
+  <button type="submit">수정 완료</button>
+</form>
+
+<a th:href="@{/board/view/{id}(id=${board.id})}">돌아가기</a>
+
+</body>
+</html>

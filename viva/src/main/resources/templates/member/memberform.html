@@ -6,6 +6,8 @@
   <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
   <script src="https://code.jquery.com/jquery-latest.js"></script>
   <script th:src="@{/js/check.js}"></script>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <link rel="stylesheet" th:href="@{/css/common.css}">
   <style>
     /* 카드 컨테이너 */
     .form-frame {
@@ -46,6 +48,8 @@
       display: flex;
       gap: 0.5rem;
     }
+    
+    
     .inline-group > * {
       flex: 1;
     }
@@ -78,6 +82,7 @@
   </style>
 </head>
 <body>
+<div th:replace="fragments/header :: header"></div>
 
   <div class="form-frame">
   <h2>회원가입</h2>

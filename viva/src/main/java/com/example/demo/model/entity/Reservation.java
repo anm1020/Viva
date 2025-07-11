@@ -1,6 +1,8 @@
 package com.example.demo.model.entity;
 
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
+
+import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,41 +12,36 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
 
 @Entity
 @Table(name = "reservations")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Data
+//@NoArgsConstructor @AllArgsConstructor @Builder
 public class Reservation {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "res_id")
-    private Long resId;                      // 예약 PK
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "res_id")
+	private Long resId; // PK: 예약 고유 번호
 
-    @Column(name = "res_user_id", nullable = false)
-    private String resUserId;                // 취준생 ID
+	@Column(name = "mem_id")
+	private String memId; // FK: 예약자(회원). users.user_id 참조(role='mem')
 
-    @Column(name = "res_intr_id", nullable = false)
-    private String resIntrId;                // 면접관 ID
+	@Column(name = "intr_id")
+	private String intrId; // FK: 면접관. users.user_id 참조 (role='intr')
 
-    @Column(name = "res_reserved_dt", nullable = false)
-    private LocalDateTime resReservedDt;     // 예약된 일시
+	@Column(name = "reserved_date")
+	private String reservedDate; // 예약된 일시 (면접 날짜/시간)
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "res_status", nullable = false)
-    private ResStatus resStatus;             // 예약 상태
+	@Column(name = "reserved_time")
+	private String reservedTime; // 예약된 일시 (면접 날짜/시간)
 
-    @Column(name = "res_create_dt", nullable = false, updatable = false)
-    private LocalDateTime resCreateDt;       // 생성 시각
+	@Column(name = "res_status", nullable = false)
+	private String resStatus; // 예약 상태 (pending, confirmed, cancelled)
 
-    public enum ResStatus {
-        pending,    // 요청 대기
-        confirmed,  // 확정
-        cancelled   // 취소
-    }
+	@CreationTimestamp
+	@Column(name = "res_create_dt", updatable = false)
+	private Timestamp resCreateDt; // 생성 시각 (등록된 시간, 자동 입력)
+
 }

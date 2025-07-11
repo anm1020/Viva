@@ -1,0 +1,11 @@
+/* ===== 전체 레이아웃 ===== */
+        .admin-dashboard-container { display: flex; min-height: 80vh; background-color: #f5f5f5; font-family: 'Noto Sans KR', sans-serif; }
+        .admin-sidebar { width: 180px; background-color: #fafafa; border-right: 1px solid #ddd; padding: 30px 15px; font-size: 14px; }
+        .admin-sidebar .admin-title { 
+        margin-top: 15px;
+        margin-bottom: 25px; font-weight: bold; font-size: 16px; text-align: center; padding-bottom: 15px; color: #333; }
+        .admin-sidebar a { display: block; margin-bottom: 15px; color: #333; text-decoration: none; }
+        .admin-sidebar a:hover, .admin-sidebar a.active { font-weight: bold; color: #2243aa; background: #e7e9f7; border-radius: 6px; }
+        .admin-main-content { flex: 1; padding: 40px; background-color: #f5f5f5; }
+        /* 필요한 다른 CSS는 main.css/common.css/admin-dashboard.css에 분리하세요 */
+        

@@ -2,7 +2,10 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>회원가입</title>
+  <title>회원정보 수정</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <link rel="stylesheet" th:href="@{/css/common.css}">
+  
   <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
   <script src="https://code.jquery.com/jquery-latest.js"></script>
   <script th:src="@{/js/check.js}"></script>
@@ -83,15 +86,47 @@
   </style>
 </head>
 <body>
+<div th:replace="fragments/header :: header"></div>
+
 
   <div class="form-frame">
-  <h2>회원가입</h2>
+  <h2>회원 정보 수정</h2>
+  
+  <!-- 비밀번호 변경 모달 (초기에는 안 보이게) 액션값 달라서 form 밖에 있어야 함 -->
+	<div id="pwModal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.28); z-index:1000; align-items:center; justify-content:center;">
+	  <div style="background:#fff; padding:2rem 1.5rem; border-radius:12px; width:350px; margin:60px auto;">
+	    <h3 style="text-align:center; margin-bottom:1rem;">비밀번호 변경</h3>
+	    	 <div id="pwModalMsg" style="color:red; text-align:center; margin-bottom:10px;"></div>
+	    <form id="pwChangeForm" onsubmit="return false;">
+	    <!-- <input type="hidden" name="currentPass" id="currentPassHidden" /> -->
+	      <div class="form-group">
+	        <label>현재 비밀번호</label>
+	        <input type="password" name="currentPass" required />
+	      </div>
+	      <div class="form-group">
+	        <label>새 비밀번호</label>
+	        <input type="password" name="changePass" required minlength="4"/>
+	      </div>
+	      <div class="form-group">
+	        <label>새 비밀번호 확인</label>
+	        <input type="password" name="confirmChangePass" required minlength="4"/>
+	      </div>
+	      <div style="display:flex; gap:1rem; justify-content:space-between; margin-top:1rem;">
+	        <button type="button" onclick="applyNewPassword()">변경</button>
+	        <button type="button" onclick="closePwModal()">취소</button>
+	      </div>
+	    </form>
+	  </div>
+	</div>
+  
+  <!-- 회원정보 수정 -->
   <form th:action="@{/memberUpdate}" th:object="${users}" method="post">
   <input type="hidden" th:field="*{userRole}">
-  <!-- <input type="hidden" name="userRole" value="mem"/> -->
   <input type="hidden" name="userType" value="Y"/>
   <input type="hidden" name="userOuth" value="N"/>
-
+  <input type="hidden" name="changePass" id="changePass" />
+  <input type="hidden" name="currentPass" id="currentPassHidden" />
+  
     <!-- 아이디 + 중복확인 -->
     <div class="form-group inline-group">
       <div style="flex: 2;">
@@ -102,21 +137,50 @@
                placeholder="아이디"
                required readonly class="readonly-field" />
       </div>
-      <div style="flex: 1; align-self: end;">
-        <button type="button" id="checkIdBtn">중복확인</button>
-        <span id="idCheckResult"></span>
-      </div>
     </div>
 
-    <!-- 비밀번호 -->
-    <!-- <div class="form-group">
-      <label for="userPass">비밀번호</label>
-      <input type="password"
-             th:field="*{userPass}"
-             id="userPass"
-             placeholder="비밀번호"
-             required readonly class="readonly-field" />
-    </div> -->
+    <!-- 비밀번호 (수정불가 input + 변경 버튼) -->
+	<div class="form-group" style="position: relative;">
+	  <label for="userPass">비밀번호</label>
+	  <input type="password"
+	         th:field="*{userPass}"
+	         id="userPass"
+	         placeholder="비밀번호"
+	         required readonly class="readonly-field" />
+	         <button type="button"
+          onclick="openPwModal()"
+          style="position:absolute; right:0; top:28px; height:32px; padding:0 16px; border-radius:0.375rem; border:1px solid #d1d5db; background:#f9fafb; color:#333; cursor:pointer;">
+    비밀번호 변경
+  </button>
+	  <!-- <input type="button" value="비밀번호 변경" onclick="openPwModal()" style="position: absolute; right: 0; top: 28px;"/> -->
+		<!-- <button type="button" onclick="applyNewPassword()">비밀번호 변경</button> -->
+	</div>
+	
+	 <!-- 비밀번호 변경 모달 (초기에는 안 보이게) -->
+<!-- <div id="pwModal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.28); z-index:1000; align-items:center; justify-content:center;">
+	  <div style="background:#fff; padding:2rem 1.5rem; border-radius:12px; width:350px; margin:60px auto;">
+	    <h3 style="text-align:center; margin-bottom:1rem;">비밀번호 변경</h3>
+	    <form id="pwChangeForm" method="post" th:action="@{/changePassword}">
+	      <div class="form-group">
+	        <label>현재 비밀번호</label>
+	        <input type="password" name="currentPass" required />
+	      </div>
+	      <div class="form-group">
+	        <label>새 비밀번호</label>
+	        <input type="password" name="newPass" required minlength="4"/>
+	      </div>
+	      <div class="form-group">
+	        <label>새 비밀번호 확인</label>
+	        <input type="password" name="confirmPass" required minlength="4"/>
+	      </div>
+	      <div style="display:flex; gap:1rem; justify-content:space-between; margin-top:1rem;">
+	        <button type="submit">변경</button>
+	        <button type="button" onclick="closePwModal()">취소</button>
+	      </div>
+	    </form>
+	  </div>
+	</div> -->
+	
 
     <!-- 비밀번호 확인 -->
     <!-- <div class="form-group">
@@ -146,7 +210,7 @@
       <input type="date"
              th:field="*{userBirth}"
              id="userBirth"
-             required />
+             required readonly class="readonly-field"/>
     </div>
 
     <!-- 성별 -->
@@ -156,13 +220,13 @@
         <input type="radio"
                th:field="*{userGender}"
                id="male"
-               value="남성" />
+               value="남성" disabled class="readonly-field"/>
         <label for="male">남성</label>
 
         <input type="radio"
                th:field="*{userGender}"
                id="female"
-               value="여성" />
+               value="여성" disabled class="readonly-field"/>
         <label for="female">여성</label>
       </div>
     </div>
@@ -293,57 +357,6 @@
 </div>
 
 <script>
-//--- 아이디 중복확인 플래그
-let isIdChecked = false;
-
-// 아이디 입력시, 중복확인 다시 해야 하니까 플래그 false + 가입버튼 비활성화
-$('#userId').on('input', function() {
-  isIdChecked = false;
-  $('#registerBtn').prop('disabled', true);
-  $('#idCheckResult').text('');
-});
-
-// 중복확인 버튼 클릭
-$('#checkIdBtn').click(function() {
-  const userId = $('#userId').val().trim();
-  if (!userId) {
-    $('#idCheckResult').text('아이디를 입력하세요.');
-    return;
-  }
-
-  // 실제 서버 엔드포인트에 맞춰서 URL 변경!
-  $.ajax({
-    url: '/member/checkId', // ex) /member/checkId?userId=aaa
-    type: 'GET',
-    data: { userId },
-    success: function(result) {
-      if (result === 'OK') {
-        $('#idCheckResult').text('사용 가능한 아이디입니다.');
-        isIdChecked = true;
-        $('#registerBtn').prop('disabled', false);
-      } else {
-        $('#idCheckResult').text('이미 사용 중인 아이디입니다.');
-        isIdChecked = false;
-        $('#registerBtn').prop('disabled', true);
-      }
-    },
-    error: function() {
-      $('#idCheckResult').text('오류 발생! 다시 시도하세요.');
-      isIdChecked = false;
-      $('#registerBtn').prop('disabled', true);
-    }
-  });
-});
-
-// form submit 시에도 우회방지(꼭 필요!)
-$('form[th\\:action="@{/memberinsert}"]').on('submit', function(e) {
-  if (!isIdChecked) {
-    alert('아이디 중복확인을 먼저 해주세요!');
-    e.preventDefault();
-  }
-});
-
-
 document.addEventListener('DOMContentLoaded', function() {
   const domainSelect = document.getElementById('emailDomainSelect');
   const domainInput  = document.getElementById('emailDomain');
@@ -372,7 +385,61 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }).open();
   });
- </script>
   
+</script>
+  
+  
+<!-- 팝업 비번 변경 불일치시 에러메세지 js -->
+<script>
+ function openPwModal() {
+  document.getElementById('pwModal').style.display = 'flex';
+}
+function closePwModal() {
+  document.getElementById('pwModal').style.display = 'none';
+  document.getElementById('pwChangeForm').reset();
+}
+function applyNewPassword() {
+	  const currentPw = document.querySelector('#pwChangeForm input[name="currentPass"]').value;
+	  const newPw = document.querySelector('#pwChangeForm input[name="changePass"]').value;
+	  const confirmPw = document.querySelector('#pwChangeForm input[name="confirmChangePass"]').value;
+	  const msgEl = document.getElementById('pwModalMsg');
+
+	  // 메시지 초기화
+	  msgEl.textContent = '';
+
+	  // 새 비번 불일치 체크 (이건 js로 즉시 가능)
+	  if (newPw !== confirmPw) {
+	    msgEl.textContent = '새 비밀번호가 일치하지 않습니다!';
+	    return false;
+	  }
+	  if (!newPw) {
+	    msgEl.textContent = '새 비밀번호를 입력하세요!';
+	    return false;
+	  }
+
+	  // ★ 현재 비밀번호 서버에 ajax로 체크!
+	  $.ajax({
+	    url: '/checkPassword',
+	    type: 'POST',
+	    data: { currentPass: currentPw },
+	    success: function(isCorrect) {
+	      if (!isCorrect) {
+	        msgEl.textContent = '현재 비밀번호가 일치하지 않습니다!';
+	        return;
+	      }
+	      // 모두 통과 → 히든값 복사 & 팝업 닫기
+	      document.getElementById('changePass').value = newPw;
+	      document.getElementById('currentPassHidden').value = currentPw;
+	      closePwModal();
+	      // 성공시 메시지는 정보수정 submit 후 처리
+	    },
+	    error: function() {
+	      msgEl.textContent = '비밀번호 확인 중 오류가 발생했습니다!';
+	    }
+	  });
+
+	  return false;
+	}
+</script>
 </body>
 </html>

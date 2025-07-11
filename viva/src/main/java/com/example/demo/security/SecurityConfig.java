@@ -34,17 +34,36 @@ public class SecurityConfig {
             @Override
             public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, org.springframework.security.core.Authentication authentication)
                     throws IOException, ServletException {
-                // 로그인 폼에서 넘어온 role 값(취준생/면접관 구분)
+            	 System.out.println(">>> [DEBUG] onAuthenticationSuccess principal class: " + authentication.getPrincipal().getClass().getName());
+                
+            	 // 로그인 폼에서 넘어온 role 값(취준생/면접관 구분)
                 String formRole = request.getParameter("role"); // "mem" 또는 "intr"
+                
                 // 실제 로그인된 사용자의 role
                 CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
                 String userRole = userDetails.getUsers().getUserRole(); // "mem" 또는 "intr"
+                String displayName = userDetails.getUsers().getUserName();
+                
+                // ⭐️ 세션 연결! (여기 추가)
+                request.getSession().setAttribute("displayName", displayName);
+                request.getSession().setAttribute("role", userRole);
+                
+                // ✅ 관리자 로그인은 폼에서 role값 비교하지 않고 바로 분기!
+                if ("admin".equalsIgnoreCase(userRole)) {
+                    response.sendRedirect("/main?adminLogin=true");  // <-- 메인페이지로 + 쿼리 파라미터!
+                    return;
+                }
+                
                 // 다르면 즉시 로그아웃 및 에러 페이지 이동 + alert 에러 메세지
                 if (!formRole.equals(userRole)) {
                     request.getSession().invalidate();
                     response.sendRedirect("/loginmain?roleError=true");
                     return;
                 }
+             // ✅ 세션에 유저 정보 저장
+                request.getSession().setAttribute("user", userDetails.getUsers());
+                request.getSession().setAttribute("userId", userDetails.getUsers().getUserId());
+
                 // 로그인 성공 시: 메인 페이지로 이동, alert 표시용 파라미터 추가
                 response.sendRedirect("/main?loginSuccess=true");
             }
@@ -57,6 +76,8 @@ public class SecurityConfig {
         	// CSRF(크로스 사이트 요청 위조) 보호 비활성화 (개발환경에서만)
             .csrf(csrf -> csrf.disable()) // 개발 시엔 꺼두는 것 OK!
             .authorizeHttpRequests(auth -> auth			// 모든 사용자(비회원 포함) 접근 가능한 페이지
+
+              // 1) 모두 접근 가능한 페이지 (비회원도 OK)
                 .requestMatchers(
                 		"/loginmain", 			// 로그인 페이지
                 		"/memberform",			// 회원가입 페이지
@@ -66,7 +87,28 @@ public class SecurityConfig {
                 		"/main",				// 메인 페이지
                 		"/index.html"
                 		).permitAll()	
-                .anyRequest().authenticated() 	// 그 외에는 로그인 필요
+                                   
+//              // 2) 관리자 페이지는 admin만 접근 허용!
+//              .requestMatchers("/admin/**").hasAuthority("admin")
+//            )
+                                 
+                
+             //  로그인한 사용자만 접근 가능한 경로
+                .requestMatchers(
+                    "/reservation/**",    // 예약 관련
+                    "/point/**",          // 포인트 관련
+                    "/payment/**"         // 결제 관련
+                ).authenticated()
+
+            // 2) 특정 페이지만 관리자 전용
+            .requestMatchers("/admin/users").hasAuthority("admin")           // 회원관리
+//          .requestMatchers("/admin/interviewers").hasAuthority("admin")    // 면접관 관리
+
+            // 3) /admin/** 경로 전체를 관리자 전용
+            .requestMatchers("/admin/**").hasAuthority("admin")
+            
+            // 3) 나머지는 로그인 필요
+            .anyRequest().authenticated() 	// 그 외에는 로그인 필요
             )
             // 폼 로그인(아이디/비번 입력 방식) 세부 설정
             .formLogin(form -> form
@@ -77,6 +119,8 @@ public class SecurityConfig {
                 .successHandler(customSuccessHandler())  // 로그인 성공 시 실행할 핸들러 지정(위에서 정의)
                 .failureUrl("/loginmain?error=true")	 // 로그인 실패 시 이동할 URL (파라미터로 실패 alert)
                 .permitAll()							 // 로그인 폼 관련 요청 모두 허용
+                
+                
                 
             )
             // 소셜 로그인
@@ -102,4 +146,6 @@ public class SecurityConfig {
     	return org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance();
 //    	return new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();	
     }
+    
+    
 }
