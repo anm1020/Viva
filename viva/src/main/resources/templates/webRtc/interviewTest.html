@@ -417,20 +417,28 @@ var myDataId = null;
 const userId = "[[${userId}]]";
 let hostId = null;
 let isDataChannelReady = false;
+let currentView = null;
 
-// ✅ navigate 처리 (화면 전환 시 정리 포함)
+// navigate 처리 (화면 전환 시 정리 포함)
 function navigate(view) {
-  document.querySelectorAll('.view').forEach(div => div.classList.remove('active'));
-  document.getElementById(view + '-view').classList.add('active');
-
-  if (view === 'list') loadRoomList();
-  if (view === 'videoroom'){
-	  if(janus !== null){
-	  	janus.destroy();
-	  }
-	  initJanus(); // 방 입장 시 초기화
-  }
+	
+	// 1️ 현재 뷰에서 나가기 전에 정리 작업
+	if (currentView === 'videoroom' && view !== 'videoroom') {
+	    leaveRoom();  // WebSocket + Janus 연결 정리
+	}
+	
+	// 2 화면 전환
+  	document.querySelectorAll('.view').forEach(div => div.classList.remove('active'));
+  	document.getElementById(view + '-view').classList.add('active');
   
+  	// 뷰 별 진입 처리
+  	if (view === 'list') loadRoomList();
+  	
+  	if (view === 'videoroom'){
+		initJanus(); // 방 입장 시 초기화
+  	}
+  
+  	currentView = view;
 }
 
 // ✅ 방 생성
@@ -580,6 +588,7 @@ function enterRoom(roomId, host, name) {
   console.log("입장 유저 Id : " + displayName);
   
   connectChat(selectedRoomId);		// 채팅방 연결
+
   
   // 🔻 기존 영상 DOM 초기화
   $('#remoteContainer').empty();
@@ -631,27 +640,8 @@ function createJanusSession() {
           
           console.log("세션 생성 : 성공");
           
-          // textroom 연결
-//           attachTextRoom(displayName, selectedRoomId);
         },
 
-     	// ✅ DataChannel 열린 시점
-        ondataopen: function () {
-          console.log("✅ DataChannel opened (datachannel 연결 완료)");
-          isDataChannelReady = true;
-        },
-
-        // ✅ 메시지 수신
-        ondata: function (data) {
-          console.log("📥 받은 메시지:", data);
-          appendChatMessage("상대방", data);
-        },
-        
-     	// 📩 메시지 수신 처리 외 기타 콜백 생략 가능
-        error: function (error) {
-          console.error("플러그인 attach 실패", error);
-        },
-        
      	// ICE 상태 변경 로그
 		iceState: function(state) {
 			Janus.log("ICE state changed to " + state);
@@ -1126,10 +1116,7 @@ function cleanupAllFeeds() {
 
 // 종료버튼 클릭시
 document.getElementById("exitBtn").addEventListener("click", function () {
-	if (janus) {
-		janus.destroy(); // 내부적으로 cleanupAllFeeds 호출
-	}
-		navigate('main'); // navigate는 세션정리 없이 화면 전환만
+	navigate('main'); // navigate는 세션정리 없이 화면 전환만
 });
 
 // 내 캠 음소거
@@ -1146,24 +1133,77 @@ function toggleMute() {
 
 // websocket 연결 및 구독
 let stompClient = null;
+let chatSubscription = null;		// 구독 객체 저장용 (나중에 unsubscribe 가능)
 
 function connectChat(roomId) {
+  if (stompClient && stompClient.connected) {
+	  stompClient.disconnect(() => {
+	    console.log("🔌 기존 WebSocket 연결 해제 완료");
+	  });
+  }
+	
   const socket = new SockJS("http://52.78.112.81:8080/ws-chat");
   stompClient = Stomp.over(socket);
 
   stompClient.connect({}, function () {
     console.log("✅ 채팅 연결 성공");
-
+    
     // 구독
     stompClient.subscribe(`/topic/chat/${roomId}`, function (messageOutput) {
       const msg = JSON.parse(messageOutput.body);
       appendChatMessage(msg.sender, msg.message);
     });
+	sendMessage(displayName + "님이 입장하셨습니다.");
   });
+  
 }
 
+// websocket 연결 종료
+function disconnectChat() {
+	if (stompClient && stompClient.connected) {
+	  stompClient.disconnect(() => {
+	    console.log("🛑 WebSocket 연결 종료됨");
+	  });
+	}
+}
+
+function leaveRoom() {
+	// 1. 채팅 퇴장 메시지 전송
+	if (stompClient && stompClient.connected) {
+    	sendMessage(displayName + "님이 퇴장하셨습니다.");
+  	}
+	
+	// 2. WebSocket 연결 해제
+	if (stompClient) {
+		disconnectChat();
+		stompClient = null;
+	
+		// 채팅창 초기화
+		const chatBox = document.getElementById("chatMessages");
+		if (chatBox) chatBox.innerHTML = "";
+		
+	}
+
+	// 3. Janus 연결 해제
+	if (janus && !isDestroying) {
+	    isDestroying = true;
+	    janus.destroy({
+	      	success: () => {
+	        	console.log("🧹 Janus 세션 종료 완료");
+	        	cleanupAllFeeds();
+		        janus = null;
+		        isDestroying = false;
+	    	}
+	  	});
+	}
+	
+	// 4. 전역 상태 초기화
+	selectedRoomId = null;
+	displayName = null;
+}
+
+// 메세지 전송
 function sendMessage(message) {
-	const messageInput = document.getElementById("chatMessage");
 	const content = message;
 
 	stompClient.send("/app/chat.send", {}, JSON.stringify({
@@ -1172,7 +1212,6 @@ function sendMessage(message) {
 	    message: content
 	}));
 
-// 	messageInput.value = "";
 }
 
 // 채팅 메세지 DOM 추가
