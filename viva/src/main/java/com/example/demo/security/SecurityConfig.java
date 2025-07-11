@@ -101,20 +101,15 @@ public class SecurityConfig {
                 ).authenticated()
 
             // 2) 특정 페이지만 관리자 전용
-              .requestMatchers("/admin/users").hasAuthority("admin")           // 회원관리
+            .requestMatchers("/admin/users").hasAuthority("admin")           // 회원관리
 //          .requestMatchers("/admin/interviewers").hasAuthority("admin")    // 면접관 관리
 
             // 3) /admin/** 경로 전체를 관리자 전용
             .requestMatchers("/admin/**").hasAuthority("admin")
             
             // 3) 나머지는 로그인 필요
-            .anyRequest().authenticated()
-            )                                   
-                                   
-                .anyRequest().authenticated() 	// 그 외에는 로그인 필요
+            .anyRequest().authenticated() 	// 그 외에는 로그인 필요
             )
-
-            
             // 폼 로그인(아이디/비번 입력 방식) 세부 설정
             .formLogin(form -> form
                 .loginPage("/loginmain")          		 // 로그인 페이지
