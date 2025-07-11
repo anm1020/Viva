@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>AI 음성 면접</title>
+  <style>
+    body {
+      font-family: "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      background-color: #f9f9f9;
+      padding: 20px;
+    }
+
+    .ai-feedback {
+      background-color: #ffffff;
+      border: 1px solid #e0e0e0;
+      padding: 24px;
+      border-radius: 12px;
+      max-width: 800px;
+      margin: 40px auto;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+
+    .ai-feedback h2 {
+      font-size: 1.8rem;
+      margin-bottom: 16px;
+      color: #1f4de3;
+    }
+
+    .ai-feedback h3 {
+      font-size: 1.2rem;
+      color: #333;
+      margin-top: 24px;
+      margin-bottom: 8px;
+    }
+
+    .ai-feedback p, .ai-feedback li {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #444;
+    }
+
+    .ai-feedback ul {
+      list-style: disc;
+      padding-left: 20px;
+    }
+
+    .ai-feedback blockquote {
+      background-color: #f4f6fa;
+      border-left: 4px solid #1f4de3;
+      padding: 12px 16px;
+      font-style: italic;
+      margin: 12px 0;
+    }
+
+    #mic-btn {
+      padding: 10px 20px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      background-color: #1f4de3;
+      color: white;
+      cursor: pointer;
+    }
+
+    #mic-btn:hover {
+      background-color: #173eb0;
+    }
+
+    #status {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="ai-feedback">
+    <h2>🎤 AI 음성 면접</h2>
+
+    <!-- 녹음 버튼 -->
+    <button id="mic-btn">🎙 녹음 시작</button>
+    <p id="status">녹음 대기 중</p>
+
+    <!-- 텍스트 및 피드백 결과 -->
+    <div id="result-box" style="display:none;">
+      <h3>📝 텍스트 변환 결과</h3>
+      <p id="transcript"></p>
+
+      <h3>📋 AI 피드백 요약</h3>
+      <p id="summary"></p>
+
+      <h3>🔍 상세 피드백</h3>
+      <ul id="detail-list"></ul>
+
+      <h3>📈 분석 요약</h3>
+      <ul>
+        <li><strong>말속도:</strong> <span id="speech-speed"></span></li>
+        <li><strong>발음:</strong> <span id="pronunciation"></span></li>
+        <li><strong>장점:</strong> <span id="strengths"></span></li>
+        <li><strong>단점:</strong> <span id="weaknesses"></span></li>
+      </ul>
+
+      <h3>✅ 예시 문장</h3>
+      <blockquote id="exampleSentence"></blockquote>
+
+      <h3>📬 다음 단계 제안</h3>
+      <ul id="suggestionsJson"></ul>
+    </div>
+    
+    <div style="margin-top: 30px; text-align: center;">
+      <a href="/ai/voice/conversations" style="background: #1f4de3; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; margin-right: 10px;">📋 대화방 목록</a>
+      <a href="/" style="background: #666; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px;">← 메인으로 돌아가기</a>
+    </div>
+  </div>
+
+  <script>
+    const micBtn = document.getElementById("mic-btn");
+    const status = document.getElementById("status");
+    const transcriptEl = document.getElementById("transcript");
+    const resultBox = document.getElementById("result-box");
+    const summaryEl = document.getElementById("summary");
+    const detailList = document.getElementById("detail-list");
+    const exampleEl = document.getElementById("exampleSentence");
+    const suggestionsEl = document.getElementById("suggestionsJson");
+
+    let mediaRecorder;
+    let chunks = [];
+    let isRecording = false;
+
+    micBtn.addEventListener("click", async () => {
+      if (!isRecording) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        chunks = [];
+
+        mediaRecorder.ondataavailable = e => chunks.push(e.data);
+        mediaRecorder.onstop = async () => {
+          const blob = new Blob(chunks, { type: 'audio/webm' });
+          const formData = new FormData();
+          formData.append("file", blob, "recording.webm");
+          formData.append("sessionId", "voice-interview-" + Date.now());
+
+          status.textContent = "🎧 Whisper 분석 중...";
+          const res = await fetch("/ai/voice/interview", {
+            method: "POST",
+            body: formData
+          });
+
+          const result = await res.json();
+
+          if (result && result.transcript) {
+            resultBox.style.display = "block";
+            transcriptEl.textContent = result.transcript;
+            summaryEl.textContent = result.summary;
+            document.getElementById("speech-speed").textContent = result.speechSpeed;
+            document.getElementById("pronunciation").textContent = result.pronunciation;
+            document.getElementById("strengths").textContent = result.strengths;
+            document.getElementById("weaknesses").textContent = result.weaknesses;
+
+            // 상세 피드백 배열 출력
+            detailList.innerHTML = "";
+            if (Array.isArray(result.details)) {
+              result.details.forEach(item => {
+                const li = document.createElement("li");
+                li.innerHTML = `<strong>${item.title}</strong><br>${item.comment}`;
+                detailList.appendChild(li);
+              });
+            }
+
+            // 예시 문장
+            exampleEl.textContent = result.example || "";
+
+            // 다음 단계 제안
+            suggestionsEl.innerHTML = "";
+            if (Array.isArray(result.suggestions)) {
+              result.suggestions.forEach(sug => {
+                const li = document.createElement("li");
+                li.textContent = sug;
+                suggestionsEl.appendChild(li);
+              });
+            }
+
+            status.textContent = "✅ 피드백 완료";
+          } else {
+            status.textContent = "❌ 분석 실패";
+          }
+        };
+
+        mediaRecorder.start();
+        status.textContent = "🔴 녹음 중 (다시 클릭 시 종료)";
+        micBtn.textContent = "⏹ 녹음 종료";
+        isRecording = true;
+      } else {
+        mediaRecorder.stop();
+        micBtn.textContent = "🎙 녹음 시작";
+        isRecording = false;
+      }
+    });
+  </script>
+</body>
+</html>

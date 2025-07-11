@@ -14,7 +14,7 @@ import com.example.demo.model.dto.Interviewer;
 import lombok.RequiredArgsConstructor;
 
 @Controller                         // <— 반드시 붙여야 합니다!
-@RequestMapping("/interviewers")    // 뷰용 기본 URL
+@RequestMapping("/payment")    // 뷰용 기본 URL
 @RequiredArgsConstructor
 public class TestController {
 
@@ -27,13 +27,13 @@ public class TestController {
       new Interviewer("intr3","이철수")
     );
     model.addAttribute("interviewers", list);
-    return "interviewer/list";  // src/main/resources/templates/interviewer/list.html
+    return "payment/testlist";  // src/main/resources/templates/interviewer/list.html
   }
 
   /** 1) 상세페이지 매핑 (나중에 달력 모달용) */
   @GetMapping("/{intrId}")
   public String detail(@PathVariable String intrId, Model model) {
     model.addAttribute("intrId", intrId);
-    return "interviewer/detail"; // 나중에 만들 detail.html
+    return "payment/detail"; // 나중에 만들 detail.html
   }
 }

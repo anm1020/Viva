@@ -1,0 +1,86 @@
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+.session-list {
+  width: 250px;
+  border-right: 1px solid #ddd;
+  padding: 1rem;
+  overflow-y: auto;
+  background: #f1f1f1;
+}
+
+.session-list a {
+  display: block;
+  margin-bottom: 10px;
+  text-decoration: none;
+  color: #333;
+}
+
+.chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-container {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.chat-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.message {
+  max-width: 70%;
+  padding: 10px;
+  border-radius: 10px;
+  margin: 2px 0;
+  word-break: break-all;
+}
+
+.message.user {
+  align-self: flex-end;
+  background: #e0f7fa;
+  text-align: right;
+}
+
+.message.assistant {
+  align-self: flex-start;
+  background: #f1f1f1;
+  text-align: left;
+}
+
+.input-form {
+  display: flex;
+  padding: 0.5rem;
+  border-top: 1px solid #ccc;
+  background: #fff;
+}
+
+.input-form input {
+  flex: 1;
+  padding: 0.6rem;
+}
+
+.input-form button {
+  padding: 0.6rem 1rem;
+  background: #4285f4;
+  color: white;
+  border: none;
+  margin-left: 0.5rem;
+}
+
+.mic-button {
+  margin-left: 5px;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+}

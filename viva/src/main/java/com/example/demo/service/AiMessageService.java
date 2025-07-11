@@ -12,6 +12,10 @@ public interface AiMessageService {
     List<AiMessage> getMessagesBySessionId(String sessionId);
     
     Map<String, AiMessage> sendAndReply(String sessionId, String userPrompt);
-    
+
+    void deleteMessagesBySessionId(String sessionId);
+
+    AiMessage sendAndSaveAiReply(String sessionId, String userText);
+
     
 }

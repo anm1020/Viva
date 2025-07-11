@@ -9,12 +9,10 @@ import com.example.demo.model.entity.Interviewer;
 
 public interface InterviewerService {
     List<InterviewerDTO> getInterviewerList();
+    List<InterviewerDTO> getInterviewerListByCategory(String category);
     void save(Interviewer interviewer); 
     Optional<Interviewer> findById(Long id);
     InterviewerDetailDTO getInterviewerDetail(Long intrId);
-    
-    
-
 }
 
 

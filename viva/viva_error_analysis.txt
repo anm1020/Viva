@@ -1,0 +1,732 @@
+================================================================================
+                                VIVA 프로젝트 오류 분석 및 주요 기능 정리
+================================================================================
+
+📋 목차
+1. 오류 분석 및 해결 방안
+2. 주요 기능 코드 정리
+3. 결론
+
+================================================================================
+🔍 1. 오류 분석 및 해결 방안
+================================================================================
+
+### 1-1. Spring Security 인증 오류
+
+**1. 오류 사유**
+- Spring Security 설정에서 CustomUserDetailsService 구현 시 UserDetails 반환 타입 불일치
+- 비밀번호 인코더 설정 문제 (NoOpPasswordEncoder 사용)
+- OAuth2 소셜 로그인과 일반 로그인 통합 시 Principal 타입 불일치
+
+**2. 오류 코드**
+```java
+// SecurityConfig.java - 84번째 줄 근처
+.oauth2Login(oauth2 -> oauth2
+    .loginPage("/loginmain")
+    .defaultSuccessUrl("/main?loginSuccess=true", true)
+)
+```
+
+**3. 해결 방안**
+```java
+// CustomUserDetailsService.java - 수정된 코드
+@Override
+public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
+    Users users = usersRepository.findByUserId(userId);
+    if(users == null || "N".equals(users.getUserType())) {
+        throw new UsernameNotFoundException("존재하지 않는 아이디입니다.");
+    }
+    return new CustomUserDetails(users);  // CustomUserDetails 사용
+}
+```
+
+**4. 결론**
+- CustomUserDetails 클래스 구현으로 UserDetails 인터페이스 정상 구현
+- 비밀번호 인코더는 개발환경에서 NoOp, 운영환경에서 BCrypt 사용 권장
+- Principal 타입 체크로 일반/소셜 로그인 구분 처리
+
+### 1-2. AI API 호출 오류
+
+**1. 오류 사유**
+- OpenAI API 키 설정 누락
+- API 응답 구조 파싱 오류
+- 예외 처리 미흡으로 인한 서버 오류
+
+**2. 오류 코드**
+```java
+// AIService.java - 42번째 줄 근처
+try {
+    ResponseEntity<Map> response = restTemplate.postForEntity(
+        AIConfig.getApiUrl(), request, Map.class
+    );
+    // API 응답 파싱 오류 발생
+} catch (Exception e) {
+    e.printStackTrace();
+    return "오류 발생: " + e.getMessage();
+}
+```
+
+**3. 해결 방안**
+```java
+// AIController.java - 개선된 예외 처리
+@PostMapping("/sendAndReply")
+public ResponseEntity<Map<String, AiMessage>> sendAndReply(@RequestBody AiRequestDTO request) {
+    try {
+        Map<String, AiMessage> result = aiMessageService.sendAndReply(request.getSessionId(), request.getPrompt());
+        return ResponseEntity.ok(result);
+    } catch (Exception e) {
+        e.printStackTrace();
+        // 오류 발생 시 기본 응답 생성
+        AiMessage errorMessage = AiMessage.builder()
+                .sessionId(request.getSessionId())
+                .role("assistant")
+                .content("서버 오류가 발생했습니다: " + e.getMessage())
+                .createdDt(java.time.LocalDateTime.now().toString())
+                .build();
+        
+        Map<String, AiMessage> errorResult = Map.of(
+                "userMessage", new AiMessage(),
+                "assistantMessage", errorMessage
+        );
+        return ResponseEntity.ok(errorResult);
+    }
+}
+```
+
+**4. 결론**
+- application-secret.properties 파일에 OpenAI API 키 설정 필수
+- API 응답 구조에 맞는 안전한 파싱 로직 구현
+- 예외 발생 시에도 사용자에게 적절한 응답 제공
+
+### 1-3. 데이터베이스 연결 오류
+
+**1. 오류 사유**
+- JPA 엔티티 매핑 오류
+- 데이터베이스 스키마 불일치
+- 트랜잭션 관리 문제
+
+**2. 오류 코드**
+```java
+// UserController.java - 회원가입 시 발생하는 오류
+@PostMapping("memberinsert")
+public String memberinsert(@ModelAttribute Users users, ...) {
+    try {
+        service.save(users);
+        return "redirect:/loginmain";
+    } catch (Exception e) {
+        rttr.addFlashAttribute("registerFailMsg", "회원가입에 실패했습니다.");
+        return "redirect:/memberform?role=" + users.getUserRole();
+    }
+}
+```
+
+**3. 해결 방안**
+```java
+// UserService.java - 개선된 중복 체크
+public void registerUser(Users users) {
+    if (usersRepository.existsById(users.getUserId())) {
+        throw new IllegalArgumentException("이미 존재하는 아이디입니다.");
+    }
+    usersRepository.save(users);
+}
+```
+
+**4. 결론**
+- 엔티티 클래스에 @Entity, @Id 어노테이션 정확히 설정
+- 데이터베이스 스키마와 엔티티 필드명 일치 확인
+- @Transactional 어노테이션으로 트랜잭션 관리
+
+### 1-4. 세션 관리 오류
+
+**1. 오류 사유**
+- HttpSession과 Spring Security 세션 불일치
+- 세션 속성 접근 오류
+- 로그인 상태 체크 로직 오류
+
+**2. 오류 코드**
+```java
+// AiVoiceController.java - 세션 접근 오류
+@PostMapping("/ai/voice/save")
+public String saveVoice(@RequestBody AiVoiceDTO dto, HttpSession session) {
+    String userId = (String) session.getAttribute("loginId"); // null 반환 가능
+    if (userId == null) return "로그인 필요";
+    // ...
+}
+```
+
+**3. 해결 방안**
+```java
+// Principal 사용으로 개선
+@PostMapping("/ai/voice/save")
+public String saveVoice(@RequestBody AiVoiceDTO dto, Principal principal) {
+    if (principal == null) return "로그인 필요";
+    String userId = principal.getName();
+    aiVoiceService.saveVoiceFeedback(userId, dto);
+    return "ok";
+}
+```
+
+**4. 결론**
+- Spring Security의 Principal 객체 사용 권장
+- 세션 대신 SecurityContextHolder 활용
+- 로그인 상태 체크는 Spring Security의 인증 객체 활용
+
+### 1-5. 파일 업로드 오류
+
+**1. 오류 사유**
+- MultipartFile 처리 오류
+- 파일 크기 제한 설정 문제
+- 파일 형식 검증 누락
+
+**2. 오류 코드**
+```java
+// AiVoiceController.java - 파일 업로드 오류
+@PostMapping("/ai/voice/transcribe")
+public ResponseEntity<Map<String, String>> transcribeVoice(@RequestParam("file") MultipartFile file) {
+    try {
+        String text = aiVoiceService.transcribe(file);
+        return ResponseEntity.ok(Map.of("text", text));
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(500).body(Map.of("error", "음성 변환 실패: " + e.getMessage()));
+    }
+}
+```
+
+**3. 해결 방안**
+```java
+// 파일 검증 추가
+@PostMapping("/ai/voice/transcribe")
+public ResponseEntity<Map<String, String>> transcribeVoice(@RequestParam("file") MultipartFile file) {
+    try {
+        // 파일 검증
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "파일이 비어있습니다."));
+        }
+        
+        // 파일 형식 검증
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("audio/")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "오디오 파일만 업로드 가능합니다."));
+        }
+        
+        String text = aiVoiceService.transcribe(file);
+        return ResponseEntity.ok(Map.of("text", text));
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(500).body(Map.of("error", "음성 변환 실패: " + e.getMessage()));
+    }
+}
+```
+
+**4. 결론**
+- application.properties에 파일 업로드 설정 추가
+- 파일 형식 및 크기 검증 로직 구현
+- 적절한 예외 처리로 사용자 경험 개선
+
+================================================================================
+🎯 2. 주요 기능 코드 정리
+================================================================================
+
+### 2-1. AI 채팅 기능
+
+**1. 코드 기능 설명**
+- OpenAI GPT API를 활용한 실시간 채팅
+- 세션 기반 대화 관리
+- 자동 요약 기능
+- 메시지 히스토리 저장
+
+**2. 코드 보여주기**
+```java
+// AIController.java - AI 채팅 페이지
+@GetMapping("/aichat")
+public String chatPage(
+    @RequestParam(value = "sessionId", required = false) String sessionId,
+    @RequestParam(value = "new", required = false) String isNew,
+    HttpSession httpSession, Principal principal, Model model) {
+    
+    String userId = null;
+    if (principal != null) {
+        userId = principal.getName();
+    }
+
+    // 새 세션 생성 로직
+    if ("1".equals(isNew) && userId != null) {
+        sessionId = UUID.randomUUID().toString();
+        AiSession newSession = AiSession.builder()
+            .sessionId(sessionId)
+            .userId(userId)
+            .title("새로운 대화")
+            .createdDt(java.time.LocalDateTime.now().toString())
+            .build();
+        aiSessionService.saveSession(newSession);
+    }
+
+    List<AiMessage> messages = aiMessageService.getMessagesBySessionId(sessionId);
+    model.addAttribute("messages", messages);
+    model.addAttribute("sessionId", sessionId);
+    
+    return "Ai/aichat";
+}
+
+// AI 메시지 전송 및 응답
+@PostMapping("/sendAndReply")
+public ResponseEntity<Map<String, AiMessage>> sendAndReply(@RequestBody AiRequestDTO request) {
+    try {
+        Map<String, AiMessage> result = aiMessageService.sendAndReply(request.getSessionId(), request.getPrompt());
+        return ResponseEntity.ok(result);
+    } catch (Exception e) {
+        // 오류 처리
+        AiMessage errorMessage = AiMessage.builder()
+                .sessionId(request.getSessionId())
+                .role("assistant")
+                .content("서버 오류가 발생했습니다: " + e.getMessage())
+                .createdDt(java.time.LocalDateTime.now().toString())
+                .build();
+        
+        Map<String, AiMessage> errorResult = Map.of(
+                "userMessage", new AiMessage(),
+                "assistantMessage", errorMessage
+        );
+        return ResponseEntity.ok(errorResult);
+    }
+}
+```
+
+**3. 결론**
+- 세션 기반으로 대화 컨텍스트 유지
+- 실시간 응답과 오류 처리 구현
+- 사용자별 대화 히스토리 관리
+
+### 2-2. 음성 면접 기능
+
+**1. 코드 기능 설명**
+- Whisper API를 활용한 음성 텍스트 변환
+- 음성 파일 업로드 및 처리
+- 음성 피드백 저장 및 조회
+- 실시간 음성 면접 시뮬레이션
+
+**2. 코드 보여주기**
+```java
+// AiVoiceController.java - 음성 변환
+@PostMapping("/ai/voice/transcribe")
+@ResponseBody
+public ResponseEntity<Map<String, String>> transcribeVoice(@RequestParam("file") MultipartFile file) {
+    try {
+        String text = aiVoiceService.transcribe(file);
+        return ResponseEntity.ok(Map.of("text", text));
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(500).body(Map.of("error", "음성 변환 실패: " + e.getMessage()));
+    }
+}
+
+// AiVoiceService.java - Whisper API 호출
+public String transcribe(MultipartFile file) {
+    try {
+        String url = "https://api.openai.com/v1/audio/transcriptions";
+
+        ByteArrayResource resource = new ByteArrayResource(file.getBytes()) {
+            @Override
+            public String getFilename() {
+                return file.getOriginalFilename();
+            }
+        };
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("file", resource);
+        body.add("model", "whisper-1");
+        body.add("language", "ko");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        headers.setBearerAuth(openAiApiKey);
+
+        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
+
+        if (response.getStatusCode().is2xxSuccessful()) {
+            return (String) response.getBody().get("text");
+        } else {
+            throw new RuntimeException("Whisper API 호출 실패");
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+        throw new RuntimeException("Whisper 변환 중 오류: " + e.getMessage());
+    }
+}
+```
+
+**3. 결론**
+- RESTful API로 음성 파일 처리
+- 다국어 지원 (한국어 우선)
+- 오류 처리로 안정성 확보
+
+### 2-3. 면접관 CRUD 기능
+
+**1. 코드 기능 설명**
+- 면접관 등록, 조회, 수정, 삭제
+- 카테고리별 면접관 검색
+- 면접관 상세 정보 및 리뷰 관리
+- 권한 기반 접근 제어
+
+**2. 코드 보여주기**
+```java
+// InterviewerController.java - 면접관 목록
+@GetMapping("/interviewer")
+public String showIntrList(@RequestParam(value = "intrCate", required = false) String intrCate, Model model) {
+    List<InterviewerDTO> interviewers;
+    if (intrCate != null && !intrCate.isEmpty()) {
+        // 여러 카테고리(콤마구분) 검색 지원
+        String[] categories = intrCate.split(",");
+        interviewers = new java.util.ArrayList<>();
+        for (String cate : categories) {
+            interviewers.addAll(interviewerService.getInterviewerListByCategory(cate));
+        }
+        // 중복 제거
+        interviewers = interviewers.stream().distinct().toList();
+    } else {
+        // 전체 목록
+        interviewers = interviewerService.getInterviewerList();
+    }
+    if (interviewers == null) {
+        interviewers = java.util.Collections.emptyList();
+    }
+    model.addAttribute("interviewers", interviewers);
+    return "interviewer/List";
+}
+
+// 면접관 등록 (권한 체크)
+@GetMapping("/interviewer/form")
+public String showForm(Principal principal, Model model) {
+    String userId = principal.getName();
+    Users user = usersRepository.findByUserId(userId);
+    if (user == null || !"intr".equals(user.getUserRole())) {
+        return "redirect:/interviewer?error=not_intr";
+    }
+    model.addAttribute("user", user);
+    return "interviewer/form";
+}
+
+// 면접관 저장
+@PostMapping("/interviewer/save")
+public String saveInterviewer(Principal principal,
+                              @RequestParam(name = "intrIntro", required = false) String intrIntro,
+                              @RequestParam(name = "intrImage", required = false) String intrImage,
+                              @RequestParam(name = "intrPrice", required = false) Integer intrPrice,
+                              @RequestParam(name = "intrCate", required = false) String intrCate,
+                              @RequestParam(name = "intrContent", required = false) String intrContent) {
+    String userId = principal.getName();
+    Users user = usersRepository.findByUserId(userId);
+    if (user == null || !"intr".equals(user.getUserRole())) {
+        return "redirect:/interviewer?error=not_intr";
+    }
+    
+    Interviewer interviewer = new Interviewer();
+    interviewer.setUserId(userId);
+    interviewer.setIntrIntro(intrIntro);
+    interviewer.setIntrImage(intrImage);
+    interviewer.setIntrPrice(intrPrice);
+    interviewer.setIntrCate(intrCate);
+    interviewer.setIntrContent(intrContent);
+    
+    interviewerService.save(interviewer);
+    return "redirect:/interviewer";
+}
+```
+
+**3. 결론**
+- 권한 기반 접근 제어로 보안 강화
+- 카테고리별 검색 기능으로 사용성 향상
+- DTO 패턴으로 데이터 전송 최적화
+
+### 2-4. 자소서 관리 기능
+
+**1. 코드 기능 설명**
+- 자소서 작성, 조회, 수정, 삭제
+- AI 기반 자소서 피드백 생성
+- 섹션별 자소서 구조화
+- 사용자별 자소서 목록 관리
+
+**2. 코드 보여주기**
+```java
+// JasoController.java - 자소서 목록
+@GetMapping("list")
+public String listJaso(Principal principal, Model model) {
+    String userId = principal.getName();
+    List<Jaso> jasoList = jasoService.getJasoByUserId(userId);
+    model.addAttribute("jasoList", jasoList);
+    return "mypage/jasolist";
+}
+
+// 자소서 저장
+@PostMapping("/write")
+public String writeSubmit(@ModelAttribute Jaso jaso,
+                         @RequestParam(value = "jaso_growth", required = false) String jasoGrowth,
+                         @RequestParam(value = "jaso_personality", required = false) String jasoPersonality,
+                         @RequestParam(value = "jaso_school", required = false) String jasoSchool,
+                         @RequestParam(value = "jaso_motivation", required = false) String jasoMotivation,
+                         @RequestParam(value = "jaso_future", required = false) String jasoFuture,
+                         @RequestParam(value = "jaso_experience", required = false) String jasoExperience,
+                         Principal principal) {
+    String userId = principal.getName();
+    jaso.setUserId(userId);
+    jaso.setCreatedDt(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+    jaso.setGrowth(jasoGrowth);
+    jaso.setPersonality(jasoPersonality);
+    jaso.setSchool(jasoSchool);
+    jaso.setMotivation(jasoMotivation);
+    jaso.setFuture(jasoFuture);
+    jaso.setExperience(jasoExperience);
+    
+    try {
+        Jaso savedJaso = jasoService.saveJaso(jaso);
+    } catch (Exception e) {
+        System.out.println("저장 실패: " + e.getMessage());
+        e.printStackTrace();
+    }
+    return "redirect:/mypage/jaso/list";
+}
+
+// AI 피드백 생성
+@PostMapping("/{id}/generate-feedback")
+public String generateFeedback(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
+    try {
+        Jaso jaso = jasoService.getJasoById(id);
+        if (jaso == null) {
+            redirectAttributes.addFlashAttribute("error", "자소서를 찾을 수 없습니다.");
+            return "redirect:/mypage/jaso/list";
+        }
+
+        // AI 피드백 생성
+        String feedback = aiService.generateJasoFeedback(jaso);
+        
+        JasoFeedback newFeedback = new JasoFeedback();
+        newFeedback.setJasoId(id);
+        newFeedback.setFeedback(feedback);
+        newFeedback.setCreatedDt(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        
+        jasofeedbackService.saveFeedback(newFeedback);
+        redirectAttributes.addFlashAttribute("message", "AI 피드백이 성공적으로 생성되었습니다.");
+    } catch (Exception e) {
+        redirectAttributes.addFlashAttribute("error", "AI 피드백 생성 중 오류가 발생했습니다.");
+        e.printStackTrace();
+    }
+    return "redirect:/mypage/jaso/view/" + id;
+}
+```
+
+**3. 결론**
+- 섹션별 구조화로 체계적인 자소서 관리
+- AI 피드백으로 사용자 경험 향상
+- 예외 처리로 안정성 확보
+
+### 2-5. 메인 페이지 기능
+
+**1. 코드 기능 설명**
+- 로그인 상태에 따른 동적 콘텐츠 표시
+- 일반 로그인과 소셜 로그인 통합
+- 사용자 역할별 메뉴 분기
+- 세션 관리 및 인증 상태 표시
+
+**2. 코드 보여주기**
+```java
+// UserController.java - 메인 페이지
+@GetMapping("/main")
+public String main(Authentication authentication, Model model) {
+    // 1. 인증 객체 가져오기
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+    String displayName = null;
+    String role = null;
+
+    // 2. 인증됐고 익명유저 아니면
+    if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+        Object principal = auth.getPrincipal();
+
+        // (1) 일반 로그인 (UserDetails)
+        if (principal instanceof CustomUserDetails userDetails) {
+            displayName = userDetails.getUsers().getUserName();
+            role = userDetails.getUsers().getUserRole();
+        }
+        
+        // (2) 소셜 로그인 (DefaultOAuth2User)
+        else if (principal instanceof DefaultOAuth2User oauth2User) {
+            Map<String, Object> attrs = oauth2User.getAttributes();
+            if (attrs != null && attrs.containsKey("properties")) {
+                Map<String, Object> props = (Map<String, Object>) attrs.get("properties");
+                if (props != null && props.containsKey("nickname")) {
+                    displayName = (String) props.get("nickname");
+                }
+            }
+        }
+    }
+
+    model.addAttribute("displayName", displayName);
+    model.addAttribute("role", role);
+
+    return "main";
+}
+
+// 마이페이지 (역할별 분기)
+@GetMapping("/mypage")
+public String mypage(Model model, Principal principal) {
+    String userId = principal.getName();
+    Users users = service.findByUserId(userId);
+    model.addAttribute("users", users);
+
+    // user_role에 따라 다른 뷰 리턴
+    if ("mem".equals(users.getUserRole())) {
+        return "mypage/memMypage";      // 취준생 마이페이지
+    } else if ("intr".equals(users.getUserRole())) {
+        return "mypage/intrMypage";     // 면접관 마이페이지
+    } else {
+        return "error/403"; // 권한 오류
+    }
+}
+```
+
+**3. 결론**
+- Spring Security 인증 객체 활용으로 안전한 사용자 정보 접근
+- 일반/소셜 로그인 통합 처리
+- 역할별 UI 분기로 사용자 경험 개선
+
+### 2-6. 결제 시스템 기능
+
+**1. 코드 기능 설명**
+- 포트원 결제 연동
+- 예약과 결제 연동
+- 결제 상태 관리
+- 결제 결과 처리
+
+**2. 코드 보여주기**
+```java
+// PaymentController.java - 결제 페이지
+@GetMapping("/charge")
+public String showChargePage(
+    @RequestParam("intrId") String intrId,
+    @RequestParam("intrName") String intrName,
+    @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+    @RequestParam("time") @DateTimeFormat(pattern = "HH:mm") LocalTime time,
+    Model model
+) {
+    model.addAttribute("intrId", 1);
+    model.addAttribute("intrName", intrName);
+    model.addAttribute("reservedDate", date);
+    model.addAttribute("reservedTime", time);
+    model.addAttribute("amount", 100);
+    return "payment/charge";
+}
+
+// 결제 저장
+@PostMapping("/save")
+@ResponseBody
+public Integer savePayment(@RequestBody Payment payment) {
+    System.out.println("payment in: " + payment);
+    service.savePayment(payment);
+    return 1;
+}
+
+// PaymentService.java - 결제 상태 관리
+@Transactional
+public Payment preparePayment(Long resNo, BigDecimal amount) {
+    Payment p = Payment.builder()
+        .payResno(resNo.toString())
+        .payAmount(amount)
+        .payStatus(PayStatus.ready)
+        .payCreateDt(LocalDateTime.now())
+        .build();
+    return repo.save(p);
+}
+
+@Transactional
+public void confirmPayment(Long payId) {
+    Payment p = repo.findById(payId)
+        .orElseThrow(() -> new IllegalArgumentException("잘못된 payId"));
+    p.setPayStatus(PayStatus.paid);
+    repo.save(p);
+}
+```
+
+**3. 결론**
+- 포트원 API 연동으로 안전한 결제 처리
+- 트랜잭션 관리로 데이터 일관성 보장
+- 결제 상태 추적으로 관리 효율성 향상
+
+================================================================================
+📊 3. 결론
+================================================================================
+
+### 3-1. 주요 성과
+
+1. **AI 기능 통합 성공**
+   - OpenAI GPT API 연동으로 실시간 채팅 구현
+   - Whisper API로 음성 인식 기능 구현
+   - AI 기반 자소서 피드백 시스템 구축
+
+2. **보안 강화**
+   - Spring Security로 인증/인가 시스템 구축
+   - OAuth2 소셜 로그인 (카카오) 연동
+   - 역할 기반 접근 제어 구현
+
+3. **사용자 경험 개선**
+   - 직관적인 UI/UX 설계
+   - 실시간 응답 처리
+   - 오류 상황에 대한 적절한 피드백
+
+### 3-2. 기술적 개선점
+
+1. **코드 품질**
+   - 예외 처리 강화
+   - 로깅 시스템 구축
+   - 코드 리팩토링
+
+2. **성능 최적화**
+   - 데이터베이스 쿼리 최적화
+   - 캐싱 시스템 도입
+   - 비동기 처리 구현
+
+3. **확장성**
+   - 마이크로서비스 아키텍처 고려
+   - API 문서화
+   - 테스트 코드 작성
+
+### 3-3. 향후 개발 방향
+
+1. **기능 확장**
+   - 화상 면접 기능
+   - 실시간 채팅 (WebSocket)
+   - 모바일 앱 개발
+
+2. **기술 스택 업그레이드**
+   - Spring Boot 최신 버전 적용
+   - React/Vue.js 프론트엔드 분리
+   - Docker 컨테이너화
+
+3. **운영 환경 구축**
+   - CI/CD 파이프라인 구축
+   - 모니터링 시스템 도입
+   - 백업 및 복구 시스템
+
+### 3-4. 프로젝트 평가
+
+**장점:**
+✅ AI 기술을 활용한 혁신적인 면접 플랫폼
+✅ Spring Boot 표준 아키텍처로 안정성 확보
+✅ 보안 강화로 사용자 데이터 보호
+✅ 확장 가능한 구조로 유지보수성 향상
+
+**개선점:**
+⚠️ 예외 처리 강화 필요
+⚠️ 성능 최적화 필요
+⚠️ 테스트 코드 작성 필요
+⚠️ 문서화 개선 필요
+
+**전체 평가:**
+이 프로젝트는 AI 기술을 활용한 현대적인 면접 플랫폼으로, 
+Spring Boot의 표준 아키텍처를 잘 활용하여 안정적이고 확장 가능한 시스템을 구축했습니다.
+다양한 오류 상황을 경험하면서도 해결책을 찾아 구현한 점이 인상적이며,
+향후 지속적인 개선과 확장을 통해 더욱 완성도 높은 서비스로 발전할 수 있을 것입니다.
+
+================================================================================ 

@@ -8,6 +8,9 @@ public interface InterviewerDTO {
     Integer getIntrPrice();
     String getUserSkill();
     String getIntrCate();
+    String getIntrIntro();
+    Double getAvgScore();
+    Integer getReviewCount();
 }
 
 

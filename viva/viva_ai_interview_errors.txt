@@ -1,0 +1,1040 @@
+================================================================================
+                    VIVA AI 면접 관련 오류 분석 및 해결 방안
+================================================================================
+
+📋 담당 기능
+- AI 면접 기능 (GPT API 연동)
+- 자소서 AI 피드백 기능
+- 면접관 CRUD 기능
+
+================================================================================
+🔍 1. AI 면접 기능 오류 분석
+================================================================================
+
+### 1-1. AI 세션 관리 오류
+
+**1. 오류 사유**
+- 세션 ID 생성 및 관리 로직 복잡성
+- 사용자별 세션 분리 실패
+- 세션 데이터 영속화 문제
+
+**2. 오류 코드**
+```java
+// AIController.java - 세션 생성 로직 오류
+@GetMapping("/aichat")
+public String chatPage(
+    @RequestParam(value = "sessionId", required = false) String sessionId,
+    @RequestParam(value = "new", required = false) String isNew,
+    HttpSession httpSession, Principal principal, Model model) {
+    
+    String userId = null;
+    if (principal != null) {
+        userId = principal.getName();
+    }
+
+    // 복잡한 세션 생성 로직으로 인한 오류
+    if ("1".equals(isNew) && userId != null) {
+        sessionId = UUID.randomUUID().toString();
+        AiSession newSession = AiSession.builder()
+            .sessionId(sessionId)
+            .userId(userId)
+            .title("새로운 대화")
+            .createdDt(java.time.LocalDateTime.now().toString())
+            .build();
+        aiSessionService.saveSession(newSession);
+    } else if ((sessionId == null || sessionId.isEmpty()) && userId != null) {
+        // 이 부분에서 세션 조회 실패 시 오류 발생
+        List<AiSession> userSessions = aiSessionService.getSessionsByUserId(userId);
+        if (userSessions != null && !userSessions.isEmpty()) {
+            sessionId = userSessions.get(0).getSessionId();
+        } else {
+            // 새 세션 생성 로직 중복
+        }
+    }
+}
+```
+
+**3. 해결 방안**
+```java
+// 개선된 세션 관리 로직
+@GetMapping("/aichat")
+public String chatPage(
+    @RequestParam(value = "sessionId", required = false) String sessionId,
+    @RequestParam(value = "new", required = false) String isNew,
+    Principal principal, Model model) {
+    
+    String userId = principal != null ? principal.getName() : null;
+    
+    // 세션 생성 로직 단순화
+    if (userId == null) {
+        return "redirect:/loginmain";
+    }
+    
+    // 새 세션 요청이거나 세션이 없으면 새로 생성
+    if ("1".equals(isNew) || sessionId == null || sessionId.isEmpty()) {
+        sessionId = createNewSession(userId);
+    }
+    
+    // 세션 유효성 검증
+    if (!isValidSession(sessionId, userId)) {
+        sessionId = createNewSession(userId);
+    }
+    
+    List<AiMessage> messages = aiMessageService.getMessagesBySessionId(sessionId);
+    model.addAttribute("messages", messages);
+    model.addAttribute("sessionId", sessionId);
+    
+    return "Ai/aichat";
+}
+
+private String createNewSession(String userId) {
+    String sessionId = UUID.randomUUID().toString();
+    AiSession newSession = AiSession.builder()
+        .sessionId(sessionId)
+        .userId(userId)
+        .title("새로운 대화")
+        .createdDt(LocalDateTime.now().toString())
+        .build();
+    aiSessionService.saveSession(newSession);
+    return sessionId;
+}
+
+private boolean isValidSession(String sessionId, String userId) {
+    return aiSessionService.findById(sessionId)
+        .map(session -> userId.equals(session.getUserId()))
+        .orElse(false);
+}
+```
+
+**4. 결론**
+- 세션 생성 로직을 별도 메서드로 분리하여 복잡성 감소
+- 세션 유효성 검증 로직 추가로 보안 강화
+- 사용자별 세션 분리 명확화
+
+### 1-2. AI 메시지 전송 및 응답 오류
+
+**1. 오류 사유**
+- GPT API 호출 시 예외 처리 미흡
+- 메시지 저장과 API 응답 처리 순서 문제
+- null 체크 부족으로 인한 NullPointerException
+
+**2. 오류 코드**
+```java
+// AiMessageServiceImpl.java - 메시지 처리 오류
+@Override
+public Map<String, AiMessage> sendAndReply(String sessionId, String prompt) {
+    // 1. 사용자 메시지 저장
+    AiMessage userMessage = saveMessage(AiMessage.builder()
+        .sessionId(sessionId)
+        .role("user")
+        .content(prompt)
+        .createdDt(LocalDateTime.now().toString())
+        .build());
+
+    // 2. GPT API 호출 - 여기서 오류 발생 가능
+    String response = aiService.askChatGPT(prompt);
+
+    // 3. GPT 응답 저장
+    AiMessage assistantMessage = saveMessage(AiMessage.builder()
+        .sessionId(sessionId)
+        .role("assistant")
+        .content(response)
+        .createdDt(LocalDateTime.now().toString())
+        .build());
+
+    // 4. 메시지 6개 이상일 경우 자동 요약
+    List<AiMessage> allMessages = getMessagesBySessionId(sessionId);
+    if (allMessages.size() >= 6) {
+        try {
+            String summary = aiService.summarizeMessages(allMessages);
+            aiSessionService.updateSummary(sessionId, summary);
+        } catch (Exception e) {
+            System.err.println("요약 생성 중 오류: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    return Map.of(
+        "userMessage", userMessage,
+        "assistantMessage", assistantMessage
+    );
+}
+```
+
+**3. 해결 방안**
+```java
+// 개선된 메시지 처리 로직
+@Override
+public Map<String, AiMessage> sendAndReply(String sessionId, String prompt) {
+    try {
+        // 세션 유효성 검증
+        if (sessionId == null || sessionId.trim().isEmpty()) {
+            throw new IllegalArgumentException("세션 ID가 유효하지 않습니다.");
+        }
+        
+        // 1. 사용자 메시지 저장
+        AiMessage userMessage = saveMessage(AiMessage.builder()
+            .sessionId(sessionId)
+            .role("user")
+            .content(prompt)
+            .createdDt(LocalDateTime.now().toString())
+            .build());
+
+        // 2. GPT API 호출 (예외 처리 강화)
+        String response;
+        try {
+            response = aiService.askChatGPT(prompt);
+            if (response == null || response.trim().isEmpty()) {
+                response = "죄송합니다. 응답을 생성할 수 없습니다.";
+            }
+        } catch (Exception e) {
+            System.err.println("GPT API 호출 오류: " + e.getMessage());
+            response = "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+        }
+
+        // 3. GPT 응답 저장
+        AiMessage assistantMessage = saveMessage(AiMessage.builder()
+            .sessionId(sessionId)
+            .role("assistant")
+            .content(response)
+            .createdDt(LocalDateTime.now().toString())
+            .build());
+
+        // 4. 자동 요약 (별도 스레드로 처리)
+        scheduleSummaryGeneration(sessionId);
+
+        return Map.of(
+            "userMessage", userMessage,
+            "assistantMessage", assistantMessage
+        );
+        
+    } catch (Exception e) {
+        System.err.println("메시지 처리 중 오류: " + e.getMessage());
+        e.printStackTrace();
+        
+        // 오류 응답 생성
+        AiMessage errorMessage = AiMessage.builder()
+            .sessionId(sessionId)
+            .role("assistant")
+            .content("처리 중 오류가 발생했습니다.")
+            .createdDt(LocalDateTime.now().toString())
+            .build();
+            
+        return Map.of(
+            "userMessage", new AiMessage(),
+            "assistantMessage", errorMessage
+        );
+    }
+}
+
+private void scheduleSummaryGeneration(String sessionId) {
+    // 비동기로 요약 생성 (성능 개선)
+    CompletableFuture.runAsync(() -> {
+        try {
+            List<AiMessage> allMessages = getMessagesBySessionId(sessionId);
+            if (allMessages.size() >= 6) {
+                String summary = aiService.summarizeMessages(allMessages);
+                aiSessionService.updateSummary(sessionId, summary);
+            }
+        } catch (Exception e) {
+            System.err.println("요약 생성 중 오류: " + e.getMessage());
+        }
+    });
+}
+```
+
+**4. 결론**
+- GPT API 호출 시 예외 처리 강화
+- null 체크 및 유효성 검증 추가
+- 비동기 처리로 성능 개선
+- 오류 발생 시에도 사용자에게 적절한 응답 제공
+
+### 1-3. AI 세션 삭제 및 업데이트 오류
+
+**1. 오류 사유**
+- 세션 삭제 시 연관된 메시지 삭제 실패
+- 세션 제목 업데이트 시 동시성 문제
+- 삭제 권한 검증 누락
+
+**2. 오류 코드**
+```java
+// AIController.java - 세션 삭제 오류
+@DeleteMapping("/session/delete")
+public ResponseEntity<?> deleteSession(@RequestParam("sessionId") String sessionId) {
+    aiSessionService.deleteSessionById(sessionId);
+    aiMessageService.deleteMessagesBySessionId(sessionId);
+    return ResponseEntity.ok().build();
+}
+
+// 세션 제목 업데이트 오류
+@PostMapping("/session/updateTitle")
+public ResponseEntity<?> updateSessionTitle(@RequestBody Map<String, String> req) {
+    String sessionId = req.get("sessionId");
+    String title = req.get("title");
+    aiSessionService.updateSessionTitle(sessionId, title);
+    return ResponseEntity.ok().build();
+}
+```
+
+**3. 해결 방안**
+```java
+// 개선된 세션 관리
+@DeleteMapping("/session/delete")
+public ResponseEntity<?> deleteSession(
+    @RequestParam("sessionId") String sessionId,
+    Principal principal) {
+    
+    try {
+        String userId = principal.getName();
+        
+        // 권한 검증
+        if (!hasSessionPermission(sessionId, userId)) {
+            return ResponseEntity.status(403).body("권한이 없습니다.");
+        }
+        
+        // 트랜잭션으로 안전한 삭제
+        deleteSessionWithMessages(sessionId);
+        
+        return ResponseEntity.ok().build();
+        
+    } catch (Exception e) {
+        System.err.println("세션 삭제 오류: " + e.getMessage());
+        return ResponseEntity.status(500).body("삭제 중 오류가 발생했습니다.");
+    }
+}
+
+@PostMapping("/session/updateTitle")
+public ResponseEntity<?> updateSessionTitle(
+    @RequestBody Map<String, String> req,
+    Principal principal) {
+    
+    try {
+        String sessionId = req.get("sessionId");
+        String title = req.get("title");
+        String userId = principal.getName();
+        
+        // 입력값 검증
+        if (sessionId == null || title == null || title.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("잘못된 요청입니다.");
+        }
+        
+        // 권한 검증
+        if (!hasSessionPermission(sessionId, userId)) {
+            return ResponseEntity.status(403).body("권한이 없습니다.");
+        }
+        
+        // 제목 업데이트
+        aiSessionService.updateSessionTitle(sessionId, title.trim());
+        
+        return ResponseEntity.ok().build();
+        
+    } catch (Exception e) {
+        System.err.println("제목 업데이트 오류: " + e.getMessage());
+        return ResponseEntity.status(500).body("업데이트 중 오류가 발생했습니다.");
+    }
+}
+
+@Transactional
+private void deleteSessionWithMessages(String sessionId) {
+    // 메시지 먼저 삭제
+    aiMessageService.deleteMessagesBySessionId(sessionId);
+    // 세션 삭제
+    aiSessionService.deleteSessionById(sessionId);
+}
+
+private boolean hasSessionPermission(String sessionId, String userId) {
+    return aiSessionService.findById(sessionId)
+        .map(session -> userId.equals(session.getUserId()))
+        .orElse(false);
+}
+```
+
+**4. 결론**
+- 권한 검증 로직 추가로 보안 강화
+- 트랜잭션 사용으로 데이터 일관성 보장
+- 입력값 검증으로 안정성 향상
+
+================================================================================
+🔍 2. 자소서 AI 피드백 기능 오류 분석
+================================================================================
+
+### 2-1. AI 피드백 생성 오류
+
+**1. 오류 사유**
+- 자소서 텍스트가 너무 길어서 GPT API 토큰 제한 초과
+- 자소서 섹션별 분리 처리 복잡성
+- AI 응답 파싱 오류
+
+**2. 오류 코드**
+```java
+// JasoController.java - AI 피드백 생성 오류
+@PostMapping("/{id}/generate-feedback")
+public String generateFeedback(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
+    try {
+        Jaso jaso = jasoService.getJasoById(id);
+        if (jaso == null) {
+            redirectAttributes.addFlashAttribute("error", "자소서를 찾을 수 없습니다.");
+            return "redirect:/mypage/jaso/list";
+        }
+
+        // AI 피드백 생성 - 여기서 토큰 제한 오류 발생
+        String feedback = aiService.generateJasoFeedback(jaso);
+        
+        JasoFeedback newFeedback = new JasoFeedback();
+        newFeedback.setJasoId(id);
+        newFeedback.setFeedback(feedback);
+        newFeedback.setCreatedDt(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        
+        jasofeedbackService.saveFeedback(newFeedback);
+        redirectAttributes.addFlashAttribute("message", "AI 피드백이 성공적으로 생성되었습니다.");
+    } catch (Exception e) {
+        redirectAttributes.addFlashAttribute("error", "AI 피드백 생성 중 오류가 발생했습니다.");
+        e.printStackTrace();
+    }
+    return "redirect:/mypage/jaso/view/" + id;
+}
+```
+
+**3. 해결 방안**
+```java
+// 개선된 AI 피드백 생성
+@PostMapping("/{id}/generate-feedback")
+public String generateFeedback(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
+    try {
+        Jaso jaso = jasoService.getJasoById(id);
+        if (jaso == null) {
+            redirectAttributes.addFlashAttribute("error", "자소서를 찾을 수 없습니다.");
+            return "redirect:/mypage/jaso/list";
+        }
+
+        // 자소서 텍스트 길이 체크 및 분할
+        String feedback = generateFeedbackBySections(jaso);
+        
+        JasoFeedback newFeedback = new JasoFeedback();
+        newFeedback.setJasoId(id);
+        newFeedback.setFeedback(feedback);
+        newFeedback.setCreatedDt(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        
+        jasofeedbackService.saveFeedback(newFeedback);
+        redirectAttributes.addFlashAttribute("message", "AI 피드백이 성공적으로 생성되었습니다.");
+        
+    } catch (Exception e) {
+        redirectAttributes.addFlashAttribute("error", "AI 피드백 생성 중 오류가 발생했습니다: " + e.getMessage());
+        e.printStackTrace();
+    }
+    return "redirect:/mypage/jaso/view/" + id;
+}
+
+private String generateFeedbackBySections(Jaso jaso) {
+    StringBuilder feedback = new StringBuilder();
+    
+    // 섹션별로 피드백 생성
+    Map<String, String> sections = Map.of(
+        "성장과정", jaso.getGrowth(),
+        "성격의 장단점", jaso.getPersonality(),
+        "학창시절 및 동아리활동", jaso.getSchool(),
+        "지원동기", jaso.getMotivation(),
+        "입사 후 포부", jaso.getFuture(),
+        "기타 특별한 경험", jaso.getExperience()
+    );
+    
+    for (Map.Entry<String, String> entry : sections.entrySet()) {
+        String sectionName = entry.getKey();
+        String content = entry.getValue();
+        
+        if (content != null && !content.trim().isEmpty()) {
+            try {
+                String sectionFeedback = generateSectionFeedback(sectionName, content);
+                feedback.append("【").append(sectionName).append("】\n");
+                feedback.append(sectionFeedback).append("\n\n");
+            } catch (Exception e) {
+                System.err.println(sectionName + " 피드백 생성 오류: " + e.getMessage());
+                feedback.append("【").append(sectionName).append("】\n");
+                feedback.append("이 섹션의 피드백을 생성할 수 없습니다.\n\n");
+            }
+        }
+    }
+    
+    return feedback.toString();
+}
+
+private String generateSectionFeedback(String sectionName, String content) {
+    // 토큰 제한을 고려한 프롬프트 생성
+    String prompt = String.format(
+        "다음 자소서의 '%s' 섹션에 대한 구체적인 피드백을 제공해주세요. " +
+        "개선점, 강점, 추가 제안사항을 포함해서 200자 이내로 작성해주세요.\n\n" +
+        "내용: %s", sectionName, content
+    );
+    
+    return aiService.askChatGPT(prompt);
+}
+```
+
+**4. 결론**
+- 섹션별 분할 처리로 토큰 제한 문제 해결
+- 각 섹션별 독립적인 피드백 생성으로 안정성 향상
+- 오류 발생 시에도 다른 섹션 피드백은 정상 생성
+
+### 2-2. 자소서 섹션 파싱 오류
+
+**1. 오류 사유**
+- 자소서 content 필드 제거 후 섹션별 필드 매핑 오류
+- null 값 처리 미흡
+- 섹션별 데이터 분리 로직 복잡성
+
+**2. 오류 코드**
+```java
+// JasoController.java - 자소서 상세 조회 오류
+@GetMapping("/view/{id}")
+public String viewJaso(@PathVariable("id") Long id, Model model) {
+    Jaso jaso = jasoService.getJasoById(id);
+    if (jaso == null) {
+        return "redirect:/mypage/jaso/list?error=not_found";
+    }
+
+    // 섹션별 분리 - 여기서 null 오류 발생 가능
+    Map<String, String> sectionMap = new LinkedHashMap<>();
+    sectionMap.put("성장과정", jaso.getGrowth());
+    sectionMap.put("성격의 장단점", jaso.getPersonality());
+    sectionMap.put("학창시절 및 동아리활동", jaso.getSchool());
+    sectionMap.put("지원동기", jaso.getMotivation());
+    sectionMap.put("입사 후 포부", jaso.getFuture());
+    sectionMap.put("기타 특별한 경험", jaso.getExperience());
+    model.addAttribute("sectionMap", sectionMap);
+
+    List<JasoFeedback> feedbackList = jasofeedbackService.getFeedbackByJasoId(id);
+    model.addAttribute("jaso", jaso);
+    model.addAttribute("feedbackList", feedbackList);
+    return "mypage/jasoview";
+}
+```
+
+**3. 해결 방안**
+```java
+// 개선된 자소서 상세 조회
+@GetMapping("/view/{id}")
+public String viewJaso(@PathVariable("id") Long id, Model model) {
+    try {
+        Jaso jaso = jasoService.getJasoById(id);
+        if (jaso == null) {
+            return "redirect:/mypage/jaso/list?error=not_found";
+        }
+
+        // 안전한 섹션별 분리
+        Map<String, String> sectionMap = new LinkedHashMap<>();
+        sectionMap.put("성장과정", getSafeContent(jaso.getGrowth()));
+        sectionMap.put("성격의 장단점", getSafeContent(jaso.getPersonality()));
+        sectionMap.put("학창시절 및 동아리활동", getSafeContent(jaso.getSchool()));
+        sectionMap.put("지원동기", getSafeContent(jaso.getMotivation()));
+        sectionMap.put("입사 후 포부", getSafeContent(jaso.getFuture()));
+        sectionMap.put("기타 특별한 경험", getSafeContent(jaso.getExperience()));
+        
+        // 빈 섹션 필터링
+        Map<String, String> nonEmptySections = sectionMap.entrySet().stream()
+            .filter(entry -> entry.getValue() != null && !entry.getValue().trim().isEmpty())
+            .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                Map.Entry::getValue,
+                (e1, e2) -> e1,
+                LinkedHashMap::new
+            ));
+        
+        model.addAttribute("sectionMap", nonEmptySections);
+        model.addAttribute("jaso", jaso);
+        
+        // 피드백 목록 조회
+        List<JasoFeedback> feedbackList = jasofeedbackService.getFeedbackByJasoId(id);
+        model.addAttribute("feedbackList", feedbackList != null ? feedbackList : List.of());
+        
+        return "mypage/jasoview";
+        
+    } catch (Exception e) {
+        System.err.println("자소서 상세 조회 오류: " + e.getMessage());
+        return "redirect:/mypage/jaso/list?error=system";
+    }
+}
+
+private String getSafeContent(String content) {
+    return content != null ? content.trim() : "";
+}
+```
+
+**4. 결론**
+- null 체크 및 안전한 문자열 처리
+- 빈 섹션 필터링으로 UI 개선
+- 예외 처리로 시스템 안정성 향상
+
+================================================================================
+🔍 3. 면접관 CRUD 기능 오류 분석
+================================================================================
+
+### 3-1. 면접관 등록 권한 검증 오류
+
+**1. 오류 사유**
+- 면접관 권한 체크 로직 미흡
+- 일반 사용자가 면접관 등록 페이지 접근 가능
+- 권한 오류 시 적절한 리다이렉트 처리 부족
+
+**2. 오류 코드**
+```java
+// InterviewerController.java - 면접관 등록 권한 오류
+@GetMapping("/interviewer/form")
+public String showForm(Principal principal, Model model) {
+    String userId = principal.getName();
+    Users user = usersRepository.findByUserId(userId);
+    if (user == null || !"intr".equals(user.getUserRole())) {
+        // 면접관이 아니면 접근 불가
+        return "redirect:/interviewer?error=not_intr";
+    }
+    model.addAttribute("user", user);
+    return "interviewer/form";
+}
+
+@PostMapping("/interviewer/save")
+public String saveInterviewer(Principal principal,
+                              @RequestParam(name = "intrIntro", required = false) String intrIntro,
+                              @RequestParam(name = "intrImage", required = false) String intrImage,
+                              @RequestParam(name = "intrPrice", required = false) Integer intrPrice,
+                              @RequestParam(name = "intrCate", required = false) String intrCate,
+                              @RequestParam(name = "intrContent", required = false) String intrContent) {
+    String userId = principal.getName();
+    Users user = usersRepository.findByUserId(userId);
+    if (user == null || !"intr".equals(user.getUserRole())) {
+        // 면접관이 아니면 저장 불가
+        return "redirect:/interviewer?error=not_intr";
+    }
+    // 저장 로직...
+}
+```
+
+**3. 해결 방안**
+```java
+// 개선된 권한 검증
+@GetMapping("/interviewer/form")
+public String showForm(Principal principal, Model model, RedirectAttributes redirectAttributes) {
+    try {
+        if (principal == null) {
+            redirectAttributes.addFlashAttribute("error", "로그인이 필요합니다.");
+            return "redirect:/loginmain";
+        }
+        
+        String userId = principal.getName();
+        Users user = usersRepository.findByUserId(userId);
+        
+        if (user == null) {
+            redirectAttributes.addFlashAttribute("error", "사용자 정보를 찾을 수 없습니다.");
+            return "redirect:/main";
+        }
+        
+        if (!"intr".equals(user.getUserRole())) {
+            redirectAttributes.addFlashAttribute("error", "면접관만 등록할 수 있습니다.");
+            return "redirect:/interviewer";
+        }
+        
+        model.addAttribute("user", user);
+        return "interviewer/form";
+        
+    } catch (Exception e) {
+        redirectAttributes.addFlashAttribute("error", "시스템 오류가 발생했습니다.");
+        return "redirect:/main";
+    }
+}
+
+@PostMapping("/interviewer/save")
+public String saveInterviewer(Principal principal,
+                              @RequestParam(name = "intrIntro", required = false) String intrIntro,
+                              @RequestParam(name = "intrImage", required = false) String intrImage,
+                              @RequestParam(name = "intrPrice", required = false) Integer intrPrice,
+                              @RequestParam(name = "intrCate", required = false) String intrCate,
+                              @RequestParam(name = "intrContent", required = false) String intrContent,
+                              RedirectAttributes redirectAttributes) {
+    try {
+        if (principal == null) {
+            redirectAttributes.addFlashAttribute("error", "로그인이 필요합니다.");
+            return "redirect:/loginmain";
+        }
+        
+        String userId = principal.getName();
+        Users user = usersRepository.findByUserId(userId);
+        
+        if (user == null || !"intr".equals(user.getUserRole())) {
+            redirectAttributes.addFlashAttribute("error", "면접관만 등록할 수 있습니다.");
+            return "redirect:/interviewer";
+        }
+        
+        // 입력값 검증
+        if (intrIntro == null || intrIntro.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "자기소개를 입력해주세요.");
+            return "redirect:/interviewer/form";
+        }
+        
+        // 면접관 정보 저장
+        Interviewer interviewer = new Interviewer();
+        interviewer.setUserId(userId);
+        interviewer.setIntrIntro(intrIntro.trim());
+        interviewer.setIntrImage(intrImage != null ? intrImage.trim() : "");
+        interviewer.setIntrPrice(intrPrice != null ? intrPrice : 0);
+        interviewer.setIntrCate(intrCate != null ? intrCate.trim() : "");
+        interviewer.setIntrContent(intrContent != null ? intrContent.trim() : "");
+        
+        interviewerService.save(interviewer);
+        
+        redirectAttributes.addFlashAttribute("message", "면접관 정보가 성공적으로 등록되었습니다.");
+        return "redirect:/interviewer";
+        
+    } catch (Exception e) {
+        redirectAttributes.addFlashAttribute("error", "등록 중 오류가 발생했습니다: " + e.getMessage());
+        return "redirect:/interviewer/form";
+    }
+}
+```
+
+**4. 결론**
+- 상세한 권한 검증 로직 구현
+- 입력값 검증 및 안전한 문자열 처리
+- 적절한 오류 메시지와 리다이렉트 처리
+
+### 3-2. 면접관 목록 조회 및 검색 오류
+
+**1. 오류 사유**
+- 카테고리 검색 시 중복 제거 로직 오류
+- null 값 처리 미흡
+- 검색 결과가 없을 때 처리 부족
+
+**2. 오류 코드**
+```java
+// InterviewerController.java - 면접관 목록 조회 오류
+@GetMapping("/interviewer")
+public String showIntrList(@RequestParam(value = "intrCate", required = false) String intrCate, Model model) {
+    List<InterviewerDTO> interviewers;
+    if (intrCate != null && !intrCate.isEmpty()) {
+        // 여러 카테고리(콤마구분) 검색 지원
+        String[] categories = intrCate.split(",");
+        interviewers = new java.util.ArrayList<>();
+        for (String cate : categories) {
+            interviewers.addAll(interviewerService.getInterviewerListByCategory(cate));
+        }
+        // 중복 제거 - 여기서 오류 발생 가능
+        interviewers = interviewers.stream().distinct().toList();
+    } else {
+        // 전체 목록
+        interviewers = interviewerService.getInterviewerList();
+    }
+    if (interviewers == null) {
+        interviewers = java.util.Collections.emptyList();
+    }
+    model.addAttribute("interviewers", interviewers);
+    return "interviewer/List";
+}
+```
+
+**3. 해결 방안**
+```java
+// 개선된 면접관 목록 조회
+@GetMapping("/interviewer")
+public String showIntrList(@RequestParam(value = "intrCate", required = false) String intrCate, 
+                          @RequestParam(value = "search", required = false) String search,
+                          Model model) {
+    try {
+        List<InterviewerDTO> interviewers = new ArrayList<>();
+        
+        if (intrCate != null && !intrCate.trim().isEmpty()) {
+            // 카테고리 검색
+            String[] categories = intrCate.split(",");
+            Set<InterviewerDTO> uniqueInterviewers = new LinkedHashSet<>();
+            
+            for (String cate : categories) {
+                String trimmedCate = cate.trim();
+                if (!trimmedCate.isEmpty()) {
+                    List<InterviewerDTO> categoryResults = interviewerService.getInterviewerListByCategory(trimmedCate);
+                    if (categoryResults != null) {
+                        uniqueInterviewers.addAll(categoryResults);
+                    }
+                }
+            }
+            interviewers = new ArrayList<>(uniqueInterviewers);
+            
+        } else if (search != null && !search.trim().isEmpty()) {
+            // 검색 기능
+            interviewers = interviewerService.searchInterviewers(search.trim());
+            
+        } else {
+            // 전체 목록
+            interviewers = interviewerService.getInterviewerList();
+        }
+        
+        // null 체크 및 빈 리스트 처리
+        if (interviewers == null) {
+            interviewers = new ArrayList<>();
+        }
+        
+        model.addAttribute("interviewers", interviewers);
+        model.addAttribute("selectedCategory", intrCate);
+        model.addAttribute("searchKeyword", search);
+        model.addAttribute("totalCount", interviewers.size());
+        
+        return "interviewer/List";
+        
+    } catch (Exception e) {
+        System.err.println("면접관 목록 조회 오류: " + e.getMessage());
+        model.addAttribute("interviewers", new ArrayList<>());
+        model.addAttribute("error", "목록을 불러오는 중 오류가 발생했습니다.");
+        return "interviewer/List";
+    }
+}
+```
+
+**4. 결론**
+- LinkedHashSet 사용으로 중복 제거 안정성 향상
+- 검색 기능 추가로 사용성 개선
+- 예외 처리로 시스템 안정성 확보
+
+### 3-3. 면접관 상세 조회 및 리뷰 오류
+
+**1. 오류 사유**
+- 면접관 상세 정보 조회 시 JOIN 쿼리 오류
+- 리뷰 목록 조회 시 페이징 처리 부족
+- 존재하지 않는 면접관 ID 접근 시 처리 미흡
+
+**2. 오류 코드**
+```java
+// InterviewerController.java - 면접관 상세 조회 오류
+@GetMapping("/interviewer/{intrId}")
+public String getInterviewerDetail(@PathVariable("intrId") Long intrId, Model model) {
+    InterviewerDetailDTO detail = interviewerService.getInterviewerDetail(intrId);
+    model.addAttribute("interviewer", detail);
+    // 리뷰 리스트 추가
+    List<Review> reviews = reviewRepository.findByIntrIdOrderByCreatedDtDesc(intrId.intValue());
+    model.addAttribute("reviews", reviews);
+    return "interviewer/detail";
+}
+```
+
+**3. 해결 방안**
+```java
+// 개선된 면접관 상세 조회
+@GetMapping("/interviewer/{intrId}")
+public String getInterviewerDetail(@PathVariable("intrId") Long intrId, 
+                                 @RequestParam(value = "page", defaultValue = "0") int page,
+                                 @RequestParam(value = "size", defaultValue = "10") int size,
+                                 Model model) {
+    try {
+        // 면접관 존재 여부 확인
+        if (intrId == null || intrId <= 0) {
+            return "redirect:/interviewer?error=invalid_id";
+        }
+        
+        InterviewerDetailDTO detail = interviewerService.getInterviewerDetail(intrId);
+        if (detail == null) {
+            return "redirect:/interviewer?error=not_found";
+        }
+        
+        model.addAttribute("interviewer", detail);
+        
+        // 리뷰 목록 조회 (페이징 적용)
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdDt").descending());
+        Page<Review> reviewPage = reviewRepository.findByIntrId(intrId.intValue(), pageable);
+        
+        model.addAttribute("reviews", reviewPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", reviewPage.getTotalPages());
+        model.addAttribute("totalElements", reviewPage.getTotalElements());
+        model.addAttribute("hasNext", reviewPage.hasNext());
+        model.addAttribute("hasPrevious", reviewPage.hasPrevious());
+        
+        return "interviewer/detail";
+        
+    } catch (Exception e) {
+        System.err.println("면접관 상세 조회 오류: " + e.getMessage());
+        return "redirect:/interviewer?error=system";
+    }
+}
+
+// 리뷰 등록 개선
+@PostMapping("/interviewer/{intrId}/review")
+public String addReview(@PathVariable("intrId") Long intrId,
+                       @RequestParam("rating") Integer rating,
+                       @RequestParam("content") String content,
+                       Principal principal,
+                       RedirectAttributes redirectAttributes) {
+    try {
+        if (principal == null) {
+            redirectAttributes.addFlashAttribute("error", "로그인이 필요합니다.");
+            return "redirect:/loginmain";
+        }
+        
+        // 입력값 검증
+        if (rating == null || rating < 1 || rating > 5) {
+            redirectAttributes.addFlashAttribute("error", "평점은 1-5 사이로 입력해주세요.");
+            return "redirect:/interviewer/" + intrId;
+        }
+        
+        if (content == null || content.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "리뷰 내용을 입력해주세요.");
+            return "redirect:/interviewer/" + intrId;
+        }
+        
+        String userId = principal.getName();
+        
+        // 중복 리뷰 체크
+        if (reviewRepository.existsByIntrIdAndUserId(intrId.intValue(), userId)) {
+            redirectAttributes.addFlashAttribute("error", "이미 리뷰를 작성하셨습니다.");
+            return "redirect:/interviewer/" + intrId;
+        }
+        
+        // 리뷰 저장
+        Review review = new Review();
+        review.setIntrId(intrId.intValue());
+        review.setUserId(userId);
+        review.setRating(rating);
+        review.setContent(content.trim());
+        review.setCreatedDt(LocalDateTime.now());
+        
+        reviewRepository.save(review);
+        
+        redirectAttributes.addFlashAttribute("message", "리뷰가 성공적으로 등록되었습니다.");
+        return "redirect:/interviewer/" + intrId;
+        
+    } catch (Exception e) {
+        redirectAttributes.addFlashAttribute("error", "리뷰 등록 중 오류가 발생했습니다.");
+        return "redirect:/interviewer/" + intrId;
+    }
+}
+```
+
+**4. 결론**
+- 페이징 처리로 성능 최적화
+- 입력값 검증 및 중복 체크
+- 상세한 오류 처리로 사용자 경험 개선
+
+================================================================================
+📊 4. 공통 해결 방안 및 모범 사례
+================================================================================
+
+### 4-1. 예외 처리 패턴
+
+```java
+// 표준 예외 처리 패턴
+try {
+    // 비즈니스 로직
+    return result;
+} catch (IllegalArgumentException e) {
+    // 입력값 오류
+    redirectAttributes.addFlashAttribute("error", e.getMessage());
+    return "redirect:/form";
+} catch (EntityNotFoundException e) {
+    // 데이터 없음
+    redirectAttributes.addFlashAttribute("error", "요청한 정보를 찾을 수 없습니다.");
+    return "redirect:/list";
+} catch (Exception e) {
+    // 시스템 오류
+    System.err.println("오류 발생: " + e.getMessage());
+    e.printStackTrace();
+    redirectAttributes.addFlashAttribute("error", "시스템 오류가 발생했습니다.");
+    return "redirect:/main";
+}
+```
+
+### 4-2. 권한 검증 패턴
+
+```java
+// 표준 권한 검증 패턴
+private boolean hasPermission(String resourceId, String userId, String requiredRole) {
+    try {
+        // 1. 사용자 존재 확인
+        Users user = usersRepository.findByUserId(userId);
+        if (user == null) return false;
+        
+        // 2. 역할 확인
+        if (!requiredRole.equals(user.getUserRole())) return false;
+        
+        // 3. 리소스 소유권 확인 (필요시)
+        if (resourceId != null) {
+            return checkResourceOwnership(resourceId, userId);
+        }
+        
+        return true;
+    } catch (Exception e) {
+        return false;
+    }
+}
+```
+
+### 4-3. 입력값 검증 패턴
+
+```java
+// 표준 입력값 검증 패턴
+private void validateInput(String input, String fieldName, int maxLength) {
+    if (input == null) {
+        throw new IllegalArgumentException(fieldName + "을(를) 입력해주세요.");
+    }
+    
+    String trimmed = input.trim();
+    if (trimmed.isEmpty()) {
+        throw new IllegalArgumentException(fieldName + "을(를) 입력해주세요.");
+    }
+    
+    if (trimmed.length() > maxLength) {
+        throw new IllegalArgumentException(fieldName + "은(는) " + maxLength + "자 이내로 입력해주세요.");
+    }
+}
+```
+
+================================================================================
+🎯 5. 결론
+================================================================================
+
+### 5-1. 주요 성과
+
+1. **AI 기능 안정화**
+   - GPT API 호출 시 예외 처리 강화
+   - 세션 관리 로직 개선
+   - 토큰 제한 문제 해결
+
+2. **자소서 시스템 개선**
+   - 섹션별 분할 처리로 안정성 향상
+   - AI 피드백 생성 오류 해결
+   - 데이터 파싱 로직 개선
+
+3. **면접관 CRUD 강화**
+   - 권한 검증 로직 구현
+   - 검색 기능 추가
+   - 페이징 처리로 성능 최적화
+
+### 5-2. 학습한 교훈
+
+1. **예외 처리의 중요성**
+   - 모든 외부 API 호출에 예외 처리 필수
+   - 사용자에게 적절한 오류 메시지 제공
+   - 시스템 안정성 확보
+
+2. **권한 검증의 필요성**
+   - 모든 민감한 작업에 권한 검증 구현
+   - 사용자 역할별 접근 제어
+   - 보안 강화
+
+3. **입력값 검증의 필수성**
+   - 모든 사용자 입력에 검증 로직 적용
+   - SQL Injection, XSS 공격 방지
+   - 데이터 무결성 보장
+
+### 5-3. 향후 개선 방향
+
+1. **성능 최적화**
+   - 캐싱 시스템 도입
+   - 비동기 처리 확대
+   - 데이터베이스 쿼리 최적화
+
+2. **사용자 경험 개선**
+   - 실시간 알림 기능
+   - 진행 상황 표시
+   - 모바일 반응형 개선
+
+3. **코드 품질 향상**
+   - 단위 테스트 작성
+   - 코드 리팩토링
+   - 문서화 개선
+
+이러한 오류 해결 과정을 통해 더욱 안정적이고 사용자 친화적인 AI 면접 플랫폼을 구축할 수 있었습니다.
+
+================================================================================ 

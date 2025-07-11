@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>음성면접 대화방</title>
+  <link rel="stylesheet" th:href="@{/css/common.css}">
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <style>
+    .container {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    .conversation-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #ddd;
+    }
+    .conversation-title {
+      font-size: 24px;
+      color: #1f4de3;
+    }
+    .back-btn {
+      background: #666;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .messages-container {
+      margin-bottom: 30px;
+    }
+    .message-item {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .message-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+      color: #666;
+      font-size: 14px;
+    }
+    .message-order {
+      background: #1f4de3;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .transcript {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      border-left: 4px solid #1f4de3;
+    }
+    .feedback {
+      background: #e8f4fd;
+      padding: 15px;
+      border-radius: 6px;
+      border-left: 4px solid #17a2b8;
+    }
+    .feedback h4 {
+      margin: 0 0 10px 0;
+      color: #17a2b8;
+    }
+    .feedback-item {
+      margin: 5px 0;
+    }
+    .feedback-item strong {
+      color: #333;
+    }
+    .recording-section {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 30px;
+      text-align: center;
+    }
+    .record-btn {
+      background: #1f4de3;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    .record-btn.recording {
+      background: #e53935;
+    }
+    .status {
+      color: #666;
+      margin-bottom: 20px;
+    }
+    .empty-messages {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="conversation-header">
+      <h1 class="conversation-title">🎤 음성면접 대화방</h1>
+      <a href="/ai/voice/conversations" class="back-btn">← 대화방 목록</a>
+    </div>
+
+    <div class="messages-container" th:if="${messages != null and !messages.empty}">
+      <div class="message-item" th:each="message : ${messages}">
+        <div class="message-header">
+          <span class="message-order" th:text="'#' + ${message.messageOrder}"></span>
+          <span th:text="${#temporals.format(message.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
+        </div>
+        
+        <div class="transcript">
+          <strong>🎤 음성 인식 결과:</strong><br>
+          <span th:text="${message.transcript}"></span>
+        </div>
+        
+        <div class="feedback">
+          <h4>🤖 AI 피드백</h4>
+          <div class="feedback-item">
+            <strong>요약:</strong> <span th:text="${message.summary}"></span>
+          </div>
+          <div class="feedback-item">
+            <strong>말속도:</strong> <span th:text="${message.speechSpeed}"></span>
+          </div>
+          <div class="feedback-item">
+            <strong>발음:</strong> <span th:text="${message.pronunciation}"></span>
+          </div>
+          <div class="feedback-item">
+            <strong>장점:</strong> <span th:text="${message.strengths}"></span>
+          </div>
+          <div class="feedback-item">
+            <strong>단점:</strong> <span th:text="${message.weaknesses}"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-messages" th:if="${messages == null or messages.empty}">
+      <h3>아직 음성 메시지가 없습니다</h3>
+      <p>아래 버튼을 눌러 첫 번째 음성면접을 시작해보세요!</p>
+    </div>
+
+    <div class="recording-section">
+      <button id="recordBtn" class="record-btn">🎤 음성면접 시작</button>
+      <p id="status" class="status">녹음 대기 중</p>
+    </div>
+  </div>
+
+  <script th:inline="javascript">
+    const conversationId = /*[[${conversationId}]]*/ '';
+    const recordBtn = document.getElementById('recordBtn');
+    const status = document.getElementById('status');
+    
+    let isRecording = false;
+    let mediaRecorder;
+    let audioChunks = [];
+
+    recordBtn.addEventListener('click', async () => {
+      if (!isRecording) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+
+          mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+
+          mediaRecorder.onstop = async () => {
+            const blob = new Blob(audioChunks, { type: 'audio/webm' });
+            const formData = new FormData();
+            formData.append('file', blob, 'voice.webm');
+
+            status.textContent = '🎧 음성 분석 중...';
+
+            try {
+              // 1. 음성 텍스트 변환
+              const transcribeRes = await fetch('/ai/voice/transcribe', {
+                method: 'POST',
+                body: formData
+              });
+
+              if (transcribeRes.ok) {
+                const transcribeResult = await transcribeRes.json();
+                const transcript = transcribeResult.text;
+
+                // 2. AI 피드백 생성
+                const feedback = `음성 인식 결과: ${transcript}\n\n면접 답변으로서 적절한 내용입니다. 자신감 있게 답변하시고, 구체적인 경험을 포함하면 더 좋겠습니다.`;
+
+                // 3. 대화방에 저장
+                const saveRes = await fetch('/ai/voice/conversation/save', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                  },
+                  body: `conversationId=${conversationId}&transcript=${encodeURIComponent(transcript)}&feedback=${encodeURIComponent(feedback)}`
+                });
+
+                if (saveRes.ok) {
+                  status.textContent = '✅ 저장 완료!';
+                  // 페이지 새로고침하여 새 메시지 표시
+                  setTimeout(() => location.reload(), 1000);
+                } else {
+                  status.textContent = '❌ 저장 실패';
+                }
+              } else {
+                status.textContent = '❌ 음성 인식 실패';
+              }
+            } catch (error) {
+              console.error('Error:', error);
+              status.textContent = '❌ 오류 발생';
+            }
+          };
+
+          mediaRecorder.start();
+          isRecording = true;
+          recordBtn.classList.add('recording');
+          recordBtn.textContent = '🛑 녹음 종료';
+          status.textContent = '🔴 녹음 중 (다시 클릭 시 종료)';
+        } catch (err) {
+          alert('마이크 접근 실패: ' + err.message);
+        }
+      } else {
+        mediaRecorder.stop();
+        isRecording = false;
+        recordBtn.classList.remove('recording');
+        recordBtn.textContent = '🎤 음성면접 시작';
+        status.textContent = '🎧 분석 중...';
+      }
+    });
+  </script>
+</body>
+</html> 

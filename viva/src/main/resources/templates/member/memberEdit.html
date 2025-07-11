@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>회원정보 수정</title>
+  <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+  <script src="https://code.jquery.com/jquery-latest.js"></script>
+  <script th:src="@{/js/check.js}"></script>
+  <style>
+    /* 카드 컨테이너 */
+    .form-frame {
+      max-width: 360px;
+      margin: 2rem auto;
+      padding: 1.5rem;
+      background-color: #ffffff;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .form-frame h2 {
+      text-align: center;
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: #111827;
+    }
+    .form-frame .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-frame label {
+      display: block;
+      margin-bottom: 0.25rem;
+      font-size: 0.875rem;
+      color: #374151;
+    }
+    .form-frame input,
+    .form-frame select {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.875rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      background-color: #f9fafb;
+      box-sizing: border-box;
+    }
+    .inline-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .inline-group > * {
+      flex: 1;
+    }
+    .form-frame button {
+      font-size: 0.875rem;
+      border-radius: 0.375rem;
+    }
+    .form-frame button[type="button"] {
+      padding: 0.5rem 0.75rem;
+      background-color: #ffffff;
+      border: 1px solid #d1d5db;
+      color: #374151;
+      cursor: pointer;
+    }
+    .form-frame button[type="button"]:hover {
+      background-color: #f3f4f6;
+    }
+    .form-frame button[type="submit"] {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 1rem;
+      background-color: #007bff;
+      color: #ffffff;
+      border: none;
+      cursor: pointer;
+    }
+    .form-frame button[type="submit"]:hover {
+      background-color: #0056b3;
+    }
+    .readonly-field {
+    background: #f2f2f2;
+    color: #888;
+    font-weight: bold;
+  	}
+  </style>
+</head>
+<body>
+
+  <div class="form-frame">
+  <h2>회원 정보 수정</h2>
+  
+  <!-- 비밀번호 변경 모달 (초기에는 안 보이게) 액션값 달라서 form 밖에 있어야 함 -->
+	<div id="pwModal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.28); z-index:1000; align-items:center; justify-content:center;">
+	  <div style="background:#fff; padding:2rem 1.5rem; border-radius:12px; width:350px; margin:60px auto;">
+	    <h3 style="text-align:center; margin-bottom:1rem;">비밀번호 변경</h3>
+	    <form id="pwChangeForm" onsubmit="return false;">
+	      <div class="form-group">
+	        <label>현재 비밀번호</label>
+	        <input type="password" name="currentPass" required />
+	      </div>
+	      <div class="form-group">
+	        <label>새 비밀번호</label>
+	        <input type="password" name="newPass" required minlength="4"/>
+	      </div>
+	      <div class="form-group">
+	        <label>새 비밀번호 확인</label>
+	        <input type="password" name="confirmPass" required minlength="4"/>
+	      </div>
+	      <div style="display:flex; gap:1rem; justify-content:space-between; margin-top:1rem;">
+	        <button type="button" onclick="applyNewPassword()">변경</button>
+	        <button type="button" onclick="closePwModal()">취소</button>
+	      </div>
+	    </form>
+	  </div>
+	</div>
+  
+  <!-- 회원정보 수정 -->
+  <form th:action="@{/memberUpdate}" th:object="${users}" method="post">
+  <input type="hidden" th:field="*{userRole}">
+  <input type="hidden" name="userType" value="Y"/>
+  <input type="hidden" name="userOuth" value="N"/>
+  <input type="hidden" name="changePass" id="changePass" />
+  
+    <!-- 아이디 + 중복확인 -->
+    <div class="form-group inline-group">
+      <div style="flex: 2;">
+        <label for="userId">아이디</label>
+        <input type="text"
+               th:field="*{userId}"
+               id="userId"
+               placeholder="아이디"
+               required readonly class="readonly-field" />
+      </div>
+    </div>
+
+    <!-- 비밀번호 (수정불가 input + 변경 버튼) -->
+	<div class="form-group" style="position: relative;">
+	  <label for="userPass">비밀번호</label>
+	  <input type="password"
+	         th:field="*{userPass}"
+	         id="userPass"
+	         placeholder="비밀번호"
+	         required readonly class="readonly-field" />
+	         <button type="button"
+          onclick="openPwModal()"
+          style="position:absolute; right:0; top:28px; height:32px; padding:0 16px; border-radius:0.375rem; border:1px solid #d1d5db; background:#f9fafb; color:#333; cursor:pointer;">
+    비밀번호 변경
+  </button>
+	  <!-- <input type="button" value="비밀번호 변경" onclick="openPwModal()" style="position: absolute; right: 0; top: 28px;"/> -->
+		<!-- <button type="button" onclick="applyNewPassword()">비밀번호 변경</button> -->
+	</div>
+	
+	 <!-- 비밀번호 변경 모달 (초기에는 안 보이게) -->
+<!-- <div id="pwModal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.28); z-index:1000; align-items:center; justify-content:center;">
+	  <div style="background:#fff; padding:2rem 1.5rem; border-radius:12px; width:350px; margin:60px auto;">
+	    <h3 style="text-align:center; margin-bottom:1rem;">비밀번호 변경</h3>
+	    <form id="pwChangeForm" method="post" th:action="@{/changePassword}">
+	      <div class="form-group">
+	        <label>현재 비밀번호</label>
+	        <input type="password" name="currentPass" required />
+	      </div>
+	      <div class="form-group">
+	        <label>새 비밀번호</label>
+	        <input type="password" name="newPass" required minlength="4"/>
+	      </div>
+	      <div class="form-group">
+	        <label>새 비밀번호 확인</label>
+	        <input type="password" name="confirmPass" required minlength="4"/>
+	      </div>
+	      <div style="display:flex; gap:1rem; justify-content:space-between; margin-top:1rem;">
+	        <button type="submit">변경</button>
+	        <button type="button" onclick="closePwModal()">취소</button>
+	      </div>
+	    </form>
+	  </div>
+	</div> -->
+	
+
+    <!-- 비밀번호 확인 -->
+    <!-- <div class="form-group">
+      <label for="userPassConfirm">비밀번호 확인</label>
+      <input type="password"
+             th:field="*{userPassConfirm}"
+             id="userPassConfirm"
+             placeholder="비밀번호 확인"
+             required readonly class="readonly-field" />
+      <span id="passCheckResult"></span>
+    </div> -->
+
+    <!-- 이름 -->
+    <div class="form-group">
+		<label for="userName">이름</label>
+		  <input type="text"
+		         th:field="*{userName}"
+		         id="userName"
+		         placeholder="이름"
+		         required readonly class="readonly-field" />
+		  <span id="nameCheckResult" style="margin-left:10px;font-size:13px;"></span>
+		</div>
+
+    <!-- 생년월일 -->
+    <div class="form-group">
+      <label for="userBirth">생년월일</label>
+      <input type="date"
+             th:field="*{userBirth}"
+             id="userBirth"
+             required readonly class="readonly-field"/>
+    </div>
+
+    <!-- 성별 -->
+    <div class="form-group">
+      <label>성별</label>
+      <div class="inline-group">
+        <input type="radio"
+               th:field="*{userGender}"
+               id="male"
+               value="남성" disabled class="readonly-field"/>
+        <label for="male">남성</label>
+
+        <input type="radio"
+               th:field="*{userGender}"
+               id="female"
+               value="여성" disabled class="readonly-field"/>
+        <label for="female">여성</label>
+      </div>
+    </div>
+    <span id="genderCheckResult" style="margin-left:10px; font-size:13px;"></span>
+
+    <!-- 이메일 -->
+    <div class="form-group inline-group">
+      <div style="flex: 2;">
+        <label for="emailId">이메일</label>
+        <div class="inline-group">
+          <input type="text"
+                 th:field="*{emailId}"
+                 id="emailId"
+                 placeholder="example"
+                 required />
+          <span>@</span>
+          <input type="text"
+                 th:field="*{emailDomain}"
+                 id="emailDomain"
+                 readonly
+                 required />
+        </div>
+        <span id="emailCheckResult" style="margin-left:10px; font-size:13px;"></span>
+      </div>
+      <div style="flex: 1; align-self: end;">
+        <select id="emailDomainSelect">
+          <option value="" selected>도메인 선택</option>
+          <option value="naver.com">naver.com</option>
+          <option value="gmail.com">gmail.com</option>
+          <option value="daum.net">daum.net</option>
+          <option value="custom">직접입력</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 핸드폰번호 -->
+    <div class="form-group inline-group">
+      <label style="flex: none; align-self: center;" for="phonePrefix">핸드폰번호</label>
+      <select th:field="*{phonePrefix}" id="phonePrefix">
+        <option value="010">010</option>
+        <option value="011">011</option>
+        <option value="017">017</option>
+        <option value="070">070</option>
+      </select>
+      <input type="text"
+             th:field="*{phoneMiddle}"
+             id="phoneMiddle"
+             maxlength="4"
+             placeholder="0000" />
+      <input type="text"
+             th:field="*{phoneLast}"
+             id="phoneLast"
+             maxlength="4"
+             placeholder="0000" />
+      <span id="phoneCheckResult"></span>
+    </div>
+
+    <!-- 주소 검색 -->
+    <div class="form-group inline-group">
+      <label style="flex: none; align-self: center;" for="userAdd">주소</label>
+      <input type="text"
+             th:field="*{userAdd}"
+             id="userAdd"
+             placeholder="주소"
+             readonly />
+      <button type="button" id="addrBtn">주소 검색</button>
+      <span id="addressCheckResult" style="margin-left:10px; font-size:13px;"></span>
+    </div>
+    <div class="form-group">
+      <input type="text"
+             th:field="*{userAddDetail}"
+             id="userAddDetail"
+             placeholder="상세주소 입력" />
+       <span id="addressDetailCheckResult" style="margin-left:10px; font-size:13px;"></span>
+    </div>
+
+	<!-- 면접관인 경우 -->
+	<div class="form-group" th:if="${users.userRole} == 'intr'">
+	  <label for="userCareer1">경력</label>
+	  <input type="text" th:field="*{userCareer}" id="userCareer" placeholder="경력 1 (회사/직무/기간)">
+	  <input type="text" th:field="*{userCareer2}" id="userCareer2" placeholder="경력 2 (기간 예 : 5년)" style="margin-top:0.5rem;">
+	</div>
+
+
+    <!-- 기술 스택 (체크박스 예시) -->
+    <div class="form-group">
+      <label>기술</label>
+      <div class="inline-group">
+	        <label>
+	  		  <input type="checkbox" name="skill" value="Java"
+	         		 th:checked="${#arrays.contains(userSkillArr, 'Java')}" /> Java
+			</label>
+			<label>
+			  <input type="checkbox" name="skill" value="React.js"
+			         th:checked="${#arrays.contains(userSkillArr, 'React.js')}" /> React.js
+			</label>
+			<label>
+			  <input type="checkbox" name="skill" value="Vue.js"
+			         th:checked="${#arrays.contains(userSkillArr, 'Vue.js')}" /> Vue.js
+			</label>
+			<label>
+			  <input type="checkbox" name="skill" value="JPA"
+			         th:checked="${#arrays.contains(userSkillArr, 'JPA')}" /> JPA
+			</label>
+			<label>
+			  <input type="checkbox" name="skill" value="MyBatis"
+			         th:checked="${#arrays.contains(userSkillArr, 'MyBatis')}" /> MyBatis
+			</label>
+			<label>
+			  <input type="checkbox" name="skill" value="Spring Boot"
+			         th:checked="${#arrays.contains(userSkillArr, 'Spring Boot')}" /> Spring Boot
+			</label>
+			<label>
+			  <input type="checkbox" name="skill" value="Oracle"
+			         th:checked="${#arrays.contains(userSkillArr, 'Oracle')}" /> Oracle
+			</label>
+			<label>
+			  <input type="checkbox" name="skill" value="MySQL"
+			         th:checked="${#arrays.contains(userSkillArr, 'MySQL')}" /> MySQL
+			</label>
+      </div>
+    </div>
+
+    <!-- 수정 버튼 -->
+    <button type="submit">정보 수정</button>
+    <button type="button" onclick="history.back();">취소</button>
+  </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const domainSelect = document.getElementById('emailDomainSelect');
+  const domainInput  = document.getElementById('emailDomain');
+
+  domainSelect.addEventListener('change', function() {
+    const val = this.value;
+    if (val === 'custom') {
+      domainInput.value = '';
+      domainInput.removeAttribute('readonly');
+      domainInput.focus();
+    } else if (val) {
+      domainInput.value = val;
+      domainInput.setAttribute('readonly', 'readonly');
+    } else {
+      domainInput.value = '';
+      domainInput.setAttribute('readonly', 'readonly');
+    }
+  });
+});
+  
+  // ⬇️ 여기부터 주소 검색(카카오 우편번호) 추가!
+  document.getElementById('addrBtn').addEventListener('click', function() {
+    new daum.Postcode({
+      oncomplete: function(data) {
+        document.getElementById('userAdd').value = data.address; // 주소 입력
+      }
+    }).open();
+  });
+  
+  	// 비번 모달
+	// DOMContentLoaded 이벤트 안에서 처리 (추천)
+/* document.addEventListener('DOMContentLoaded', function() {
+  // 1. 비밀번호 변경 모달 열기/닫기 함수
+  window.openPwModal = function() {
+    document.getElementById('pwModal').style.display = 'flex';
+  };
+  window.closePwModal = function() {
+    document.getElementById('pwModal').style.display = 'none';
+    // 입력값 초기화 (선택)
+    document.getElementById('pwChangeForm').reset();
+  };
+
+  // 2. 비밀번호 변경폼 submit 핸들러 (새 비번 일치 체크)
+  var pwChangeForm = document.getElementById('pwChangeForm');
+  if (pwChangeForm) {
+    pwChangeForm.addEventListener('submit', function(e){
+      const newPw = this.newPass.value;
+      const confirmPw = this.confirmPass.value;
+      if (newPw !== confirmPw) {
+        alert('새 비밀번호가 일치하지 않습니다!');
+        this.newPass.value = '';
+        this.confirmPass.value = '';
+        this.newPass.focus();
+        e.preventDefault();
+        return false;
+      }
+      // (필요시 추가 유효성 검사 가능)
+    });  
+  } 
+}); */
+
+
+
+  </script>
+  <script th:if="${pwMsg != null}" th:inline="javascript">
+    alert('[[${pwMsg}]]');
+</script>
+  
+  
+<!-- js -->
+<script>
+function openPwModal() {
+  document.getElementById('pwModal').style.display = 'flex';
+}
+function closePwModal() {
+  document.getElementById('pwModal').style.display = 'none';
+  document.getElementById('pwChangeForm').reset();
+}
+function applyNewPassword() {
+  const newPw = document.querySelector('#pwChangeForm input[name="newPass"]').value;
+  const confirmPw = document.querySelector('#pwChangeForm input[name="confirmPass"]').value;
+  if (newPw !== confirmPw) {
+    alert('새 비밀번호가 일치하지 않습니다!');
+    return;
+  }
+  if (!newPw) {
+    alert('새 비밀번호를 입력하세요!');
+    return;
+  }
+  document.getElementById('changePass').value = newPw;
+  closePwModal();
+  alert('새 비밀번호가 설정되었습니다. 아래 "정보 수정" 버튼을 누르면 반영됩니다.');
+}
+</script>
+  
+  
+  
+</body>
+</html>

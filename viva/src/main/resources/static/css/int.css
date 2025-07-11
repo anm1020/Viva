@@ -1,0 +1,185 @@
+.interviewer-container {
+  max-width: 960px;
+  margin: 40px auto;
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+/* 🔹 상단 정보 영역 */
+.top-section {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 40px;
+  position: relative;
+}
+
+.profile-left img {
+  width: 180px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+
+.info-right {
+  flex: 1;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.info-right p {
+  margin: 6px 0;
+}
+
+/* 🔹 예약 버튼 (오른쪽 상단) */
+.reserve-button-right {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.reserve-button-right .reserve-btn {
+  display: inline-block;
+  background-color: #007bff;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* 🔹 자기소개 */
+.intro-box {
+  background-color: #f9f9f9;
+  padding: 20px;
+  margin-top: 30px;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+/* 🔹 리뷰 작성 */
+.review-form {
+  margin-top: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.star-rating input[type="radio"] {
+  display: none;
+}
+
+.star-rating label {
+  font-size: 20px;
+  color: #ffc107;
+  cursor: pointer;
+}
+
+.review-form input[type="text"] {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.review-form button {
+  background-color: #28a745;
+  color: white;
+  padding: 7px 15px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* 🔹 리뷰 리스트 */
+.review-list-section {
+  margin-top: 30px;
+}
+
+.review-item {
+  border-top: 1px solid #eee;
+  padding: 15px 0;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #555;
+}
+
+.review-content {
+  margin: 10px 0;
+  font-size: 15px;
+}
+
+.review-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #777;
+}
+
+.edit-btn, .delete-btn {
+  margin-left: 8px;
+  background-color: transparent;
+  border: 1px solid #ccc;
+  padding: 4px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* 🔹 등록 폼 내부 input 스타일 */
+.register-form input[type="text"],
+.register-form input[type="number"],
+.register-form textarea {
+  width: 100%;
+  max-width: 100%;
+  padding: 8px;
+  margin-top: 4px;
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+/* 🔹 카테고리 박스 스타일 (선택 항목) */
+.form-category-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.form-category-item {
+  padding: 8px 12px;
+  background-color: #eee;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  border: 1px solid transparent;
+}
+
+.form-category-item.selected {
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
+  border-color: #007bff;
+}
+
+/* 🔹 버튼 스타일 */
+.register-btn {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+}

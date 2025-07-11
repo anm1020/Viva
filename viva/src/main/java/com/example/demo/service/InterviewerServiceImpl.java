@@ -25,6 +25,11 @@ public class InterviewerServiceImpl implements InterviewerService {
     }
     
     @Override
+    public List<InterviewerDTO> getInterviewerListByCategory(String category) {
+        return interviewerRepository.findByCategory(category);
+    }
+    
+    @Override
     public void save(Interviewer interviewer) {
         interviewerRepository.save(interviewer);
     }
