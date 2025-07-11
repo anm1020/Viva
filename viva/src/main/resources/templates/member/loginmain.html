@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <title>로그인 구분</title>
+<link rel="stylesheet" th:href="@{/css/main.css}">
+<link rel="stylesheet" th:href="@{/css/common.css}">
+  
   <style>
   html, body {
     height: 100%;
@@ -94,6 +97,8 @@
   </style>
 </head>
 <body>
+<div th:replace="fragments/header :: header"></div>
+
 	<script th:if="${loginMsg != null}" th:inline="javascript">
 	    alert('[[${loginMsg}]]');
 	</script>

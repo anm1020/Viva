@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>회원정보 수정</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <link rel="stylesheet" th:href="@{/css/common.css}">
+  
   <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
   <script src="https://code.jquery.com/jquery-latest.js"></script>
   <script th:src="@{/js/check.js}"></script>
@@ -83,6 +86,8 @@
   </style>
 </head>
 <body>
+<div th:replace="fragments/header :: header"></div>
+
 
   <div class="form-frame">
   <h2>회원 정보 수정</h2>

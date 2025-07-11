@@ -4,6 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <title>회원유형 선택 팝업</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <link rel="stylesheet" th:href="@{/css/common.css}">
   <style>
     /* 팝업 배경 */
     #roleModal {
@@ -57,6 +59,8 @@
   </style>
 </head>
 <body>
+<div th:replace="fragments/header :: header"></div>
+
   <!-- 회원가입 버튼(메뉴/페이지 등 원하는 곳에) -->
   <a href="#" id="signupBtn" style="font-size:16px; font-weight:bold;">회원가입</a>
 

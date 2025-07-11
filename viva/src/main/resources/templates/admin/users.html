@@ -1,0 +1,75 @@
+<div class="user-card-wrap">
+    <!-- 1. 제목 한 줄 전체 (왼쪽) -->
+    <div class="user-table-title">
+        <h2>회원 관리</h2>
+    </div>
+    <!-- 2. 라디오 버튼 (오른쪽) -->
+    <div class="user-role-filter-row">
+        <div class="user-role-filter">
+            <label>
+                <input type="radio" name="userRole" value="mem"
+                       th:checked="${selectedRole == 'mem'}"> 취준생
+            </label>
+            <label style="margin-left: 22px;">
+                <input type="radio" name="userRole" value="intr"
+                       th:checked="${selectedRole == 'intr'}"> 면접관
+            </label>
+        </div>
+    </div>
+    <!-- 3. 테이블 -->
+    <table class="admin-table">
+        <thead>
+        <tr>
+            <th>번호</th>
+            <th>ID</th>
+            <th>이름</th>
+            <th>회원 구분</th>
+            <th>게시물 수</th>
+            <th>댓글 수</th>
+            <th>가입일</th>
+            <th>상태</th>
+            <th th:if="${selectedRole == 'intr'}">권한</th>
+        </tr>
+        </thead>
+        <tbody id="userTableBody">
+        <tr th:each="user, stat : ${users}">
+            <td th:text="${page.size * page.number + stat.index + 1}"></td>
+            <td th:text="${user.userId}"></td>
+            <td th:text="${user.userName}"></td>
+            <td th:text="${user.userRole}"></td>
+            <td>게시물 수</td>
+            <td>댓글 수</td>
+            <td th:text="${#temporals.format(user.createdDt, 'yyyy-MM-dd')}"></td>
+            <td>
+                <button type="button"
+                        th:data-user-id="${user.userId}"
+                        th:data-current-type="${user.userType}"
+                        th:text="${user.userType == 'Y' ? 'ACTIVE' : 'INACTIVE'}"
+                        class="toggleStatusBtn"
+                        th:classappend="${user.userType == 'Y' ? ' active' : ' inactive'}">
+                </button>
+            </td>
+            <td th:if="${user.userRole == 'intr'}">
+                <button type="button"
+                        th:data-user-id="${user.userId}"
+                        th:data-user-outh="${user.userOuth}"
+                        th:text="${user.userOuth == 'Y' ? '승인' : '미승인'}"
+                        class="toggleOuthBtn"
+                        th:classappend="${user.userOuth == 'Y' ? ' outh-active' : ' outh-inactive'}">
+                </button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- 페이징 바 (카드 밖에 위치) -->
+<div class="pagination">
+    <a th:if="${page.hasPrevious()}" th:href="@{/admin/users(page=${page.number-1}, userRole=${selectedRole})}">&lt;</a>
+    <span th:each="i : ${#numbers.sequence(0, page.totalPages-1)}">
+        <a th:href="@{/admin/users(page=${i}, userRole=${selectedRole})}"
+           th:text="${i+1}"
+           th:classappend="${i} == ${page.number} ? ' active' : ''"></a>
+    </span>
+    <a th:if="${page.hasNext()}" th:href="@{/admin/users(page=${page.number+1}, userRole=${selectedRole})}">&gt;</a>
+</div>
