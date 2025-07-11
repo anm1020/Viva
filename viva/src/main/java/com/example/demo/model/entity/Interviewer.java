@@ -4,16 +4,14 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.JoinColumn;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -57,6 +55,16 @@ public class Interviewer {
 
     @Column(name = "intr_content", columnDefinition = "TEXT")
     private String intrContent;
+
+    // users 테이블 정보는 JOIN으로 가져오므로 엔티티에서 제거
+    // @Column(name = "user_name", length = 50)
+    // private String userName;
+
+    // @Column(name = "user_career", length = 255)
+    // private String userCareer;
+
+    // @Column(name = "user_skill", length = 3000)
+    // private String userSkill;
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)

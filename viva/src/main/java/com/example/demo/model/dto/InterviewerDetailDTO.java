@@ -10,4 +10,5 @@ public interface InterviewerDetailDTO {
     String getIntrCate();
     String getIntrContent();
     String getUserCareer();
+    String getIntrIntro();
 }

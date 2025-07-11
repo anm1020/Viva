@@ -16,8 +16,8 @@ public class AiSession {
     @Column(name = "session_id", length = 20)
     private String sessionId;
 
-    @Column(name = "member_id", length = 20, nullable = false)
-    private String memberId;
+    @Column(name = "user_id")
+    private String userId;
 
     @Column(name = "title", length = 255)
     private String title;

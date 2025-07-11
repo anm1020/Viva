@@ -1,8 +1,17 @@
 package com.example.demo.model.entity;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "ai_messages")
@@ -15,7 +24,7 @@ public class AiMessage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String messageId;
+    private String messageId;  // VARCHAR(20)에 맞게 String 유지
 
     @Column(nullable = false)
     private String sessionId;  // FK 아님 (String)
@@ -23,9 +32,8 @@ public class AiMessage {
     @Column(nullable = false)
     private String role; // user, ai, system 등
 
-    @Lob
-    @Column(columnDefinition = "LONGTEXT")
-    private String content;
+    @Column(columnDefinition = "TEXT")
+    private String content;  // LONGTEXT에서 TEXT로 변경
 
     private String createdDt;
 }

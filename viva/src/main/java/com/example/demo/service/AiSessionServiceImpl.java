@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 
 import com.example.demo.model.entity.AiSession;
 import com.example.demo.repository.AiSessionRepository;
-import com.example.demo.service.AiSessionService;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -28,10 +28,10 @@ public class AiSessionServiceImpl implements AiSessionService {
     }
 
     @Override
-    public List<AiSession> findByMemberId(String memberId) {
+    public List<AiSession> findByUserId(String userId) {
         return aiSessionRepository.findAll()
                 .stream()
-                .filter(s -> s.getMemberId().equals(memberId))
+                .filter(s -> s.getUserId().equals(userId))
                 .toList();
     }
     
@@ -44,4 +44,29 @@ public class AiSessionServiceImpl implements AiSessionService {
     public AiSession saveSession(AiSession session) {
         return aiSessionRepository.save(session);
     }
+    
+    public List<AiSession> getSessionsByUserId(String userId) {
+        return aiSessionRepository.findByUserIdOrderByCreatedDtDesc(userId);
+    }
+    
+    @Override
+    @Transactional
+    public void updateSummary(String sessionId, String summary) {
+        AiSession session = aiSessionRepository.findById(sessionId)
+            .orElseThrow(() -> new RuntimeException("Session not found: " + sessionId));
+        session.setSummary(summary);  // JPA가 dirty checking으로 자동 업데이트
+    }
+    @Override
+public void updateSessionTitle(String sessionId, String title) {
+    AiSession session = aiSessionRepository.findById(sessionId).orElse(null);
+    if (session != null) {
+        session.setTitle(title);
+        aiSessionRepository.save(session);
+    }
+}
+
+@Override
+public void deleteSessionById(String sessionId) {
+    aiSessionRepository.deleteById(sessionId);
+}
 }

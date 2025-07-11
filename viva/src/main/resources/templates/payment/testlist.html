@@ -147,17 +147,19 @@
 </head>
 <body>
 
-  <h1>면접관 목록</h1>
-<ul>
-  <li th:each="intr : ${interviewers}">
-    <span th:text="${intr.userName}">면접관 이름</span>
-    <button type="button"
-            class="btn-reserve"
-            th:attr="data-id=${intr.userId}, data-name=${intr.userName}">
-      예약하기
-    </button>
-  </li>
-</ul>
+  <h1>면접관 목록 (테스트용)</h1>
+  <ul>
+    <li th:each="intr : ${interviewers}">
+      <span th:text="${intr.name}">홍길동</span>
+      <button type="button"
+              class="btn-reserve"
+              th:data-id="${intr.id}"
+              th:data-name="${intr.name}">
+        예약하기
+      </button>
+    </li>
+  </ul>
+
   <!-- 모달 -->
   <div id="modal-backdrop">
     <div id="modal">

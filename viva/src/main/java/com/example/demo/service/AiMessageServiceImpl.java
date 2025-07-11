@@ -1,7 +1,10 @@
 package com.example.demo.service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
@@ -16,72 +19,79 @@ public class AiMessageServiceImpl implements AiMessageService {
 
     private final AiMessageRepository aiMessageRepository;
     private final AIService aiService;
+    private final AiSessionService aiSessionService;
+    
 
     @Override
-    public AiMessage saveMessage(AiMessage message) { 
+    public AiMessage saveMessage(AiMessage message) {
         return aiMessageRepository.save(message);
+    }
+
+    @Override
+    public List<AiMessage> getMessagesBySessionId(String sessionId) {
+        return aiMessageRepository.findBySessionIdOrderByCreatedDtAsc(sessionId);
+    }
+
+    @Override
+    public Map<String, AiMessage> sendAndReply(String sessionId, String prompt) {
+        // ✅ 1. 사용자 메시지 저장
+        AiMessage userMessage = saveMessage(AiMessage.builder()
+            .sessionId(sessionId)
+            .role("user")
+            .content(prompt)
+            .createdDt(LocalDateTime.now().toString())
+            .build());
+
+        // ✅ 2. GPT API 호출
+        String response = aiService.askChatGPT(prompt);
+
+        // ✅ 3. GPT 응답 저장
+        AiMessage assistantMessage = saveMessage(AiMessage.builder()
+            .sessionId(sessionId)
+            .role("assistant")
+            .content(response)
+            .createdDt(LocalDateTime.now().toString())
+            .build());
+
+        // ✅ 4. 메시지 6개 이상일 경우 자동 요약
+        List<AiMessage> allMessages = getMessagesBySessionId(sessionId);
+        if (allMessages.size() >= 6) {
+            try {
+                String summary = aiService.summarizeMessages(allMessages);
+                aiSessionService.updateSummary(sessionId, summary);
+            } catch (Exception e) {
+                System.err.println("요약 생성 중 오류: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
+        // ✅ 5. 결과 반환
+        return Map.of(
+            "userMessage", userMessage,
+            "assistantMessage", assistantMessage
+        );
+    }
+
+    @Override
+    public void deleteMessagesBySessionId(String sessionId) {
+        aiMessageRepository.deleteAll(aiMessageRepository.findBySessionIdOrderByCreatedDtAsc(sessionId));
     }
     
     @Override
-    public List<AiMessage> getMessagesBySessionId(String sessionId) {
-        try {
-            if (sessionId == null || sessionId.trim().isEmpty()) {
-                return List.of();
-            }
-            
-            List<AiMessage> messages = aiMessageRepository.findBySessionIdOrderByCreatedDtAsc(sessionId);
-            return messages != null ? messages : List.of();
-        } catch (Exception e) {
-            System.err.println("메시지 조회 중 서비스 오류: " + e.getMessage());
-            e.printStackTrace();
-            return List.of();
-        }
+    public AiMessage sendAndSaveAiReply(String sessionId, String userText) {
+        // 1. GPT 호출
+        String gptReply = aiService.askChatGPT(userText); // 의존성 주입된 AIService 사용
+
+        // 2. 저장
+        AiMessage aiMsg = new AiMessage();
+        aiMsg.setMessageId(UUID.randomUUID().toString());
+        aiMsg.setSessionId(sessionId);
+        aiMsg.setRole("ai");
+        aiMsg.setContent(gptReply);
+        aiMsg.setCreatedDt(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+
+        return aiMessageRepository.save(aiMsg);
     }
-    	
-    @Override
-    public Map<String, AiMessage> sendAndReply(String sessionId, String userPrompt) {
-        try {
-            // 1. 사용자 질문 저장
-            AiMessage userMessage = AiMessage.builder()
-                    .sessionId(sessionId)
-                    .role("user")
-                    .content(userPrompt)
-                    .createdDt(java.time.LocalDateTime.now().toString())
-                    .build();
-            aiMessageRepository.save(userMessage);
 
-            // 2. GPT 응답
-            String gptResponse = aiService.askChatGPT(userPrompt);
 
-            // 3. GPT 메시지 저장
-            AiMessage assistantMessage = AiMessage.builder()
-                    .sessionId(sessionId)
-                    .role("assistant")
-                    .content(gptResponse)
-                    .createdDt(java.time.LocalDateTime.now().toString())
-                    .build();
-            aiMessageRepository.save(assistantMessage);
-
-            // 4. 묶어서 리턴
-            return Map.of(
-                    "userMessage", userMessage,
-                    "assistantMessage", assistantMessage
-            );
-        } catch (Exception e) {
-            e.printStackTrace();
-            // 오류 발생 시 기본 응답 생성
-            AiMessage errorMessage = AiMessage.builder()
-                    .sessionId(sessionId)
-                    .role("assistant")
-                    .content("죄송합니다. 응답을 생성하는 중 오류가 발생했습니다: " + e.getMessage())
-                    .createdDt(java.time.LocalDateTime.now().toString())
-                    .build();
-            aiMessageRepository.save(errorMessage);
-            
-            return Map.of(
-                    "userMessage", null,
-                    "assistantMessage", errorMessage
-            );
-        }
-    }
 }
