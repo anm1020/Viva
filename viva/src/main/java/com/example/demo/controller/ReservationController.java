@@ -1,7 +1,11 @@
 package com.example.demo.controller;
 
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +27,8 @@ import com.example.demo.repository.TestUserRepository;
 import com.example.demo.service.PaymentService;
 import com.example.demo.service.PointService;
 import com.example.demo.service.ReservationService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -30,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/reservation") // 추가!
+@RequestMapping("/reservation") 
 public class ReservationController {
 
 	private final ReservationService service;
@@ -38,6 +44,7 @@ public class ReservationController {
 	private final PaymentService paymentService;
 	private final TestUserRepository userRepo;
 	private final ReservationRepository resRepo;
+	private final ObjectMapper objectMapper;  // Jackson
 
 	// ── 기존 list 메서드 그대로 남겨두세요 ─────────
 //	    @GetMapping("/list")
@@ -174,14 +181,25 @@ public class ReservationController {
 	}
 
 	// 예약 변경
-	@GetMapping("/reschedule")
-	public String reschedule(@RequestParam("resId") Long resId, @RequestParam("reservedDate") String newDate,
-			@RequestParam("reservedTime") String newTime) {
-		// 서비스에 위임 (dirty-checking 으로 자동 UPDATE)
-		service.reschedule(resId, newDate, newTime);
-		// 변경 후 내 예약 목록으로 돌아가기
-		return "redirect:/reservation/mylist";
-	}
+//	@GetMapping("/reschedule")
+//	public String reschedule(@RequestParam("resId") Long resId, @RequestParam("reservedDate") String newDate,
+//			@RequestParam("reservedTime") String newTime) {
+//		// 서비스에 위임 (dirty-checking 으로 자동 UPDATE)
+//		service.reschedule(resId, newDate, newTime);
+//		// 변경 후 내 예약 목록으로 돌아가기
+//		return "redirect:/reservation/mylist";
+//	}
+	@PostMapping("/reschedule")
+    public ResponseEntity<Void> reschedule(
+            @RequestParam("resId") Long resId,
+            @RequestParam("newDate") String newDate,
+            @RequestParam("newTime") String newTime
+    ) {
+        // 서비스에서 Dirty-checking으로 자동 저장
+        service.reschedule(resId, newDate, newTime);
+        // 성공했음을 200 OK로 반환
+        return ResponseEntity.ok().build();
+    }
 
 	// 예약 취소
 	@GetMapping("/cancel")
@@ -191,6 +209,7 @@ public class ReservationController {
 		if (user == null) {
 			return "redirect:/loginmain";
 		}
+		System.out.println("✅ user: " + user); // 👉 null이면 환불 안 됨
 
 		String userId = user.getUserId();
 
@@ -199,12 +218,15 @@ public class ReservationController {
 
 		// 3. 해당 예약이 결제된 상태인지 확인
 		boolean wasPaid = paymentService.isPaidReservation(resId);
-
+		System.out.println("🔍 예약번호 " + resId + " 결제 여부 wasPaid = " + wasPaid);  // 👈 이 줄만 추가!
 		// 4. 결제된 상태였다면 결제 금액을 포인트로 환불
 		if (wasPaid) {
 			int amount = paymentService.getPayAmountByResId(resId); // 예약 ID로 결제 금액 조회
 			pointservice.refundPoint(userId, amount); // 포인트 환불
 		}
+		System.out.println("🧾 [예약 취소 요청]");
+		System.out.println(" - 예약 ID: " + resId);
+		System.out.println(" - 사용자 ID: " + userId);
 
 		// 5. 마이페이지로 이동
 		return "redirect:/reservation/mylist";
@@ -212,7 +234,7 @@ public class ReservationController {
 
 	// 내 예약 목록
 	@GetMapping("/mylist")
-	public String myList(Model model, HttpSession session) {
+	 public String myList(Model model, HttpSession session) throws JsonProcessingException {
 
 		Users user = (Users) session.getAttribute("user");
 		System.out.println("user: " + user);
@@ -226,6 +248,7 @@ public class ReservationController {
 
 		// 서비스에서 내 예약 목록(시간 내림차순) 가져오기
 		List<Reservation> myResList = service.findReservationsByMemId(userId);
+		
 
 		// 면접관 ID → 이름 매핑 Map 만들기
 		Map<String, String> intrNames = myResList.stream().map(Reservation::getIntrId).distinct()
@@ -236,14 +259,42 @@ public class ReservationController {
 
 		// 🔹 현재 포인트 조회
 		int point = pointservice.getPoint(userId);
+		
 
+	    //  예약된 슬롯 정보(JSON) 직렬화
+
+		    // 🔽 예약/차단 시간 통합 처리
+		    String intrIdForSlots = myResList.isEmpty() ? userId : myResList.get(0).getIntrId();
+
+		    Map<String, List<String>> reservedSlots = service.getReservedSlotsForInterviewer(intrIdForSlots);
+		    Map<String, List<String>> disabledSlots = service.getDisabledSlotsByIntrIdGrouped(intrIdForSlots);
+
+		    Map<String, Set<String>> merged = new LinkedHashMap<>();
+		    reservedSlots.forEach((date, times) -> merged
+		        .computeIfAbsent(date, k -> new LinkedHashSet<>())
+		        .addAll(times));
+		    disabledSlots.forEach((date, times) -> merged
+		        .computeIfAbsent(date, k -> new LinkedHashSet<>())
+		        .addAll(times));
+
+		    // 정렬해서 JSON 변환
+		    Map<String, List<String>> mergedSorted = merged.entrySet().stream()
+		        .collect(Collectors.toMap(
+		            Map.Entry::getKey,
+		            e -> e.getValue().stream().sorted().collect(Collectors.toList()),
+		            (a, b) -> b, LinkedHashMap::new));
+
+		    String slotsJson = objectMapper.writeValueAsString(mergedSorted);
+
+	    
+        model.addAttribute("reservedSlotsJson", slotsJson);
 		model.addAttribute("point", point); // 뷰로 전달
 		model.addAttribute("myReservations", myResList);
 		model.addAttribute("userId", userId);
 		model.addAttribute("intrNames", intrNames);
 		model.addAttribute("userName", user.getUserName());
 
-		return "reservation/mylist";
+		 return "mypage/memschedule :: memschedule";
 	}
 
 	// 면접관 자신의 예약 일정(마이페이지) 확인용

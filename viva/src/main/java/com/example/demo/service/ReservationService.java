@@ -128,7 +128,7 @@ public class ReservationService {
 	@Transactional(readOnly = true)
 	public Map<String, List<String>> getReservedSlotsForInterviewer(String intrId) {
 		List<Reservation> all = resRepo.findAllByIntrIdOrderByReservedDateDescReservedTimeDesc(intrId);
-
+		 if (intrId == null) return Collections.emptyMap(); // ← 방어 코드 필수
 		return all.stream().collect(Collectors.groupingBy(Reservation::getReservedDate,
 				Collectors.mapping(Reservation::getReservedTime, Collectors.toList())));
 	}

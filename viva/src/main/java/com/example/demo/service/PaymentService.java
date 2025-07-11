@@ -57,6 +57,7 @@ public class PaymentService {
 	 */
 	public boolean isPaidReservation(Long resId) {
 		List<Payment> payments = repo.findByResId(resId);
+		
 
 		// 상태가 "paid" 인 결제가 하나라도 있으면 true
 		return payments.stream().anyMatch(p -> p.getPayStatus() == Payment.PayStatus.paid);

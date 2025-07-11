@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>게시판 목록</title>
+    <style>
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+        th { background-color: #f0f0f0; }
+    </style>
+</head>
+<body>
+
+<h2>게시판 목록</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>No</th>
+            <th>제목</th>
+            <th>작성자</th>
+            <th>작성일</th>
+            <th>조회수</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="board : ${boardPage.content}">
+            <td th:text="${board.id}">1</td>
+            <td>
+                <a th:href="@{/board/view/{id}(id=${board.id})}" th:text="${board.title}">제목</a>
+            </td>
+            <td th:text="${board.userId}">작성자</td>
+            <td th:text="${#temporals.format(board.createdAt, 'yyyy-MM-dd HH:mm')}">날짜</td>
+            <td th:text="${board.viewCount}">0</td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(boardPage.content)}">
+            <td colspan="5">게시글이 없습니다.</td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- ✅ 페이징 영역 -->
+<div style="text-align:center; margin-top:20px;">
+    <span th:if="${boardPage.hasPrevious()}">
+        <a th:href="@{/board/list(page=${boardPage.number - 1})}">이전</a>
+    </span>
+
+    <span th:text="${boardPage.number + 1} + ' / ' + ${boardPage.totalPages}">1 / 1</span>
+
+    <span th:if="${boardPage.hasNext()}">
+        <a th:href="@{/board/list(page=${boardPage.number + 1})}">다음</a>
+    </span>
+</div>
+
+<br>
+<a th:href="@{/board/write}">글쓰기</a>
+
+</body>
+</html>
