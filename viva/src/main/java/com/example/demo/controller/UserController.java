@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.stereotype.Controller;
@@ -242,7 +243,8 @@ public class UserController {
 		    String userId = principal.getName();
 
 		    // DB에서 유저 정보 조회
-		    Users users = service.findByUserId(userId);
+		    Users users = service.findByUserId(userId)
+		    	    .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
 		    model.addAttribute("users", users);
 
 		    // user_role에 따라 다른 뷰 리턴
@@ -265,7 +267,8 @@ public class UserController {
 		    String userId = principal.getName();
 
 		    // 2. DB에서 회원정보 조회
-		    Users users = service.findByUserId(userId);
+		    Users users = service.findByUserId(userId)
+		    	    .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
 
 		    // 1. 핸드폰 번호 분리
 		    if (users.getUserNum() != null) {
@@ -321,7 +324,8 @@ public class UserController {
 		    String userId = principal.getName();
 
 		    // 2. 기존 정보 불러와서(아이디 등)  
-		    Users dbUser = service.findByUserId(userId);
+		    Users dbUser = service.findByUserId(userId)
+		    	    .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
 
 		    // 2. 핸드폰 (3개 → 1개로 합쳐서 저장)
 		    String fullPhone = 
@@ -364,7 +368,10 @@ public class UserController {
 		@ResponseBody
 		public boolean checkPassword(@RequestParam("currentPass") String currentPass, Principal principal) {
 		    String userId = principal.getName();
-		    Users dbUser = service.findByUserId(userId);
+		    
+		    Users dbUser = service.findByUserId(userId)
+		    	    .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
+		    
 		    return dbUser.getUserPass().equals(currentPass); // 암호화 시 passwordEncoder.matches 사용
 		}
 		
@@ -378,7 +385,8 @@ public class UserController {
 		    String userId = principal.getName();
 
 		    // 2. DB에서 로그인한 회원의 전체 정보 가져오기
-		    Users dbUser = service.findByUserId(userId);
+		    Users dbUser = service.findByUserId(userId)
+		    	    .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
 
 		    // 3. 예외처리: 해당 회원이 DB에 존재하지 않을 경우(비정상 접근 등)
 		    if(dbUser == null) {

@@ -8,9 +8,9 @@
   
 </head>
 <body>
-
+<div th:replace="fragments/header :: header"></div>
   <!-- Header -->
-  <header>
+ <!--  <header>
     <div class="logo">VIVA</div>
     <nav>
       <a th:href="@{/about}">About</a>
@@ -18,17 +18,17 @@
       <a th:href="@{/interviewer}">면접관</a>
       <a th:href="@{/board/list}">게시판</a>
       
- <!--     <span th:if="${displayName != null}" th:text="'환영합니다, ' + ${displayName} + '님!'"></span>
+     <span th:if="${displayName != null}" th:text="'환영합니다, ' + ${displayName} + '님!'"></span>
 <span th:unless="${displayName != null}">
   <a th:href="@{/loginmain}">로그인</a>
-</span> -->
+</span>
 
-<!-- 로그인/로그아웃 영역 -->
+로그인/로그아웃 영역
 <span th:if="${displayName != null}">
 
-<!-- 환영합니다 옆에 닉네임 누르면 마이페이지 가게 만들 건데 
-	카카오 소셜 로그인 설정한 코드 때문에 요청 경로값들이 좀 꼬여서 일단 주석처리 후 커밋푸쉬, 수정 중임 -->
-<!-- 
+환영합니다 옆에 닉네임 누르면 마이페이지 가게 만들 건데 
+	카카오 소셜 로그인 설정한 코드 때문에 요청 경로값들이 좀 꼬여서 일단 주석처리 후 커밋푸쉬, 수정 중임
+
         [설명]
         - role 값이 "intr"(면접관)이면 → /intrMypage로
         - role 값이 "mem"(취준생)이면 → /memMypage로
@@ -36,27 +36,27 @@
         - 닉네임(=displayName)을 클릭하면 내 역할에 맞는 마이페이지로 이동
         - 카카오 등 소셜 로그인에서 경로가 꼬일 수 있어, 현재는 로컬 로그인만 사용!
         - 소셜 연동 후에는 역할별 분기에서 OAuth2User 처리 코드도 추가 필요
-    -->
+   
 
-    <!-- 면접관이면: /intrMypage로 이동 -->
+    면접관이면: /intrMypage로 이동
     <a th:if="${role == 'intr'}" th:href="@{/mypage}" style="text-decoration:none; color:inherit; font-weight:bold;">
         <span th:text="'환영합니다, ' + ${displayName} + '님!'"></span>
     </a>
-    <!-- 취준생이면: /memMypage로 이동 -->
+    취준생이면: /memMypage로 이동
     <a th:if="${role == 'mem'}" th:href="@{/mypage}" style="text-decoration:none; color:inherit; font-weight:bold;">
         <span th:text="'환영합니다, ' + ${displayName} + '님!'"></span>
     </a>
-    <!-- 로그아웃 버튼(항상 노출) -->
+    로그아웃 버튼(항상 노출)
     <a th:href="@{/logout}" style="margin-left: 10px;">로그아웃</a>
 </span>
 
 <span th:unless="${displayName != null}">
-    <!-- 로그인하지 않은 경우 -->
+    로그인하지 않은 경우
     <a th:href="@{/loginmain}">로그인</a>
 </span>
     
     </nav>
-  </header>
+  </header> -->
 
   <!-- Hero Section -->
   <section class="hero">
@@ -143,16 +143,39 @@
     <p>&copy; 2025 FacePrep. All rights reserved.</p>
     <p>문의: faceprep@example.com</p>
   </footer>
-  <!-- 슬라이드 동작 Script -->
+  <!-- 슬라이드 동작 Script ??-->
  
-<script th:if="${param.loginSuccess}" th:inline="javascript">
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // Thymeleaf 파라미터를 JS 변수로 바인딩 (true/false)
+    const loginSuccess = /*[[${param.loginSuccess}]]*/ false;
+    const logoutSuccess = /*[[${param.logoutSuccess}]]*/ false;
+
+    if (loginSuccess) {
+        alert('로그인에 성공했습니다!');
+    } else if (logoutSuccess) {
+        alert('로그아웃 되었습니다.');
+    } else if (urlParams.get('adminLogin') === 'true') {
+        alert('관리자 모드입니다');
+    }
+    /*]]>*/
+</script>
+ 
+<!-- <script th:if="${param.loginSuccess}" th:inline="javascript">
     alert('로그인에 성공했습니다!');
 </script>
 <script th:if="${param.logoutSuccess}" th:inline="javascript">
     alert('로그아웃 되었습니다.');
 </script>
- 
-  <script>
+<script th:inline="javascript">
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('adminLogin') === 'true') {
+        alert('관리자 모드입니다');
+    }
+</script> -->
+	<script>
   document.addEventListener("DOMContentLoaded", () => {
     const track = document.querySelector(".carousel-track");
     const slides = document.querySelectorAll(".carousel-slide");

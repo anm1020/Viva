@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
   <meta charset="UTF-8">
   <title>면접관 마이페이지</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <link rel="stylesheet" th:href="@{/css/common.css}">
+  
   <style>
     body {
       background: #f7f9fc;
@@ -139,6 +142,9 @@
 </script>
 </head>
 <body>
+<div th:replace="fragments/header :: header"></div>
+
+
   <div class="mypage-layout">
     <!-- 사이드바 -->
     <nav class="sidebar">

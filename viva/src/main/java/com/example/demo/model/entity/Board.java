@@ -42,3 +42,4 @@ public class Board {
 		this.updatedAt = LocalDateTime.now();		// 수정 시간만 갱신
 	}
 }
+

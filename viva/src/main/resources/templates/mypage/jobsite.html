@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>개발자 취업 사이트 모음</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <link rel="stylesheet" th:href="@{/css/common.css}">
+  
   <style>
     .jobsite-frame { max-width: 880px; margin: 40px auto; padding: 18px; }
     .jobsite-title { text-align: center; font-size: 2.1rem; margin-bottom: 33px; color: #2d4373; }
@@ -35,6 +38,8 @@
   </style>
 </head>
 <body>
+<div th:replace="fragments/header :: header"></div>
+
 <div class="jobsite-frame">
   <div class="jobsite-title">개발자 취업 사이트 모음</div>
   <div class="site-list">
