@@ -181,12 +181,14 @@
             <div><strong>가입일:</strong> <span th:text="${users.createdDt}">2025-06-27</span></div>
           </div>
         </div>
-        <!-- 포인트만 표시하는 활동통계 -->
+        
+         <!-- 포인트만 표시하는 활동통계 -->
         <div class="stat-info">
           <h2>나의 포인트</h2>
-          <!-- <div class="point-value" th:text="${user.point}">5200</div>
-        </div> -->
-      </div>
+           <div class="point-value" th:text="${point + 'P'}">
+          <!--  <div th:text="${point + 'P'}"></div> -->
+              </div>   
+        </div> 
          
          <!-- '내 예약 목록'-->
   <div id="reservationContainer"></div>
