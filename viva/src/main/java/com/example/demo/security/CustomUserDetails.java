@@ -29,7 +29,7 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         if (users.getUserRole() != null) {
-            return Collections.singleton(() -> "ROLE_" + users.getUserRole().toUpperCase());
+            return Collections.singleton(() -> users.getUserRole()); // <-- 바로 userRole 값("admin", "mem", "intr")
         }
         return Collections.emptyList(); // 권한이 없을 경우 빈 리스트 반환
     }

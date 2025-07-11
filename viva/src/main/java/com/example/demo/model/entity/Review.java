@@ -6,6 +6,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+// 예원 추가 파일
 @Entity
 @Table(name = "reviews")
 @Getter @Setter

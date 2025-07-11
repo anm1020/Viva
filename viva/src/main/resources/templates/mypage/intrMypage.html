@@ -4,6 +4,9 @@
   <script src="https://code.jquery.com/jquery-latest.js"></script>
   <meta charset="UTF-8">
   <title>면접관 마이페이지</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <link rel="stylesheet" th:href="@{/css/common.css}">
+  
   <style>
     body {
       background: #f7f9fc;
@@ -130,6 +133,8 @@
   </style>
 </head>
 <body>
+<div th:replace="fragments/header :: header"></div>
+
   <div class="mypage-layout">
     <!-- 사이드바 -->
     <nav class="sidebar">
