@@ -67,7 +67,7 @@ public interface InterviewerRepository extends JpaRepository<Interviewer, Long> 
 		    FROM interviewer i
 		    JOIN users u ON i.user_id = u.user_id
 		    LEFT JOIN reviews r ON i.intr_id = r.intr_id
-		    WHERE i.intr_cate LIKE %:category%
+		    WHERE i.intr_cate LIKE CONCAT('%', :category, '%')
 		    GROUP BY i.intr_id, i.user_id, u.user_name, i.intr_image, u.user_skill, i.intr_cate, i.intr_price, i.intr_intro
 		    ORDER BY i.intr_created_at DESC
 		""", nativeQuery = true)
