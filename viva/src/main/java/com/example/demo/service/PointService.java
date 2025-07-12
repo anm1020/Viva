@@ -72,4 +72,6 @@ public class PointService {
 	    // 환불도 결국 사용자에게 포인트를 돌려주는 것이므로 charge 재사용
 	    charge(userId, amount);
 	}
+	
+	
 }

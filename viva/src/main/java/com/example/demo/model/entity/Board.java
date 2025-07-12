@@ -1,8 +1,19 @@
 package com.example.demo.model.entity;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 import lombok.Data;
 
 @Data
@@ -41,5 +52,11 @@ public class Board {
 	public void onUpdate() {
 		this.updatedAt = LocalDateTime.now();		// 수정 시간만 갱신
 	}
+	
+	 // ✅ 댓글 리스트 연관관계 추가
+   @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+   private List<Comment> comments = new ArrayList<>();
+
 }
+
 

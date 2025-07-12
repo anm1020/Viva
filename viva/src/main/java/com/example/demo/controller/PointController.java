@@ -121,6 +121,17 @@ public class PointController {
 		    }
 		    // 포인트 결제니까 markReservationAsPaid 호출
 		    //resservice.markReservationAsPaid(resId);
+		    
+		 // 5. 포인트 결제 내역도 payments 테이블에 저장
+		    Payment payment = Payment.builder()
+		    	       .userId(user.getUserId())                    // 회원 ID
+		    	        .resId(resId)                                // 예약 ID
+		    	        .payAmount(BigDecimal.valueOf(amount))       // 금액
+		    	        .payType(Payment.PayType.POINT)              // 포인트 결제!
+		    	        .payStatus(Payment.PayStatus.paid)           // 결제 완료 상태
+		    	        .build();
+
+		    paymentRepository.save(payment);
 
 		    return ResponseEntity.ok("포인트 결제 완료 + 면접관 포인트 지급 완료");
 }

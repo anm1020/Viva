@@ -1,9 +1,7 @@
-<div th:fragment="fragment">
-
+<div th:fragment="fragment" class="reservation-list">
 	<!-- ✅ 1. 받은 예약 일정 -->
-	<h2>예약 일정</h2>
-
-	<table>
+	<h2 class="reservation-title">예약 일정</h2>
+	<table class="reservation-table">
 		<thead>
 			<tr>
 				<th>예약번호</th>
@@ -15,9 +13,6 @@
 			</tr>
 		</thead>
 		<tbody>
-			<tr th:if="${#lists.isEmpty(reservations)}">
-				<td colspan="6">예약 내역이 없습니다.</td>
-			</tr>
 			<tr th:each="r : ${reservations}">
 				<td th:text="${r.resId}">1</td>
 				<td th:text="${r.memId}">mem01</td>
@@ -25,14 +20,18 @@
 				<td th:text="${r.reservedTime}">12:00</td>
 				<td th:text="${#dates.format(r.resCreateDt, 'yyyy-MM-dd HH:mm')}">2025-07-06
 					17:00</td>
-				<td th:text="${r.resStatus}">결제전</td>
+				<td><span class="status"
+					th:classappend="${r.resStatus=='pending'?'pending':r.resStatus=='confirmed'?'confirmed':r.resStatus=='cancelled'?'cancelled':''}"
+					th:text="${r.resStatus=='pending'?'결제 전':r.resStatus=='confirmed'?'결제 완료':r.resStatus=='cancelled'?'취소됨':'알 수 없음'}">
+				</span></td>
 			</tr>
 		</tbody>
 	</table>
 
+
 	<!-- ✅ 2. 비활성화된 날짜/시간 -->
 	<h2>비활성화한 시간</h2>
-	<table>
+	<table class="reservation-table">
 		<thead>
 			<tr>
 				<th>날짜</th>
@@ -48,15 +47,9 @@
 				<td th:text="${d.disabledDate}">2025-07-11</td>
 				<td th:text="${d.disabledTime}">13:00</td>
 				<td>
-				<button type="button" class="delete-btn" th:data-id="${d.disId}">삭제</button>
-				
-
-
+				<button type="button" class="btn-delete" th:data-id="${d.disId}">삭제</button>
 				</td>
 			</tr>
-
-
-
 		</tbody>
 	</table>
 
@@ -71,12 +64,16 @@
 				<option value="09:00">09:00</option>
 				<option value="10:00">10:00</option>
 				<option value="11:00">11:00</option>
+				<option value="11:00">12:00</option>
 				<option value="13:00">13:00</option>
 				<option value="14:00">14:00</option>
 				<option value="15:00">15:00</option>
+				<option value="15:00">16:00</option>
+				<option value="15:00">17:00</option>
+				<option value="15:00">18:00</option>
 		</select>
 		</label>
-		<button type="submit">비활성화 등록</button>
+		<button type="submit" class="btn-delete">비활성화 등록</button>
 	</form>
 
 	<!--등록 -->

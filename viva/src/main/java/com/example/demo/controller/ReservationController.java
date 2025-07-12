@@ -20,8 +20,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.demo.model.entity.IntrDisabled;
+import com.example.demo.model.entity.Payment;
 import com.example.demo.model.entity.Reservation;
 import com.example.demo.model.entity.Users;
+import com.example.demo.repository.PaymentRepository;
 import com.example.demo.repository.ReservationRepository;
 import com.example.demo.repository.TestUserRepository;
 import com.example.demo.service.PaymentService;
@@ -44,6 +46,8 @@ public class ReservationController {
 	private final PaymentService paymentService;
 	private final TestUserRepository userRepo;
 	private final ReservationRepository resRepo;
+	private final PaymentRepository paymentRepository;
+	
 	private final ObjectMapper objectMapper;  // Jackson
 
 	// ── 기존 list 메서드 그대로 남겨두세요 ─────────
@@ -218,11 +222,25 @@ public class ReservationController {
 
 		// 3. 해당 예약이 결제된 상태인지 확인
 		boolean wasPaid = paymentService.isPaidReservation(resId);
-		System.out.println("🔍 예약번호 " + resId + " 결제 여부 wasPaid = " + wasPaid);  // 👈 이 줄만 추가!
-		// 4. 결제된 상태였다면 결제 금액을 포인트로 환불
+		System.out.println("🔍 예약번호 " + resId + " 결제 여부 wasPaid = " + wasPaid);  
+		// 결제된 상태였다면 결제 금액을 포인트로 환불
 		if (wasPaid) {
-			int amount = paymentService.getPayAmountByResId(resId); // 예약 ID로 결제 금액 조회
-			pointservice.refundPoint(userId, amount); // 포인트 환불
+		    // 1. 모든 결제 내역 중 paid 상태인 것만 추출
+		    List<Payment> payments = paymentRepository.findByResId(resId).stream()
+		        .filter(p -> p.getPayStatus() == Payment.PayStatus.paid)
+		        .toList();
+
+		    for (Payment payment : payments) {
+		        System.out.println("🔍 [환불대상] " + payment.getPayType() + " | " + payment.getPayAmount());
+
+		        if (payment.getPayType() == Payment.PayType.POINT) {
+		            pointservice.refundPoint(payment.getUserId(), payment.getPayAmount().intValue());
+		            // 🔥 상태 변경 추가
+		            payment.setPayStatus(Payment.PayStatus.refunded);
+		            paymentRepository.save(payment); // 꼭 저장해야 DB에 반영됨
+		        } else if (payment.getPayType() == Payment.PayType.CARD) {
+		        }
+		    }
 		}
 		System.out.println("🧾 [예약 취소 요청]");
 		System.out.println(" - 예약 ID: " + resId);
@@ -286,7 +304,11 @@ public class ReservationController {
 
 		    String slotsJson = objectMapper.writeValueAsString(mergedSorted);
 
-	    
+		 //각 예약에 해당하는 결제정보 주입
+		    for (Reservation r : myResList) {
+		        Payment pay = paymentService.findLatestPaidByResId(r.getResId()); // 최근 결제 정보
+		        r.setPayment(pay); // Reservation 객체에 결제정보 주입 (Transient)
+		    }
         model.addAttribute("reservedSlotsJson", slotsJson);
 		model.addAttribute("point", point); // 뷰로 전달
 		model.addAttribute("myReservations", myResList);

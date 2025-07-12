@@ -6,12 +6,11 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.Data;
 
 @Entity
@@ -43,5 +42,9 @@ public class Reservation {
 	@CreationTimestamp
 	@Column(name = "res_create_dt", updatable = false)
 	private Timestamp resCreateDt; // 생성 시각 (등록된 시간, 자동 입력)
+	
+	@Transient
+	private Payment payment;  // 결제 정보 (DB에 저장되지 않음)
+
 
 }
