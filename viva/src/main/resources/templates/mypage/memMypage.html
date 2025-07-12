@@ -406,22 +406,26 @@ window.disableTimeButtons = function(dateStr){
 <!-- 환불 -->
 <script>
 $(document).on('click', '.action-link.cancel', function(e){
-  e.preventDefault();
-  const resId = $(this).data('res-id');
-  console.log("🧾 취소할 예약 resId:", resId);  
+	  e.preventDefault();
+	  const resId = $(this).data('res-id');
+	  console.log("🧾 취소할 예약 resId:", resId);  
 
-  if (!confirm("정말 취소하시겠습니까?")) return;
+	  if (!resId) {
+	    alert("예약 ID가 없습니다.");
+	    return;
+	  }
 
+	  if (!confirm("정말 취소하시겠습니까?")) return;
 
-  $.get('/reservation/cancel?resId=' + resId)
-    .done(function(){
-      alert("예약이 취소되었습니다. 포인트가 환불됩니다.");
-      $('#reservationContainer').load('/reservation/mylist'); // 프래그먼트 다시 불러오기
-    })
-    .fail(function(xhr){
-      alert("취소 실패: " + xhr.responseText);
-    });
-});
+	  $.get('/reservation/cancel?resId=' + resId)
+	    .done(function(){
+	      alert("예약이 취소되었습니다. 포인트가 환불됩니다.");
+	      $('#reservationContainer').load('/reservation/mylist'); // 프래그먼트 다시 불러오기
+	    })
+	    .fail(function(xhr){
+	      alert("취소 실패: " + xhr.responseText);
+	    });
+	});
 </script>
 
 

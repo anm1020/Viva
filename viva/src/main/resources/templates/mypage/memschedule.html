@@ -1,104 +1,116 @@
 <!-- src/main/resources/templates/mypage/memschedule.html -->
 <div th:fragment="memschedule" class="reservation-list">
-  <h2 class="reservation-title">내 예약 목록</h2>
+	<h2 class="reservation-title">내 예약 목록</h2>
 
-  <div class="reservation-summary">
-    <span>보유 포인트: <strong th:text="${point}">0</strong>원</span>
-    <a th:href="@{/point/chargePage(userId=${userId})}" class="btn-charge">
-      💰 포인트 충전하기
-    </a>
-  </div>
+	<div class="reservation-summary">
+		<span>보유 포인트: <strong th:text="${point}">0</strong>원
+		</span> <a th:href="@{/point/chargePage(userId=${userId})}"
+			class="btn-charge"> 💰 포인트 충전하기 </a>
+	</div>
 
-  <table class="reservation-table">
-    <thead>
-      <tr>
-        <th>예약번호</th><th>면접관 이름</th><th>예약일시</th>
-        <th>예약한 날짜</th><th>상태</th><th>결제</th>
-        <th>변경</th><th>취소</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr th:if="${#lists.isEmpty(myReservations)}">
-        <td colspan="8" class="no-data">예약 내역이 없습니다.</td>
-      </tr>
-      <tr th:each="r : ${myReservations}">
-        <td th:text="${r.resId}">1</td>
-        <td th:text="${intrNames[r.intrId]}">김면접</td>
-        <td th:text="${r.reservedDate + ' ' + r.reservedTime}">2025-07-09 12:00</td>
-        <td th:text="${#dates.format(r.resCreateDt,'yyyy-MM-dd HH:mm')}">2025-07-06 17:00</td>
-        <td>
-          <span class="status"
-                th:classappend="${r.resStatus=='pending'?'pending':r.resStatus=='confirmed'?'confirmed':r.resStatus=='cancelled'?'cancelled':''}"
-                th:text="${r.resStatus=='pending'?'결제 전':r.resStatus=='confirmed'?'결제 완료':r.resStatus=='cancelled'?'취소됨':'알 수 없음'}">
-          </span>
-        </td>
-        <td>
-          <div th:if="${r.resStatus=='pending'}" class="payment-actions">
-            <a th:href="@{/payment/charge(resId=${r.resId})}" class="btn-pay btn-card">카드결제</a>
-            <form th:action="@{/point/use}" method="post" class="inline-form"
-                  onsubmit="return confirm('포인트로 결제하시겠습니까?');">
-              <input type="hidden" name="userId" th:value="${userId}" />
-              <input type="hidden" name="amount" value="100" />
-              <input type="hidden" name="resId" th:value="${r.resId}" />
-              <button type="submit" class="btn-pay btn-point">포인트결제</button>
-            </form>
-          </div>
-        </td>
-        <td><a th:if="${r.resStatus!='cancelled'}" href="#" class="action-link change">변경</a></td>
-        <td>
-         <a th:if="${r.resStatus != 'cancelled'}"
-     th:href="@{'/reservation/cancel?resId=' + ${r.resId}}"
-     th:attr="data-res-id=${r.resId}"  
-     class="action-link cancel">
-     취소
-  </a>
-  		</td>
-               
-      </tr>
-    </tbody>
-  </table>
+	<table class="reservation-table">
+		<thead>
+			<tr>
+				<th>예약번호</th>
+				<th>면접관 이름</th>
+				<th>예약일시</th>
+				<th>예약한 날짜</th>
+				<th>상태</th>
+				<th>결제</th>
+				<th>결제수단</th>
+				<th>변경</th>
+				<th>취소</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr th:if="${#lists.isEmpty(myReservations)}">
+				<td colspan="8" class="no-data">예약 내역이 없습니다.</td>
+			</tr>
+			<tr th:each="r : ${myReservations}">
+				<td th:text="${r.resId}">1</td>
+				<td th:text="${intrNames[r.intrId]}">김면접</td>
+				<td th:text="${r.reservedDate + ' ' + r.reservedTime}">2025-07-09
+					12:00</td>
+				<td th:text="${#dates.format(r.resCreateDt,'yyyy-MM-dd HH:mm')}">2025-07-06
+					17:00</td>
+				<td><span class="status"
+					th:classappend="${r.resStatus=='pending'?'pending':r.resStatus=='confirmed'?'confirmed':r.resStatus=='cancelled'?'cancelled':''}"
+					th:text="${r.resStatus=='pending'?'결제 전':r.resStatus=='confirmed'?'결제 완료':r.resStatus=='cancelled'?'취소됨':'알 수 없음'}">
+				</span></td>
+				<td>
+					<div th:if="${r.resStatus=='pending'}" class="payment-actions">
+						<a th:href="@{/payment/charge(resId=${r.resId})}"
+							class="btn-pay btn-card">카드결제</a>
+						<form th:action="@{/point/use}" method="post" class="inline-form"
+							onsubmit="return confirm('포인트로 결제하시겠습니까?');">
+							<input type="hidden" name="userId" th:value="${userId}" /> <input
+								type="hidden" name="amount" value="100" /> <input type="hidden"
+								name="resId" th:value="${r.resId}" />
+							<button type="submit" class="btn-pay btn-point">포인트결제</button>
+						</form>
+					</div>
+				</td>
+				 <td>
+    <span th:if="${r.payment != null}" th:text="${r.payment.payType}">CARD</span>
+    <span th:if="${r.payment == null}">-</span>
+  </td>
+				<td><a th:if="${r.resStatus!='cancelled'}" href="#"
+					class="action-link change">변경</a></td>
+				<td><a th:if="${r.resStatus != 'cancelled'}"
+					th:href="@{'/reservation/cancel?resId=' + ${r.resId}}"
+					th:attr="data-res-id=${r.resId}" class="action-link cancel"> 취소
+				</a></td>
 
-  <!-- 스케줄러 패널 (기본은 숨김) -->
-  <div id="schedulerPanel" class="scheduler-panel" style="display:none;">
-    <div class="scheduler-inner">
-      <div class="calendar-area">
-        <h4>날짜 선택</h4>
-        <div id="calendarPicker"></div>
-      </div>
-      <div class="time-area">
-        <h4>시간 선택</h4>
-        <div class="time-buttons">
-          <button type="button" data-time="09:00">09:00</button>
-          <button type="button" data-time="10:00">10:00</button>
-          <button type="button" data-time="11:00">11:00</button>
-          <button type="button" data-time="12:00">12:00</button>
-          <button type="button" data-time="13:00">13:00</button>
-          <button type="button" data-time="14:00">14:00</button>
-          <button type="button" data-time="15:00">15:00</button>
-          <button type="button" data-time="16:00">16:00</button>
-          <button type="button" data-time="17:00">17:00</button>
-          <button type="button" data-time="18:00">18:00</button>
-        </div>
-      </div>
-      <div class="info-area">
-        <h4>내 예약 정보</h4>
-        <p>예약번호: <strong id="infoResId"></strong></p>
-        <p>면접관: <strong id="infoIntrName"></strong></p>
-        <div class="action-buttons">
-          <button id="saveChange" class="btn-save">저장</button>
-          <button id="cancelChange" class="btn-cancel">취소</button>
-        </div>
-      </div>
-    </div>
-  </div>
+			</tr>
+		</tbody>
+	</table>
 
-  <p class="back-link">
-    <a href="/reservation/testlist">목록으로 돌아가기</a>
-  </p>
-  
+	<!-- 스케줄러 패널 (기본은 숨김) -->
+	<div id="schedulerPanel" class="scheduler-panel" style="display: none;">
+		<div class="scheduler-inner">
+			<div class="calendar-area">
+				<h4>날짜 선택</h4>
+				<div id="calendarPicker"></div>
+			</div>
+			<div class="time-area">
+				<h4>시간 선택</h4>
+				<div class="time-buttons">
+					<button type="button" data-time="09:00">09:00</button>
+					<button type="button" data-time="10:00">10:00</button>
+					<button type="button" data-time="11:00">11:00</button>
+					<button type="button" data-time="12:00">12:00</button>
+					<button type="button" data-time="13:00">13:00</button>
+					<button type="button" data-time="14:00">14:00</button>
+					<button type="button" data-time="15:00">15:00</button>
+					<button type="button" data-time="16:00">16:00</button>
+					<button type="button" data-time="17:00">17:00</button>
+					<button type="button" data-time="18:00">18:00</button>
+				</div>
+			</div>
+			<div class="info-area">
+				<h4>내 예약 정보</h4>
+				<p>
+					예약번호: <strong id="infoResId"></strong>
+				</p>
+				<p>
+					면접관: <strong id="infoIntrName"></strong>
+				</p>
+				<div class="action-buttons">
+					<button id="saveChange" class="btn-save">저장</button>
+					<button id="cancelChange" class="btn-cancel">취소</button>
+				</div>
+			</div>
+		</div>
+	</div>
 
- <!-- reservedSlotsJson JSON 데이터 전달 -->
-<script id="reservedSlotsJson" type="application/json" th:utext="${reservedSlotsJson}"></script>
+	<p class="back-link">
+		<a href="/reservation/testlist">목록으로 돌아가기</a>
+	</p>
+
+
+	<!-- reservedSlotsJson JSON 데이터 전달 -->
+	<script id="reservedSlotsJson" type="application/json"
+		th:utext="${reservedSlotsJson}"></script>
 
 
 </div>

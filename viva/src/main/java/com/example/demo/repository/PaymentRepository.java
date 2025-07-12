@@ -17,4 +17,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     // 특정 예약(resId)으로 결제정보찾기
     List<Payment> findByResId(Long resId);
     
+    List<Payment> findByResIdOrderByPayCreateDtDesc(Long resId);
+    
 }

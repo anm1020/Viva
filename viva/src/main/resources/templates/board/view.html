@@ -1,69 +1,110 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <title>게시글 상세</title>
-  <style>
-    table {
-      width: 700px;
-      margin: 40px auto;
-      border-collapse: collapse;
-    }
-    th, td {
-      padding: 12px;
-      border: 1px solid #ccc;
-      text-align: left;
-    }
-    th {
-      width: 150px;
-      background-color: #f8f8f8;
-    }
-    .btns {
-      width: 700px;
-      margin: 20px auto;
-      text-align: right;
-    }
-    .btns a {
-      margin-left: 10px;
-    }
-  </style>
-</head>
-<body>
+	<!DOCTYPE html>
+	<html xmlns:th="http://www.thymeleaf.org">
+	<head>
+	  <meta charset="UTF-8">
+	  <title>게시글 상세</title>
+	  <style>
+	    table {
+	      width: 700px;
+	      margin: 40px auto;
+	      border-collapse: collapse;
+	    }
+	    th, td {
+	      padding: 12px;
+	      border: 1px solid #ccc;
+	      text-align: left;
+	    }
+	    th {
+	      width: 150px;
+	      background-color: #f8f8f8;
+	    }
+	    .btns {
+	      width: 700px;
+	      margin: 20px auto;
+	      text-align: right;
+	    }
+	    .btns a {
+	      margin-left: 10px;
+	    }
+	  </style>
+	</head>
+	<body>
+	
+	<h2 style="text-align: center;">게시글 상세보기</h2>
+	
+	<table>
+	  <tr>
+	    <th>제목</th>
+	    <td th:text="${board.title}">제목입니다</td>
+	  </tr>
+	  <tr>
+	    <th>작성자</th>
+	    <td th:text="${board.userId}">작성자</td>
+	  </tr>
+	  <tr>
+	    <th>조회수</th>
+	    <td th:text="${board.viewCount}">0</td>
+	  </tr>
+	  <tr>
+	    <th>작성일</th>
+	    <td th:text="${#temporals.format(board.createdAt, 'yyyy-MM-dd HH:mm')}">2025-07-11</td>
+	  </tr>
+	  <tr>
+	    <th>내용</th>
+	    <td><pre th:text="${board.content}">본문 내용</pre></td>
+	  </tr>
+	</table>
+	<!-- 댓글 영역 -->
+	<div class="comment-box">
+	    <h3>댓글</h3>
+	
+	    <!-- ✅ 댓글 작성 폼 -->
+	    <form th:action="@{/comment/add}" method="post">
+	        <input type="hidden" name="boardId" th:value="${board.id}" />
+	        <textarea name="content" rows="3" cols="50" required></textarea><br>
+	        <button type="submit">댓글 작성</button>
+	    </form>
+	
+	    <hr>
+	
+	    <!-- ✅ 댓글 목록 -->
+	    <div th:each="comment : ${board.comments}" class="comment-item">
+	        <div>
+	            <span class="comment-meta">
+	              <strong th:text="${comment.user.userId}">작성자 ID</strong>
+	                · <span th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</span>
+	            </span>
+	        </div>
+	        <div th:text="${comment.content}">댓글 내용</div>
+	
+	       <!-- ✅ 수정/삭제는 본인일 경우만 표시 -->
+<div class="comment-actions" 
+     th:if="${session.user != null and comment.user != null and session.user.userId == comment.user.userId}">
+    <form th:action="@{/comment/delete/{id}(id=${comment.id})}" method="get" style="display:inline;">
+        <input type="hidden" name="boardId" th:value="${board.id}" />
+        <button type="submit">삭제</button>
+    </form>
 
-<h2 style="text-align: center;">게시글 상세보기</h2>
-
-<table>
-  <tr>
-    <th>제목</th>
-    <td th:text="${board.title}">제목입니다</td>
-  </tr>
-  <tr>
-    <th>작성자</th>
-    <td th:text="${board.userId}">작성자</td>
-  </tr>
-  <tr>
-    <th>조회수</th>
-    <td th:text="${board.viewCount}">0</td>
-  </tr>
-  <tr>
-    <th>작성일</th>
-    <td th:text="${#temporals.format(board.createdAt, 'yyyy-MM-dd HH:mm')}">2025-07-11</td>
-  </tr>
-  <tr>
-    <th>내용</th>
-    <td><pre th:text="${board.content}">본문 내용</pre></td>
-  </tr>
-</table>
-
-<div class="btns">
-  <a th:href="@{/board/list}">목록으로</a>
- <!-- 로그인된 사용자와 작성자가 같은 경우만 보여주기 -->
-<div class="btns" th:if="${session.user != null and session.user.userId == board.userId}">
-  <a th:href="@{/board/edit/{id}(id=${board.id})}">수정</a>
-  <a th:href="@{/board/delete/{id}(id=${board.id})}"
-     onclick="return confirm('정말 삭제할까요?')">삭제</a>
+    <!-- 간단 수정 폼 (inline) -->
+    <form th:action="@{/comment/update}" method="post" style="display:inline;">
+        <input type="hidden" name="commentId" th:value="${comment.id}" />
+        <input type="hidden" name="boardId" th:value="${board.id}" />
+        <input type="text" name="content" th:value="${comment.content}" required />
+        <button type="submit">수정</button>
+    </form>
 </div>
-</div>
 
-</body>
-</html>
+	    </div>
+	
+	<div class="btns">
+	  <a th:href="@{/board/list}">목록으로</a>
+	 <!-- 로그인된 사용자와 작성자가 같은 경우만 보여주기 -->
+	<div class="btns" th:if="${session.user != null and session.user.userId == board.userId}">
+	  <a th:href="@{/board/edit/{id}(id=${board.id})}">수정</a>
+	  <a th:href="@{/board/delete/{id}(id=${board.id})}"
+	     onclick="return confirm('정말 삭제할까요?')">삭제</a>
+	</div>
+	</div>
+	
+	</body>
+	</html>

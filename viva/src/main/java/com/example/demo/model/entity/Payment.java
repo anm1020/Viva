@@ -54,6 +54,15 @@ public class Payment {
 	
 	@Column(name = "user_id")
 	private String userId; // 회원번호 (FK)
+	
+	@Enumerated(EnumType.STRING) // 반드시 추가!
+	@Column(name = "pay_type", nullable = false)
+	private PayType payType;
+	
+	public enum PayType {
+	    CARD,   // 카드 결제
+	    POINT   // 포인트 결제
+	}
 
 	public enum PayStatus {
 		ready, // 준비 중
