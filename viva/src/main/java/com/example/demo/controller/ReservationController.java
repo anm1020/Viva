@@ -70,7 +70,16 @@ public class ReservationController {
 	@GetMapping("/book")
 	public String showBookPage(@RequestParam("intrId") String intrId, Model model, HttpSession session) {
 		// (1) 예약하려는 면접관 ID
+		
 		model.addAttribute("intrId", intrId);
+
+	    //  면접관 이름만 추가
+	    Users intr = userRepo.findByUserId(intrId).orElse(null);
+	    System.out.println("면접관 정보: " + intr);
+	    System.out.println("📌 받은 intrId = " + intrId);
+	    if (intr != null) {
+	        model.addAttribute("intrName", intr.getUserName());
+	    }
 		// (2) 해당 면접관에 이미 예약된 날짜 목록 조회 (서비스 메서드)
 		// yyyy-MM-dd 포맷의 String 리스트를 반환한다고 가정
 		List<String> disabledDates = service.findReservedDatesByIntrId(intrId);
@@ -100,6 +109,8 @@ public class ReservationController {
 	@PostMapping("/save")
 	// public ResponseEntity<Integer> save
 	public ResponseEntity<?> save(@RequestBody Reservation res, HttpSession session) {
+		  System.out.println("intrId type: " + (res.getIntrId() != null ? res.getIntrId().getClass().getName() : "null"));
+		    System.out.println("intrId value: " + res.getIntrId());
 		System.out.println(res.getIntrId());
 		System.out.println(res.getReservedDate());
 		System.out.println(res.getReservedTime());
@@ -112,6 +123,8 @@ public class ReservationController {
 		String memId = user.getUserId();
 		res.setMemId(memId);
 		res.setResStatus("pending");// 상태저장
+		
+		
 
 		// 2) 면접관의 비활성화된 시간인지 검사
 		boolean disabled = service.isDisabled(res.getIntrId(), res.getReservedDate(), res.getReservedTime());
@@ -121,7 +134,6 @@ public class ReservationController {
 
 		// 저장된 예약 엔티티 받아오기
 		Reservation reservation = service.save(res);
-
 		// 저장된 예약의 PK 반환!
 		return ResponseEntity.ok(reservation.getResId());
 

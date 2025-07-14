@@ -1,5 +1,8 @@
 package com.example.demo.controller;
 
+import java.security.Principal;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -69,6 +72,18 @@ public class PaymentController {
 		 // 1) 세션에서 userId 꺼내오기 (생략)
 	    //String user_id = "s";
 	    payment.setUserId(user_id);
+	    
+
+	    // 결제 타입이 없는 경우 기본값 지정 (예: CARD)
+	    if(payment.getPayType() == null) {
+	        payment.setPayType(Payment.PayType.CARD);
+	    }
+	    if(payment.getPayStatus() == null) {
+	        payment.setPayStatus(Payment.PayStatus.paid);
+	    }
+
+	    System.out.println("payType: " + payment.getPayType());
+	    System.out.println("Saving payment: " + payment);
 
 	    // 2) 결제 정보 저장
 	    Payment result = service.savePayment(payment);
@@ -98,6 +113,14 @@ public class PaymentController {
 		return "payment/result";
 	}
    
+	// 결제내역
+	@GetMapping("/mypage/paymentList")
+	public String loadPaymentListFragment(Model model, Principal principal) {
+	    String userId = principal.getName();
+	    List<Payment> payments = service.getPaymentsByUserId(userId);
+	    model.addAttribute("payments", payments);
+	    return "mypage/paymentListFragment :: paymentListFragment";
+	}
     
  
 

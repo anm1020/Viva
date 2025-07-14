@@ -46,7 +46,8 @@
     <p th:text="${error}"></p>
   </div>
 
-  <p><a href="/reservation/mylist">내 예약 목록으로 돌아가기</a></p>
+<p><a th:href="@{/mypage(tab='schedule')}">내 예약 목록으로 돌아가기</a></p>
+
 
   <!-- ✅ 포인트 결제 AJAX -->
   <script>

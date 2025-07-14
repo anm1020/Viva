@@ -71,6 +71,9 @@ public class PointController {
 		payment.setPayResno((String) payload.get("payResno")); // 결제 고유 번호
 		payment.setPayAmount(BigDecimal.valueOf(amount)); // 결제 금액
 		payment.setResId(Long.parseLong(payload.get("resId").toString())); // 예약번호: 0이면 포인트 충전 전용
+		payment.setPayType(Payment.PayType.CHARGE); // ★ 필수! 포인트 충전 타입 지정
+		payment.setPayStatus(Payment.PayStatus.paid); // 결제 완료 상태 지정
+		payment.setUserId(user.getUserId()); // 회원 ID도 꼭 넣어주세요!
 		paymentRepository.save(payment);
 
 		// 포인트 충전
@@ -97,8 +100,10 @@ public class PointController {
 	// 포인트 결제
 	@PostMapping("/use")
 	@ResponseBody
-	public ResponseEntity<String> usePoint(@RequestParam("userId") String userId, @RequestParam("amount") int amount,
-			@RequestParam("resId") Long resId, HttpSession session) {
+	public ResponseEntity<String> usePoint(@RequestParam("userId") String userId,
+										   @RequestParam("amount") int amount,
+										   @RequestParam("resId") Long resId, 
+										   HttpSession session) {
 		   // 1. 세션에서 사용자 확인
 		 Users user = (Users) session.getAttribute("user");
 		    if (user == null) {
@@ -124,13 +129,15 @@ public class PointController {
 		    
 		 // 5. 포인트 결제 내역도 payments 테이블에 저장
 		    Payment payment = Payment.builder()
-		    	       .userId(user.getUserId())                    // 회원 ID
+		    	        .userId(user.getUserId())                    // 회원 ID
 		    	        .resId(resId)                                // 예약 ID
 		    	        .payAmount(BigDecimal.valueOf(amount))       // 금액
 		    	        .payType(Payment.PayType.POINT)              // 포인트 결제!
 		    	        .payStatus(Payment.PayStatus.paid)           // 결제 완료 상태
+		    	        .payResno("POINT_" + System.currentTimeMillis()) // 포인트 결제용 임의 결제 번호
 		    	        .build();
-
+		    
+		    System.out.println("포인트 결제 내역 저장: " + payment);
 		    paymentRepository.save(payment);
 
 		    return ResponseEntity.ok("포인트 결제 완료 + 면접관 포인트 지급 완료");

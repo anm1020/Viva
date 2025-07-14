@@ -1,139 +1,165 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <script src="https://code.jquery.com/jquery-latest.js"></script>
-   <link rel="stylesheet" th:href="@{/css/reservation.css}" />
-   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
-  <meta charset="UTF-8">
-  <title>면접관 마이페이지</title>
-  <link rel="stylesheet" th:href="@{/css/main.css}">
-  <link rel="stylesheet" th:href="@{/css/common.css}">
-  
-  <style>
-    body {
-      background: #f7f9fc;
-      font-family: 'Segoe UI', '맑은 고딕', sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-    .mypage-layout {
-      display: flex;
-      max-width: 1100px;
-      margin: 50px auto 0 auto;
-      min-height: 550px;
-      background: #fff;
-      border-radius: 14px;
-      box-shadow: 0 2px 14px rgba(70,110,180,0.08);
-      overflow: hidden;
-    }
-    /* 사이드바 */
-    .sidebar {
-      width: 230px;
-      background: #eaf1fb;
-      padding: 36px 0 0 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .sidebar-menu {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      padding-left: 24px;
-    }
-    .sidebar-menu a {
-      font-size: 17px;
-      color: #314266;
-      text-decoration: none;
-      padding: 10px 0 10px 12px;
-      border-radius: 5px 0 0 5px;
-      transition: background 0.18s;
-      font-weight: 500;
-      letter-spacing: -0.2px;
-    }
-    .sidebar-menu a.active,
-    .sidebar-menu a:hover {
-      background: #c3d3ee;
-      color: #2951a3;
-      font-weight: bold;
-    }
-    .sidebar-bottom {
-      padding-left: 24px;
-      padding-bottom: 38px;
-    }
-    .sidebar-bottom a {
-      color: #d34040;
-      font-weight: bold;
-      text-decoration: none;
-      font-size: 15px;
-      transition: color 0.2s;
-    }
-    .sidebar-bottom a:hover {
-      color: #b80000;
-      text-decoration: underline;
-    }
-    /* 메인컨텐츠 */
-    .main-content {
-      flex: 1;
-      padding: 46px 44px;
-      background: #f7f9fc;
-      min-width: 0;
-    }
-    .info-cards {
-      display: flex;
-      gap: 36px;
-    }
-    .member-info {
-      background: #fff;
-      border-radius: 9px;
-      box-shadow: 0 2px 8px rgba(135,160,180,0.07);
-      padding: 32px 38px 30px 38px;
-      min-width: 320px;
-      flex: 1;
-      margin-bottom: 24px;
-    }
-    .member-info h2 {
-      margin-top: 0;
-      font-size: 21px;
-      color: #314266;
-      margin-bottom: 16px;
-    }
-    .member-info-list {
-      font-size: 16px;
-      line-height: 2.1;
-      color: #222;
-    }
-    .stat-info {
-      background: #eaf1fb;
-      border-radius: 9px;
-      box-shadow: 0 2px 8px rgba(70,110,180,0.06);
-      padding: 32px 40px;
-      min-width: 220px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      margin-bottom: 24px;
-    }
-    .stat-info h2 {
-      margin-top: 0;
-      font-size: 20px;
-      color: #2951a3;
-      margin-bottom: 18px;
-    }
-    .stat-info .point-value {
-      font-size: 25px;
-      color: #314266;
-      font-weight: bold;
-      margin-bottom: 8px;
-    }
-    @media (max-width: 900px) {
-      .mypage-layout { flex-direction: column; }
-      .sidebar { width: 100%; flex-direction: row; padding: 0; }
-      .main-content { padding: 24px 10px; }
-      .info-cards { flex-direction: column; gap: 14px; }
-    }
-  </style>
+<script src="https://code.jquery.com/jquery-latest.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+<meta charset="UTF-8">
+<title>면접관 마이페이지</title>
+<link rel="stylesheet" th:href="@{/css/main.css}">
+<link rel="stylesheet" th:href="@{/css/common.css}">
+<link rel="stylesheet" th:href="@{/css/reservation.css}" />
+
+<style>
+body {
+	background: #f7f9fc;
+	font-family: 'Segoe UI', '맑은 고딕', sans-serif;
+	margin: 0;
+	padding: 0;
+}
+
+.mypage-layout {
+	display: flex;
+	max-width: 1100px;
+	margin: 50px auto 0 auto;
+	min-height: 550px;
+	background: #fff;
+	border-radius: 14px;
+	box-shadow: 0 2px 14px rgba(70, 110, 180, 0.08);
+	overflow: hidden;
+}
+/* 사이드바 */
+.sidebar {
+	width: 230px;
+	background: #eaf1fb;
+	padding: 36px 0 0 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.sidebar-menu {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	padding-left: 24px;
+}
+
+.sidebar-menu a {
+	font-size: 17px;
+	color: #314266;
+	text-decoration: none;
+	padding: 10px 0 10px 12px;
+	border-radius: 5px 0 0 5px;
+	transition: background 0.18s;
+	font-weight: 500;
+	letter-spacing: -0.2px;
+}
+
+.sidebar-menu a.active, .sidebar-menu a:hover {
+	background: #c3d3ee;
+	color: #2951a3;
+	font-weight: bold;
+}
+
+.sidebar-bottom {
+	padding-left: 24px;
+	padding-bottom: 38px;
+}
+
+.sidebar-bottom a {
+	color: #d34040;
+	font-weight: bold;
+	text-decoration: none;
+	font-size: 15px;
+	transition: color 0.2s;
+}
+
+.sidebar-bottom a:hover {
+	color: #b80000;
+	text-decoration: underline;
+}
+/* 메인컨텐츠 */
+.main-content {
+	flex: 1;
+	padding: 46px 44px;
+	background: #f7f9fc;
+	min-width: 0;
+}
+
+.info-cards {
+	display: flex;
+	gap: 36px;
+}
+
+.member-info {
+	background: #fff;
+	border-radius: 9px;
+	box-shadow: 0 2px 8px rgba(135, 160, 180, 0.07);
+	padding: 32px 38px 30px 38px;
+	min-width: 320px;
+	flex: 1;
+	margin-bottom: 24px;
+}
+
+.member-info h2 {
+	margin-top: 0;
+	font-size: 21px;
+	color: #314266;
+	margin-bottom: 16px;
+}
+
+.member-info-list {
+	font-size: 16px;
+	line-height: 2.1;
+	color: #222;
+}
+
+.stat-info {
+	background: #eaf1fb;
+	border-radius: 9px;
+	box-shadow: 0 2px 8px rgba(70, 110, 180, 0.06);
+	padding: 32px 40px;
+	min-width: 220px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	margin-bottom: 24px;
+}
+
+.stat-info h2 {
+	margin-top: 0;
+	font-size: 20px;
+	color: #2951a3;
+	margin-bottom: 18px;
+}
+
+.stat-info .point-value {
+	font-size: 25px;
+	color: #314266;
+	font-weight: bold;
+	margin-bottom: 8px;
+}
+
+@media ( max-width : 900px) {
+	.mypage-layout {
+		flex-direction: column;
+	}
+	.sidebar {
+		width: 100%;
+		flex-direction: row;
+		padding: 0;
+	}
+	.main-content {
+		padding: 24px 10px;
+	}
+	.info-cards {
+		flex-direction: column;
+		gap: 14px;
+	}
+}
+</style>
 <script th:inline="javascript">
   /*<![CDATA[*/
   var reservedSlots = /*[[${reservedSlotsJson}]]*/ {};
@@ -142,89 +168,112 @@
 </script>
 </head>
 <body>
-<div th:replace="fragments/header :: header"></div>
+	<div th:replace="fragments/header :: header"></div>
 
 
-  <div class="mypage-layout">
-    <!-- 사이드바 -->
-    <nav class="sidebar">
-      <div>
-        <div class="sidebar-menu">
-          <a href="#" class="active">내 정보</a>
-          <a th:href="@{/memberEdit}">내 정보 수정</a>
-          <a href="#">내 후기 관리</a>
-          <a href="#" id="loadReservations">일정 관리</a>
-          <a th:href="@{/mypage/jaso/list}">자소서 관리</a>
-          <a href="#">AI 대화 내역</a>
-          <a th:href="@{/memReservation}">결제 내역</a>
-          <a th:href="@{/jobsite}">취업 사이트</a>
-        </div>
-      </div>
-      <div class="sidebar-bottom">
-      	<!-- 페이지 이동 없이 자바스크립트로만 동작 -->
-        <a href="#" id="withdrawBtn" style="color:#d34040; text-decoration:underline;">회원 탈퇴</a>
-      </div>
-    </nav>
+	<div class="mypage-layout">
+		<!-- 사이드바 -->
+		<nav class="sidebar">
+			<div>
+				<div class="sidebar-menu">
+					<a href="#" class="active">내 정보</a> 
+					<a th:href="@{/memberEdit}">내정보 수정</a> 
+					<a href="#">내 후기 관리</a> 
+					<a th:href="@{/reservation/mylist}"id="loadReservations">일정 관리</a> 
+					<a th:href="@{/mypage/jaso/list}">자소서관리</a> 
+					<a href="#">AI 대화 내역</a>
+					<a href="#" id="loadPaymentList">결제 내역</a> <!-- 결제내역 탭 또는 버튼 -->
+					<a th:href="@{/jobsite}">취업사이트</a>
+				</div>
+			</div>
+			<div class="sidebar-bottom">
+				<!-- 페이지 이동 없이 자바스크립트로만 동작 -->
+				<a href="#" id="withdrawBtn"
+					style="color: #d34040; text-decoration: underline;">회원 탈퇴</a>
+			</div>
+		</nav>
 
-    <!-- 메인 컨텐츠 -->
-    <section class="main-content">
-      <div class="info-cards">
-        <!-- 회원 정보 -->
-        <div class="member-info">
-          <h2>회원 정보</h2>
-          <div class="member-info-list">
-            <div><strong>아이디:</strong> <span th:text="${users.userId}">intr1</span></div>
-            <div><strong>이름:</strong> <span th:text="${users.userName}">홍면접</span></div>
-            <div><strong>핸드폰번호:</strong> <span th:text="${users.userNum}">010-0000-0000</span></div>
-            <div><strong>이메일:</strong> <span th:text="${users.userEmail}">intr@naver.com</span></div>
-            <div><strong>주소:</strong> <span th:text="${users.userAdd + ' ' + users.userAddDetail}">주소+상세주소</span></div>
-            <div><strong>가입일:</strong> <span th:text="${users.createdDt}">2025-06-27</span></div>
-          </div>
-        </div>
-        
-         <!-- 포인트만 표시하는 활동통계 -->
-        <div class="stat-info">
-          <h2>나의 포인트</h2>
-           <div class="point-value" th:text="${point + 'P'}">
-          <!--  <div th:text="${point + 'P'}"></div> -->
-              </div>   
-        </div> 
-         
-         <!-- '내 예약 목록'-->
-  <div id="reservationContainer"></div>
-    </section>
-  </div>
-  
- <!-- 탈퇴 팝업 Modal (처음에는 display:none; 숨겨둠) -->
-<div id="withdrawModal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:9999;">
-  <div style="background:#fff; width:350px; margin:120px auto; padding:32px 24px 16px 24px; border-radius:10px; box-shadow:0 4px 24px rgba(0,0,0,0.16); position:relative;">
-    <h2 style="margin-bottom:18px;">정말로 탈퇴하시겠습니까?</h2>
-    <form id="withdrawForm">
-      <!-- 비밀번호 입력 -->
-      <div style="margin-bottom:10px;">
-        <label>현재 비밀번호</label><br>
-        <input type="password" name="currentPass" style="width:100%;" required />
-      </div>
-      <div style="margin-bottom:18px;">
-        <label>비밀번호 확인</label><br>
-        <input type="password" name="confirmPass" style="width:100%;" required />
-      </div>
-      <!-- 버튼 영역 -->
-      <div style="display:flex; justify-content:space-between;">
-        <button type="submit" style="background:#d34040; color:#fff; border:none; padding:7px 20px; border-radius:5px;">확인</button>
-        <button type="button" id="cancelWithdraw" style="background:#ccc; color:#222; border:none; padding:7px 20px; border-radius:5px;">취소</button>
-      </div>
-    </form>
-  </div>
-</div>
-  
-  <!-- 회원정보 수정 후 메세지 -->
-<script th:if="${editSuccess != null}" th:inline="javascript">
+		<!-- 메인 컨텐츠 -->
+		<section class="main-content">
+			<div class="info-cards">
+				<!-- 회원 정보 -->
+				<div class="member-info">
+					<h2>회원 정보</h2>
+					<div class="member-info-list">
+						<div>
+							<strong>아이디:</strong> <span th:text="${users.userId}">intr1</span>
+						</div>
+						<div>
+							<strong>이름:</strong> <span th:text="${users.userName}">홍면접</span>
+						</div>
+						<div>
+							<strong>핸드폰번호:</strong> <span th:text="${users.userNum}">010-0000-0000</span>
+						</div>
+						<div>
+							<strong>이메일:</strong> <span th:text="${users.userEmail}">intr@naver.com</span>
+						</div>
+						<div>
+							<strong>주소:</strong> <span
+								th:text="${users.userAdd + ' ' + users.userAddDetail}">주소+상세주소</span>
+						</div>
+						<div>
+							<strong>가입일:</strong> <span th:text="${users.createdDt}">2025-06-27</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- 포인트만 표시하는 활동통계 -->
+				<div class="stat-info">
+					<h2>나의 포인트</h2>
+					<div class="point-value" th:text="${point + 'P'}">
+						<!--  <div th:text="${point + 'P'}"></div> -->
+					</div>
+				</div>
+
+				<!-- '내 예약 ㅌ₩목록'-->
+				<div id="schedule">
+					<div id="reservationContainer"></div>
+				</div>
+
+				<!-- 결제내역 표시 영역 -->
+				<div id="paymentListContainer" style="display:none;"></div>
+		</section>
+	</div>
+
+	<!-- 탈퇴 팝업 Modal (처음에는 display:none; 숨겨둠) -->
+	<div id="withdrawModal"
+		style="display: none; position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.25); z-index: 9999;">
+		<div
+			style="background: #fff; width: 350px; margin: 120px auto; padding: 32px 24px 16px 24px; border-radius: 10px; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.16); position: relative;">
+			<h2 style="margin-bottom: 18px;">정말로 탈퇴하시겠습니까?</h2>
+			<form id="withdrawForm">
+				<!-- 비밀번호 입력 -->
+				<div style="margin-bottom: 10px;">
+					<label>현재 비밀번호</label><br> <input type="password"
+						name="currentPass" style="width: 100%;" required />
+				</div>
+				<div style="margin-bottom: 18px;">
+					<label>비밀번호 확인</label><br> <input type="password"
+						name="confirmPass" style="width: 100%;" required />
+				</div>
+				<!-- 버튼 영역 -->
+				<div style="display: flex; justify-content: space-between;">
+					<button type="submit"
+						style="background: #d34040; color: #fff; border: none; padding: 7px 20px; border-radius: 5px;">확인</button>
+					<button type="button" id="cancelWithdraw"
+						style="background: #ccc; color: #222; border: none; padding: 7px 20px; border-radius: 5px;">취소</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<!-- 회원정보 수정 후 메세지 -->
+	<script th:if="${editSuccess != null}" th:inline="javascript">
 	 alert('[[${editSuccess}]]');
 </script>
-  
-  
-<script>
+
+
+	<script>
 $(function(){
   // 1. "회원 탈퇴" 링크 클릭 시 팝업 열기
   $("#withdrawBtn").on("click", function(e){
@@ -274,56 +323,61 @@ $(function(){
   });
 });
 </script>
+	<!-- 일정관리 -->
+	<script>
+  // 일정관리 탭 클릭 시 예약 목록 fragment 로딩
+  $(function(){
+    $('#loadReservations').on('click', function(e){
+      e.preventDefault();
 
-<!-- 일정관리 -->
-<script>
-	// 일정관리 탭 클릭 시 예약 목록 fragment 로딩
-	$(function(){
-	  $('#loadReservations').on('click', function(e){
-	    e.preventDefault();
+      // 1) 탭 active 토글
+      $('.sidebar-menu a').removeClass('active');
+      $(this).addClass('active');
 
-	    // 1) 탭 active 토글
-	    $('.sidebar-menu a').removeClass('active');
-	    $(this).addClass('active');
+      // 2) 카드 요소만 숨기기
+      $('.member-info, .stat-info').hide();
 
-	    // 2) 카드 요소만 숨기기
-	    $('.member-info, .stat-info').hide();
+      // 3) AJAX 로드
+      $('#reservationContainer').load('/reservation/mylist', function(resp, status, xhr){
+        if (status !== 'success') {
+          alert('예약 목록 로드 실패: ' + xhr.statusText);
+          return;
+        }
 
-	    // 3) AJAX 로드
-	    $('#reservationContainer').load('/reservation/mylist', function(resp, status, xhr){
-	      if (status !== 'success') {
-	        alert('예약 목록 로드 실패: ' + xhr.statusText);
-	        return;
-	      }
+        // 4) reservedSlotsJson 추출
+        const $jsonScript = $('#reservationContainer').find('#reservedSlotsJson');
+        if ($jsonScript.length) {
+          try {
+            window.reservedSlots = JSON.parse($jsonScript.text());
+            console.log("✅ reservedSlots loaded:", window.reservedSlots);
+          } catch (e) {
+            console.error("❌ reservedSlots 파싱 실패:", e);
+            window.reservedSlots = {};
+          }
+        } else {
+          console.warn("⚠️ reservedSlotsJson 태그 없음");
+          window.reservedSlots = {};
+        }
 
-	      // 4) reservedSlotsJson 추출
-	      const $jsonScript = $('#reservationContainer').find('#reservedSlotsJson');
-	      if ($jsonScript.length) {
-	        try {
-	          window.reservedSlots = JSON.parse($jsonScript.text());
-	          console.log("✅ reservedSlots loaded:", window.reservedSlots);
-	        } catch (e) {
-	          console.error("❌ reservedSlots 파싱 실패:", e);
-	          window.reservedSlots = {};
-	        }
-	      } else {
-	        console.warn("⚠️ reservedSlotsJson 태그 없음");
-	        window.reservedSlots = {};
-	      }
+        // 5) 스케줄러 초기화 함수 호출
+        if (typeof window.initReservationSchedule === 'function') {
+          window.initReservationSchedule();
+        } else {
+          console.warn("⚠️ initReservationSchedule 함수가 없음");
+        }
+      });
+    });
 
-	      // 5) 스케줄러 초기화 함수 호출
-	      if (typeof window.initReservationSchedule === 'function') {
-	        window.initReservationSchedule();
-	      } else {
-	        console.warn("⚠️ initReservationSchedule 함수가 없음");
-	      }
-	    });
-	  });
-	});
+    // ✅ 페이지 로드시 ?tab=schedule 이면 자동 클릭
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("tab") === "schedule") {
+      $('#loadReservations').click();
+    }
+  });
 </script>
 
-<!-- 예약변경 -->
-<script>
+	<!-- 예약변경 -->
+	<script>
 // 💡 스케줄러 초기화 함수
 window.initReservationSchedule = function() {
   $(document).on('click', '.action-link.change', function(e){
@@ -403,8 +457,8 @@ window.disableTimeButtons = function(dateStr){
 
 
 
-<!-- 환불 -->
-<script>
+	<!-- 환불 -->
+	<script>
 $(document).on('click', '.action-link.cancel', function(e){
 	  e.preventDefault();
 	  const resId = $(this).data('res-id');
@@ -427,9 +481,41 @@ $(document).on('click', '.action-link.cancel', function(e){
 	    });
 	});
 </script>
+<!--결제내역 -->
+<script>
+$(function() {
+	  // 결제내역 탭 또는 버튼 클릭 시 프래그먼트 로드
+	  $('#loadPaymentList').on('click', function(e) {
+	    e.preventDefault();
+
+	    // 탭 활성화 토글 (선택사항)
+	    $('.sidebar-menu a').removeClass('active');
+	    $(this).addClass('active');
+
+	    // 다른 메인 컨텐츠 숨기기 (필요하면)
+	    $('.member-info, .stat-info, #reservationContainer').hide();
+
+	    // 결제내역 컨테이너 보이기
+	    $('#paymentListContainer').show();
+
+	    // AJAX로 결제내역 프래그먼트 로드
+	    $('#paymentListContainer').load('/payment/mypage/paymentList', function(response, status, xhr) {
+	      if (status !== "success") {
+	        alert("결제 내역을 불러오는 중 오류가 발생했습니다: " + xhr.statusText);
+	      }
+	    });
+	  });
+
+	  // 페이지 로드 시 특정 파라미터에 따라 자동 클릭 예시
+	  const params = new URLSearchParams(window.location.search);
+	  if (params.get("tab") === "payment") {
+	    $('#loadPaymentList').click();
+	  }
+	});
+
+</script>
 
 
 
-  
 </body>
 </html>

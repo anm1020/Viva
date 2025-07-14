@@ -1,91 +1,264 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>면접관 상세</title>
-  <link rel="stylesheet" th:href="@{/css/interviewer.css}">
+<meta charset="UTF-8">
+<title>면접관 상세</title>
+<link rel="stylesheet" th:href="@{/css/interviewer.css}">
+<link rel="stylesheet" th:href="@{/css/reservation.css}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://code.jquery.com/jquery-latest.js"></script>
+
 </head>
 <body>
 
-<div class="detail-container">
-  <div class="interviewer-profile">
-    <img th:src="@{${interviewer.intrImage}}" alt="프로필 이미지" class="profile-img" />
-    <div class="info-box">
-      <p><strong>이름:</strong> <span th:text="${interviewer.userName}"></span></p>
-      <p><strong>경력:</strong> <span th:text="${interviewer.userCareer}"></span></p>
-      <p><strong>직무:</strong> <span th:text="${interviewer.intrCate}"></span></p>
-      <p><strong>보유 스킬:</strong> <span th:text="${interviewer.userSkill}"></span></p>
-      <p><strong>상담 가격:</strong> <span th:text="${interviewer.intrPrice}">0</span> 원</p>
-    </div>
-  </div>
+	<div class="detail-container">
+		<div class="interviewer-profile">
+			<img th:src="@{${interviewer.intrImage}}" alt="프로필 이미지"
+				class="profile-img" />
+			<div class="info-box">
+				<p>
+					<strong>이름:</strong> <span th:text="${interviewer.userName}"></span>
+				</p>
+				<p>
+					<strong>경력:</strong> <span th:text="${interviewer.userCareer}"></span>
+				</p>
+				<p>
+					<strong>직무:</strong> <span th:text="${interviewer.intrCate}"></span>
+				</p>
+				<p>
+					<strong>보유 스킬:</strong> <span th:text="${interviewer.userSkill}"></span>
+				</p>
+				<p>
+					<strong>상담 가격:</strong> <span th:text="${interviewer.intrPrice}">0</span>
+					원
+				</p>
+			</div>
 
-  <!-- ✅ 자기소개 영역 -->
-  <div class="detail-content-section">
-    <h3>자기소개</h3>
-    <div class="detail-content-box">
-      <p th:text="${interviewer.intrContent}">
-        상담 방식, 강점, 이력 등을 작성해주세요.
-      </p>
-    </div>
-  </div>
+		</div>
 
-  <!-- ✅ 후기 섹션 -->
-  <hr>
-  <div class="review-section">
-    <h3>후기</h3>
-    <!-- 리뷰 등록 폼 -->
-    <form th:action="@{'/interviewer/' + ${interviewer.intrId} + '/review'}" method="post" style="margin-bottom: 30px;">
-      <label>별점:
-        <select name="score" required>
-          <option value="5">5.0</option>
-          <option value="4.5">4.5</option>
-          <option value="4">4.0</option>
-          <option value="3.5">3.5</option>
-          <option value="3">3.0</option>
-          <option value="2.5">2.5</option>
-          <option value="2">2.0</option>
-          <option value="1.5">1.5</option>
-          <option value="1">1.0</option>
-        </select>
-      </label>
-      <label>내용:
-        <input type="text" name="content" maxlength="300" required style="width: 300px;">
-      </label>
-      <button type="submit">등록</button>
-    </form>
-    <!-- 리뷰 목록 -->
-    <div th:each="r : ${reviews}">
-      <div class="review-card">
-        <p><strong th:text="${r.userId}">작성자</strong> | <span th:text="${#temporals.format(r.createdDt, 'yyyy-MM-dd HH:mm')}">날짜</span></p>
-        <p th:text="${r.content}">후기 내용</p>
-        <p>⭐ <span th:text="${r.score}">5.0</span></p>
-        <!-- 본인 리뷰에만 수정/삭제 버튼 노출 (예시: principal.name == r.userId) -->
-        <div th:if="${#authentication != null and #authentication.name == r.userId}">
-          <!-- 수정 폼 (간단하게 inline form) -->
-          <form th:action="@{'/interviewer/' + ${interviewer.intrId} + '/review/' + ${r.reviewNo} + '/edit'}" method="post" style="display:inline;">
-            <select name="score" required>
-              <option th:selected="${r.score == 5}" value="5">5.0</option>
-              <option th:selected="${r.score == 4.5}" value="4.5">4.5</option>
-              <option th:selected="${r.score == 4}" value="4">4.0</option>
-              <option th:selected="${r.score == 3.5}" value="3.5">3.5</option>
-              <option th:selected="${r.score == 3}" value="3">3.0</option>
-              <option th:selected="${r.score == 2.5}" value="2.5">2.5</option>
-              <option th:selected="${r.score == 2}" value="2">2.0</option>
-              <option th:selected="${r.score == 1.5}" value="1.5">1.5</option>
-              <option th:selected="${r.score == 1}" value="1">1.0</option>
-            </select>
-            <input type="text" name="content" th:value="${r.content}" maxlength="300" required style="width: 200px;">
-            <button type="submit">수정</button>
-          </form>
-          <!-- 삭제 버튼 -->
-          <form th:action="@{'/interviewer/' + ${interviewer.intrId} + '/review/' + ${r.reviewNo} + '/delete'}" method="post" style="display:inline;">
-            <button type="submit" onclick="return confirm('정말 삭제하시겠습니까?')">삭제</button>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+		<!-- ✅ 자기소개 영역 -->
+		<div class="detail-content-section">
+			<h3>자기소개</h3>
+			<div class="detail-content-box">
+				<p th:text="${interviewer.intrContent}">상담 방식, 강점, 이력 등을 작성해주세요.
+				</p>
+			</div>
+		</div>
+
+		<!-- ✅ 후기 섹션 -->
+		<hr>
+		<div class="review-section">
+			<h3>후기</h3>
+			<!-- 리뷰 등록 폼 -->
+			<form
+				th:action="@{'/interviewer/' + ${interviewer.intrId} + '/review'}"
+				method="post" style="margin-bottom: 30px;">
+				<label>별점: <select name="score" required>
+						<option value="5">5.0</option>
+						<option value="4.5">4.5</option>
+						<option value="4">4.0</option>
+						<option value="3.5">3.5</option>
+						<option value="3">3.0</option>
+						<option value="2.5">2.5</option>
+						<option value="2">2.0</option>
+						<option value="1.5">1.5</option>
+						<option value="1">1.0</option>
+				</select>
+				</label> <label>내용: <input type="text" name="content"
+					maxlength="300" required style="width: 300px;">
+				</label>
+				<button type="submit">등록</button>
+			</form>
+			<!-- 회원만 예약 버튼 이슬 -->
+			<div
+				th:if="${session.user != null and session.user.userRole != 'intr'}">
+				<div style="margin-top: 40px; text-align: center;">
+					<button type="button" id="btn-open-popup" class="reserve-btn">👉
+						예약하러 가기</button>
+				</div>
+
+				<!-- ✅ 예약 폼 fragment 삽입 -->
+				<!-- ✅ 예약 폼: 처음엔 안 보이도록 숨김 -->
+				<div id="reservation-box" style="display: none; margin-top: 30px;">
+				<input type="hidden" id="intrUserId" th:value="${intrUserId}" />
+					<div th:replace="interviewer/reservationform :: reservationForm"></div>
+				</div>
+			</div>
+
+			<!-- ✅ 면접관은 안내 메시지만 출력 -->
+			<div
+				th:if="${session.user != null and session.user.userRole == 'intr'}"
+				style="margin-top: 40px; text-align: center;">
+				<span style="color: gray; font-size: 13px;">(면접관은 예약할 수 없습니다)</span>
+			</div>
+
+
+
+			<!-- 리뷰 목록 -->
+			<div th:each="r : ${reviews}">
+				<div class="review-card">
+					<p>
+						<strong th:text="${r.userId}">작성자</strong> | <span
+							th:text="${#temporals.format(r.createdDt, 'yyyy-MM-dd HH:mm')}">날짜</span>
+					</p>
+					<p th:text="${r.content}">후기 내용</p>
+					<p>
+						⭐ <span th:text="${r.score}">5.0</span>
+					</p>
+					<!-- 본인 리뷰에만 수정/삭제 버튼 노출 (예시: principal.name == r.userId) -->
+					<div
+						th:if="${#authentication != null and #authentication.name == r.userId}">
+						<!-- 수정 폼 (간단하게 inline form) -->
+						<form
+							th:action="@{'/interviewer/' + ${interviewer.intrId} + '/review/' + ${r.reviewNo} + '/edit'}"
+							method="post" style="display: inline;">
+							<select name="score" required>
+								<option th:selected="${r.score == 5}" value="5">5.0</option>
+								<option th:selected="${r.score == 4.5}" value="4.5">4.5</option>
+								<option th:selected="${r.score == 4}" value="4">4.0</option>
+								<option th:selected="${r.score == 3.5}" value="3.5">3.5</option>
+								<option th:selected="${r.score == 3}" value="3">3.0</option>
+								<option th:selected="${r.score == 2.5}" value="2.5">2.5</option>
+								<option th:selected="${r.score == 2}" value="2">2.0</option>
+								<option th:selected="${r.score == 1.5}" value="1.5">1.5</option>
+								<option th:selected="${r.score == 1}" value="1">1.0</option>
+							</select> <input type="text" name="content" th:value="${r.content}"
+								maxlength="300" required style="width: 200px;">
+							<button type="submit">수정</button>
+						</form>
+						<!-- 삭제 버튼 -->
+						<form
+							th:action="@{'/interviewer/' + ${interviewer.intrId} + '/review/' + ${r.reviewNo} + '/delete'}"
+							method="post" style="display: inline;">
+							<button type="submit" onclick="return confirm('정말 삭제하시겠습니까?')">삭제</button>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+<script th:inline="javascript">
+  // 서버에서 내려오는 JSON이 null일 경우 빈 객체로 초기화
+  var reservedSlots = /*[[${reservedSlotsJson}]]*/ null;
+  var disabledSlots = /*[[${disabledSlotsJson}]]*/ null;
+  var intrId = /*[[${intrUserId}]]*/ null;
+
+  reservedSlots = reservedSlots || {};
+  disabledSlots = disabledSlots || {};
+</script>
+
+<script th:inline="javascript">
+  var reservedSlots = /*[[${reservedSlotsJson}]]*/ '{}';
+  var disabledSlots = /*[[${disabledSlotsJson}]]*/ '{}';
+
+  reservedSlots = JSON.parse(reservedSlots);
+  disabledSlots = JSON.parse(disabledSlots);
+</script>
+
+<script>
+  $(document).ready(function () {
+    let selectedDate = null;
+    let selectedTime = null;
+
+    $('#btn-open-popup').on('click', function () {
+      $('#reservation-box').slideDown();
+
+      flatpickr("#calendar", {
+        inline: true,
+        dateFormat: "Y-m-d",
+        minDate: "today",
+        onChange: function (_, dateStr) {
+          selectedDate = dateStr;
+
+          const label = document.getElementById('selected-date-label');
+          const koreanDate = new Date(dateStr).toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            weekday: 'short'
+          });
+          label.textContent = `${koreanDate} 시간 선택`;
+
+          document.getElementById('summary-date').textContent = koreanDate;
+
+          // Step 2 시간 선택 영역 보이기
+          $('#step-time').show();
+
+          // Step 3 예약 요약 영역 숨기기 (시간 선택 전)
+          $('#step-summary').hide();
+
+          renderTimes();
+        }
+      });
+    });
+
+    function renderTimes() {
+      console.log('renderTimes called, selectedDate:', selectedDate);
+      const grid = $('#times-grid').empty();
+      if (!selectedDate) return;
+
+      const reserved = (reservedSlots && reservedSlots[selectedDate]) || [];
+      console.log('reserved:', reserved);
+
+      const disabled = (disabledSlots && disabledSlots[selectedDate]) || [];
+      console.log('disabled:', disabled);
+
+      const blocked = [...reserved, ...disabled];
+      console.log('blocked:', blocked);
+
+      for (let h = 9; h <= 18; h++) {
+        const t = (h < 10 ? '0' : '') + h + ':00';
+        const isDisabled = blocked.includes(t);
+        console.log('time:', t, 'isDisabled:', isDisabled);
+
+        $('<button>')
+          .text(t)
+          .addClass(isDisabled ? 'disabled' : '')
+          .prop('disabled', isDisabled)
+          .on('click', function () {
+            if (isDisabled) return;
+
+            $('.times-grid button').removeClass('selected');
+            $(this).addClass('selected');
+            selectedTime = t;
+
+            document.getElementById('summary-time').textContent = t;
+
+            // Step 3 예약 요약 영역 보이기
+            $('#step-summary').show();
+          })
+          .appendTo(grid);
+      }
+    }
+
+    $('#btn-confirm').on('click', function () {
+      if (!selectedDate || !selectedTime) {
+        return alert('날짜와 시간을 모두 선택해주세요.');
+      }
+
+      const payload = {
+        intrId: intrId,
+        reservedDate: selectedDate,
+        reservedTime: selectedTime
+      };
+      console.log('예약할 intrId:', intrId);
+      $.ajax({
+        type: 'POST',
+        url: '/reservation/save',
+        contentType: 'application/json',
+        data: JSON.stringify(payload),
+        success: function (resId) {
+          window.location.href = `/reservation/result?resId=${resId}`;
+        },
+        error: function (xhr) {
+          alert('예약 저장 중 오류: ' + xhr.responseText);
+        }
+      });
+    });
+  });
+</script>
 
 </body>
 </html>
