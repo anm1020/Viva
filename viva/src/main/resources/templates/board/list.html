@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>게시판 목록</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+ 	<link rel="stylesheet" th:href="@{/css/common.css}">
     <style>
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
@@ -10,6 +12,7 @@
     </style>
 </head>
 <body>
+<div th:replace="fragments/header :: header"></div>
 
 <h2>게시판 목록</h2>
 

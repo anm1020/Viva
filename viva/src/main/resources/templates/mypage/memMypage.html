@@ -3,10 +3,19 @@
 <head>
   <script src="https://code.jquery.com/jquery-latest.js"></script>
    <link rel="stylesheet" th:href="@{/css/reservation.css}" />
+   
+   <!-- 달력 -->
    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+   
+   <!-- 수정폼 --> 
+   <link rel="stylesheet" th:href="@{/css/memberformEdit.css}">
+   <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+  <!--  <script th:src="@{/js/check2.js}"></script> -->
+  
+  
   <meta charset="UTF-8">
-  <title>면접관 마이페이지</title>
+  <title>취준생 마이페이지</title>
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <link rel="stylesheet" th:href="@{/css/common.css}">
   
@@ -146,14 +155,16 @@
 
 
   <div class="mypage-layout">
-    <!-- 사이드바 -->
-    <nav class="sidebar">
+   <!-- 사이드바 -->
+   <nav class="sidebar">
       <div>
         <div class="sidebar-menu">
-          <a href="#" class="active">내 정보</a>
-          <a th:href="@{/memberEdit}">내 정보 수정</a>
+          <a th:href="@{/mypage}">내 정보</a>
+          <a th:href="@{/memberEdit}" id="memberEdit">내 정보 수정</a>
+          <!-- <a href="#" id="memberEdit">내 정보 수정</a> -->
           <a href="#">내 후기 관리</a>
-          <a href="#" id="loadReservations">일정 관리</a>
+         <!--  <a href="#" id="loadReservations">일정 관리</a> -->
+          <a th:href="@{/memschedule}" id="loadReservations">일정 관리</a>
           <a th:href="@{/mypage/jaso/list}">자소서 관리</a>
           <a href="#">AI 대화 내역</a>
           <a th:href="@{/memReservation}">결제 내역</a>
@@ -164,7 +175,7 @@
       	<!-- 페이지 이동 없이 자바스크립트로만 동작 -->
         <a href="#" id="withdrawBtn" style="color:#d34040; text-decoration:underline;">회원 탈퇴</a>
       </div>
-    </nav>
+   </nav>
 
     <!-- 메인 컨텐츠 -->
     <section class="main-content">
@@ -191,7 +202,8 @@
         </div> 
          
          <!-- '내 예약 목록'-->
-  <div id="reservationContainer"></div>
+	  <div id="reservationContainer"></div>
+	  <div id="editContainer" style="display:none; width:100%; justify-content:center;"></div>
     </section>
   </div>
   
@@ -218,6 +230,8 @@
   </div>
 </div>
   
+ <script th:src="@{/js/memformEdit.js}"></script>  
+
   <!-- 회원정보 수정 후 메세지 -->
 <script th:if="${editSuccess != null}" th:inline="javascript">
 	 alert('[[${editSuccess}]]');
@@ -285,7 +299,11 @@ $(function(){
 	    // 1) 탭 active 토글
 	    $('.sidebar-menu a').removeClass('active');
 	    $(this).addClass('active');
-
+	    
+	    // 예원 추가	>>	수정폼 fragment 숨기기해야 메뉴 클릭시 오류 없음
+		$('#editContainer').hide();
+		$('#reservationContainer').show();    // 💡 이거 추가!
+	    
 	    // 2) 카드 요소만 숨기기
 	    $('.member-info, .stat-info').hide();
 
@@ -426,6 +444,30 @@ $(document).on('click', '.action-link.cancel', function(e){
 	      alert("취소 실패: " + xhr.responseText);
 	    });
 	});
+	
+// 내정보 수정
+$('#memberEdit').on('click', function(e){
+  e.preventDefault();
+  $('.sidebar-menu a').removeClass('active');
+  $(this).addClass('active');
+  $('#reservationContainer').hide();	
+  $('.member-info, .stat-info').hide();
+  $('#editContainer').css('display','flex').load('/memberEdit', function(resp, status, xhr){
+    if(status !== 'success') {
+      $('#editContainer').html('<div>불러오기 실패</div>');
+      return;
+    }
+    // ★★★★★ 동적으로 들어온 폼에 이벤트를 다시 연결
+    bindEmailDomainEvents();
+  });
+});
+	
+	
+// 정보 수정 취소 버튼
+$(document).on('click', '#editCancelBtn', function(){
+  $('#editContainer').hide();
+  $('.member-info, .stat-info').show();
+});
 </script>
 
 
