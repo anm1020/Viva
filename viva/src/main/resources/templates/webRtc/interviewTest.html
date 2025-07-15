@@ -6,6 +6,12 @@
 
 <style>
 /* main-view, new-view, list-view는 각각 숨김처리 */
+html, body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 .view {
 	display: none;
 }
@@ -14,34 +20,7 @@
 	display: block;
 }
 
-body {
-	font-family: 'Arial', sans-serif;
-	background-color: #f2f2f2;
-	padding: 20px;
-}
-
 /* ================================== */
-header, footer {
-	background-color: #cfd8ff;
-	padding: 10px 20px;
-	text-align: center;
-}
-
-header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	font-weight: bold;
-}
-
-.logo {
-	font-size: 1.2rem;
-}
-
-.login-link {
-	font-size: 0.9rem;
-}
-
 main {
 	background-color: #ffffff;
 	min-height: 400px;
@@ -83,10 +62,6 @@ main {
 
 .nav-button:hover {
 	background-color: #d6d6d6;
-}
-
-footer {
-	font-weight: bold;
 }
 
 /* ================================== */
@@ -346,7 +321,7 @@ footer {
 </head>
 <body>
 <!-- header -->
-<div th:replace="fragments/header :: header"></div>
+<div th:replace="fragments/header :: headerFragment"></div>
 
 	<!-- [2] 방 생성 화면 -->
 	<div id="new-view" class="view">
@@ -373,13 +348,14 @@ footer {
 
 	<!-- [4] 통화방 화면 -->
 	<div id="videoroom-view" class="view">
-		 <!-- 🔵 상단 참가자 바 -->
-		<div class="top-bar">
-		    <div class="participant">user</div>
-		    <div class="participant current">나</div>
-		    <div class="participant">user</div>
-		</div>
 
+		<!-- 🔵 상단 참가자 바 -->
+		<div class="top-bar">
+			<div class="participant">user</div>
+			<div class="participant current">나</div>
+			<div class="participant">user</div>
+		</div>
+		
 		<div class="video-chat-wrapper">
 		    <!-- 🔵 비디오 그리드 -->
 		    <div class="video-grid">
@@ -785,7 +761,7 @@ function createJanusSession() {
         	if (!document.getElementById(boxElId)) {
         	    const localBox = `
         	      <div class="remote-box" id="${boxElId}">
-        	        <span>내 화면</span>
+        	        <span>내 화면</span><br>
         	        <video id="${videoElId}" autoplay muted playsinline></video>
         	        <div style="margin-top: 4px;">
         	          <button id="${muteBtnId}" style="cursor: pointer;">🔊</button>
@@ -1026,18 +1002,20 @@ function getSilentDummyStream() {
 	  const stream = new MediaStream();
 
 	  // 🔇 dummy audio track
-	  const audioCtx = new AudioContext();
-	  const oscillator = audioCtx.createOscillator();
-	  const dst = oscillator.connect(audioCtx.createMediaStreamDestination());
-	  oscillator.start();
+	  const ctx = new AudioContext();
+	  const dst = ctx.createMediaStreamDestination();
+	  const silence = ctx.createBufferSource();
+	  silence.buffer = ctx.createBuffer(1, 1, 22050); // 무음 버퍼 (0.000045초짜리)
+	  silence.connect(dst);
+	  silence.start();
 	  const audioTrack = dst.stream.getAudioTracks()[0];
 	  stream.addTrack(audioTrack);
 
 	  // 📷 dummy video track (검정 화면)
 	  const canvas = Object.assign(document.createElement("canvas"), { width: 320, height: 240 });
-	  const ctx = canvas.getContext("2d");
-	  ctx.fillStyle = "black";
-	  ctx.fillRect(0, 0, canvas.width, canvas.height);
+	  const context = canvas.getContext("2d");
+	  context.fillStyle = "black";
+	  context.fillRect(0, 0, canvas.width, canvas.height);
 	  const videoTrack = canvas.captureStream().getVideoTracks()[0];
 	  stream.addTrack(videoTrack);
 
@@ -1110,12 +1088,12 @@ function newRemoteFeed(id, display) {
     	// remote-box HTML 생성 및 삽입
       	const html = `
         	<div class="remote-box" id="${boxElId}">
-	          	<span>${display}</span>
+	          	<span>${display}</span><br>
 	          	<video id="${videoElId}" autoplay playsinline></video>
 	          	<div style="margin-top: 4px;">
 	            	<button id="${muteBtnId}" style="cursor: pointer;">🔊</button>
 	          		<input type="range" min="0" max="2" step="0.01" value="1" 
-	                	class="volume-slider" data-id="${remoteId}" style="width: 80%; margin-top: 4px;" />
+	                	class="volume-slider" data-id="${remoteId}" id="${volumeSliderId}" style="width: 80%; margin-top: 4px;" />
 	            </div>
         	</div>`;
       	$('#remoteContainer').append(html);
@@ -1149,38 +1127,41 @@ function newRemoteFeed(id, display) {
 	
 	     	// 볼륨 슬라이더 제어
 	        const slider = document.getElementById(volumeSliderId);
-	        slider.addEventListener('input', e => {
-	          const value = parseFloat(e.target.value);
-	          
-	          state.gainNode.gain.value = value;
-	          if (value === 0) {
-	            state.muted = true;
-	            muteBtn.textContent = '🔇';
-	          } else {
-	            state.muted = false;
-	            muteBtn.textContent = '🔊';
-	          }
-	        });
-	        
-	     	// 음소거 버튼 제어
 	        const muteBtn = document.getElementById(muteBtnId);
-	        muteBtn.addEventListener('click', () => {
-	          const state = audioContexts[remoteId];
-	          const slider = document.getElementById(volumeSliderId);
-	          if (!state || !slider) return;
-	          
-	          if (state.muted) {
-	        	// 음소거 해제
-	        	const restoreVolume = parseFloat(slider.value) || 1.0;
-	            state.gainNode.gain.value = restoreVolume;
-	            muteBtn.textContent = '🔊';
-	          } else {
-	        	// 음소거
-	            state.gainNode.gain.value = 0.0;
-	            muteBtn.textContent = '🔇';
-	          }
-	          state.muted = !state.muted;
-	        });
+	        const state = audioContexts[remoteId];
+	        
+	        if(slider && state && muteBtn){
+	        	console.log("지금 여기");
+		        slider.addEventListener('input', e => {
+		          const value = parseFloat(e.target.value);
+ 		          state.gainNode.gain.value = value;
+		          if (value === 0) {
+		            state.muted = true;
+		            muteBtn.textContent = '🔇';
+		          } else {
+		            state.muted = false;
+		            muteBtn.textContent = '🔊';
+		          }
+		        });
+		     	// 음소거 버튼 제어
+		        muteBtn.addEventListener('click', () => {
+		          const restoreVolume = parseFloat(slider.value) || 1.0;
+		          
+		          console.log(`등록된 muteBtn ID: ${muteBtnId}`, muteBtn);
+		          
+		          if (state.muted) {
+		        	// 음소거 해제
+		            state.gainNode.gain.value = restoreVolume;
+		            muteBtn.textContent = '🔊';
+		          } else {
+		        	// 음소거
+		            state.gainNode.gain.value = 0.0;
+		            muteBtn.textContent = '🔇';
+		          }
+		          state.muted = !state.muted;
+		        });
+	        }
+	        
         } else {
         	console.warn("⚠️ stream에 audio track 없음 → 오디오 제어 생략");
         }
@@ -1286,7 +1267,7 @@ function cleanupAllFeeds() {
 
 // 종료버튼 클릭시
 document.getElementById("exitBtn").addEventListener("click", function () {
-	navigate('main'); // navigate는 세션정리 없이 화면 전환만
+	navigate('list'); // navigate는 세션정리 없이 화면 전환만
 });
 
 // 캠 시작 버튼 클릭
