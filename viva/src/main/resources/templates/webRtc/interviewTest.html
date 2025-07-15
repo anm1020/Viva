@@ -623,7 +623,7 @@ let participants = [];
 function logParticipants() {
   console.log("📋 현재 참가자 목록:");
   participants.forEach(p => {
-    console.log(`- ID: ${p.id}, Display: ${p.display}`);
+    console.log(`- ID: ${p.id}, Display: ${p.display}, AudioMuted: ${p.audioMuted}, VideoMuted: ${p.videoMuted}`);
   });
 }
 
@@ -792,7 +792,6 @@ function createJanusSession() {
             publishOwnFeed(displayName);
 // 				publishOwnDummyFeed()
             if (msg.publishers) {
-//               if (pub.id === msg.id) return;	// 본인인 경우 스킵
               
               msg.publishers.forEach(pub => {
             	const idStr = String(pub.id);
@@ -805,6 +804,8 @@ function createJanusSession() {
                     console.log("⚠️ 이미 등록된 feed → skip:", pub.id);
                     return;
                 }
+                
+                if (pub.display === displayName) return; // 본인은 무시
                 
             	const audioMuted = pub.audio_codec === null;
                 const videoMuted = pub.video_codec === null;
