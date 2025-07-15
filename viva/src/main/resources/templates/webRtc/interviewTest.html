@@ -632,6 +632,13 @@ function addParticipant(id, display, audioMuted = false, videoMuted = false) {
 	const idStr = String(id);
 	const exists = participants.some(p => p.display === display);
 
+	participants[id] = {
+		    id,
+		    display,
+		    audioMuted: isAudioMuted,
+		    videoMuted: isVideoMuted
+	};
+	
 	if (!exists) {
 	    participants.push({ id: idStr, display, audioMuted, videoMuted });
 	    console.log(`✅ 참가자 추가됨: ${idStr} (${display})`);
@@ -781,11 +788,12 @@ function createJanusSession() {
           if (msg.videoroom === "joined") {
         	mypvtid = msg.private_id;
         	// 본인 audio/video 정보
-        	const hasAudio = msg.publishers?.some(p => p.id === msg.id && p.audio_codec !== null) ?? true;
-        	const hasVideo = msg.publishers?.some(p => p.id === msg.id && p.video_codec !== null) ?? true;
+        	const hasAudio = msg.audio_codec !== null;
+        	const hasVideo = msg.video_codec !== null;
         	
-         	console.log("hasAudio " + hasAudio);
-        	
+        	console.log("본인 audio_codec:", msg.audio_codec);
+        	console.log("본인 video_codec:", msg.video_codec);
+        	  
         	addParticipant(msg.id, displayName, !hasAudio, !hasVideo);
         	renderParticipants();
         	
