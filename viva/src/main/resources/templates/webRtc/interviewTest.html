@@ -290,6 +290,29 @@ footer {
   object-fit: cover;       /* contain or cover */
 }
 
+/* 상단 사용자 목록 바 */
+.top-bar {
+  display: flex;
+  gap: 10px;
+  padding: 10px 20px;
+  background-color: #1e1e1e;
+  color: white;
+  overflow-x: auto;
+}
+
+.participant {
+  background-color: #333;
+  padding: 6px 12px;
+  border-radius: 4px;
+  min-width: 80px;
+  text-align: center;
+}
+
+.participant.current {
+  border: 2px solid #4fa7ff;
+}
+
+
 </style>
 <!-- 외부 라이브러리 -->
 <script
@@ -313,7 +336,7 @@ footer {
 
 <!-- 내부 라이브러리 -->
 <script th:src="@{/js/webRtc/janus.js}"></script>
-
+<link rel="stylesheet" th:href="@{/css/common.css}">
 <link rel="stylesheet"
 	th:href="@{https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css}" />
 <link rel="stylesheet"
@@ -322,30 +345,8 @@ footer {
 
 </head>
 <body>
-
-	<!-- [1] 메인 화면 -->
-	<div id="main-view" class="view active">
-		<header>
-			<div class="logo">로고</div>
-			<div class="login-link">
-				<a href="/login">로그인</a>
-			</div>
-		</header>
-		<main>
-			<div class="content-box">
-				<h2>면접 메인</h2>
-				<div class="button-group">
-					<script>
-						console.log("[[${sessionId}]]");
-					</script>
-					<button class="nav-button" onclick="navigate('new')">New
-						Meeting</button>
-					<button class="nav-button" onclick="navigate('list')">Join</button>
-				</div>
-			</div>
-		</main>
-		<footer>푸터</footer>
-	</div>
+<!-- header -->
+<div th:replace="fragments/header :: header"></div>
 
 	<!-- [2] 방 생성 화면 -->
 	<div id="new-view" class="view">
@@ -363,7 +364,7 @@ footer {
 	</div>
 
 	<!-- [3] 방 목록 화면 -->
-	<div id="list-view" class="view">
+	<div id="list-view" class="view active">
 		<h2>면접 방 목록</h2>
 		<input type="hidden" id="user_id" name="user_id" th:value="${userId}">
 		<div id="roomList" class="room-list"></div>
@@ -372,7 +373,12 @@ footer {
 
 	<!-- [4] 통화방 화면 -->
 	<div id="videoroom-view" class="view">
-		<h2>화상 통화</h2>
+		 <!-- 🔵 상단 참가자 바 -->
+		<div class="top-bar">
+		    <div class="participant">user</div>
+		    <div class="participant current">나</div>
+		    <div class="participant">user</div>
+		</div>
 
 		<div class="video-chat-wrapper">
 		    <!-- 🔵 비디오 그리드 -->
@@ -394,6 +400,7 @@ footer {
 		  	</div>
 		</div>
 	    <div style="margin-top: 20px;">
+	    	<button id="startCamBtn">📷 캠 시작</button>
 	    	<button id="exitBtn">종료</button>
 	    </div>
 	</div>
@@ -418,6 +425,14 @@ const userId = "[[${userId}]]";
 let hostId = null;
 let isDataChannelReady = false;
 let currentView = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+	  // 'list-view'가 활성화된 경우 자동으로 방 목록 불러오기
+	  const listView = document.getElementById("list-view");
+	  if (listView && listView.classList.contains("active")) {
+	  	loadRoomList();
+	}
+});
 
 // navigate 처리 (화면 전환 시 정리 포함)
 function navigate(view) {
@@ -681,8 +696,8 @@ function createJanusSession() {
           // 방 최초 참가시
           if (msg.videoroom === "joined") {
         	mypvtid = msg.private_id;
-            publishOwnFeed();
-
+//              publishOwnFeed();
+				publishOwnDummyFeed()
             if (msg.publishers) {
               msg.publishers.forEach(pub => {
                 if (!feeds.find(f => f.rfid === pub.id)) {
@@ -895,6 +910,30 @@ function publishOwnFeed() {
     }
   });
 }
+
+// 입장시 더미 스트림 publish
+function publishOwnDummyFeed() {
+	  const dummyStream = getSilentDummyStream();
+
+	  sfutest.createOffer({
+	    stream: dummyStream,
+	    media: {
+	      audioRecv: false,
+	      videoRecv: false,
+	      audioSend: true,
+	      videoSend: true
+	    },
+	    success: function (jsep) {
+	      sfutest.send({
+	        message: { request: "configure", audio: true, video: true },
+	        jsep
+	      });
+	    },
+	    error: function (err) {
+	      console.error("📛 dummyStream publish 실패", err);
+	    }
+	  });
+	}
 
 // 캠없는 경우 더미 데이터
 function getSilentDummyStream() {
@@ -1117,6 +1156,11 @@ function cleanupAllFeeds() {
 // 종료버튼 클릭시
 document.getElementById("exitBtn").addEventListener("click", function () {
 	navigate('main'); // navigate는 세션정리 없이 화면 전환만
+});
+
+// 캠 시작 버튼 클릭
+document.getElementById("startCamBtn").addEventListener("click", function () {
+	  publishOwnFeed();
 });
 
 // 내 캠 음소거
