@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -15,8 +16,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.demo.model.entity.Payment;
+import com.example.demo.model.entity.PointExchange;
 import com.example.demo.model.entity.Users;
 import com.example.demo.service.PaymentService;
+import com.example.demo.service.PointExchangeService;
+import com.example.demo.service.PointService;
 import com.example.demo.service.ReservationService;
 
 import jakarta.servlet.http.HttpSession;
@@ -29,6 +33,7 @@ public class PaymentController {
 
 	private final PaymentService service;
 	private final ReservationService reservationService;
+	private final PointExchangeService pointExchangeService;
 
 	// application.properties 에서 읽어 오는 impKey
 	@Value("${portone.imp-key}")
@@ -118,7 +123,14 @@ public class PaymentController {
 	public String loadPaymentListFragment(Model model, Principal principal) {
 	    String userId = principal.getName();
 	    List<Payment> payments = service.getPaymentsByUserId(userId);
+	    
+	 // 포인트 환전 내역 조회
+	    List<PointExchange> exchanges = pointExchangeService.getUserExchangeList(userId);
+	    if (exchanges == null) {
+	        exchanges = new ArrayList<>();
+	    }
 	    model.addAttribute("payments", payments);
+	    model.addAttribute("exchanges", exchanges);
 	    return "mypage/paymentListFragment :: paymentListFragment";
 	}
     

@@ -99,20 +99,20 @@ public class PointController {
 
 	// 포인트 결제
 	@PostMapping("/use")
-	@ResponseBody
-	public ResponseEntity<String> usePoint(@RequestParam("userId") String userId,
+	//@ResponseBody
+	public String usePoint(@RequestParam("userId") String userId,
 										   @RequestParam("amount") int amount,
 										   @RequestParam("resId") Long resId, 
 										   HttpSession session) {
 		   // 1. 세션에서 사용자 확인
 		 Users user = (Users) session.getAttribute("user");
 		    if (user == null) {
-		        return ResponseEntity.badRequest().body("로그인 필요");
+		      //  return ResponseEntity.badRequest().body("로그인 필요");
 		    }
 		    // 2. 사용자 포인트 차감
 		    boolean success = service.use(user.getUserId(), amount);
 		    if (!success) {
-		        return ResponseEntity.badRequest().body("포인트 부족");
+		      //  return ResponseEntity.badRequest().body("포인트 부족");
 		    } 
 
 		    // 3. 예약 상태 변경 (confirmed)
@@ -140,6 +140,7 @@ public class PointController {
 		    System.out.println("포인트 결제 내역 저장: " + payment);
 		    paymentRepository.save(payment);
 
-		    return ResponseEntity.ok("포인트 결제 완료 + 면접관 포인트 지급 완료");
+		  //  return ResponseEntity.ok("포인트 결제 완료 + 면접관 포인트 지급 완료");
+		    return "redirect:/mypage?tab=schedule";
 }
 }

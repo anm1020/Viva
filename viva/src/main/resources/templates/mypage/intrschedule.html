@@ -5,7 +5,7 @@
 		<thead>
 			<tr>
 				<th>예약번호</th>
-				<th>회원 ID</th>
+				<th>회원 이름</th>
 				<th>예약일</th>
 				<th>예약시간</th>
 				<th>예약 생성일</th>
@@ -15,7 +15,7 @@
 		<tbody>
 			<tr th:each="r : ${reservations}">
 				<td th:text="${r.resId}">1</td>
-				<td th:text="${r.memId}">mem01</td>
+				<td th:text="${memNames[r.memId]} ?: '알 수 없음'">예약자 이름</td>
 				<td th:text="${r.reservedDate}">2025-07-09</td>
 				<td th:text="${r.reservedTime}">12:00</td>
 				<td th:text="${#dates.format(r.resCreateDt, 'yyyy-MM-dd HH:mm')}">2025-07-06
