@@ -670,25 +670,6 @@ function renderParticipants() {
 	      </div>
 	    `;
 	    listEl.appendChild(participantEl);
-	    
-// 	    participantEl.querySelector('.display-name').addEventListener('click', () => {
-// 	        const context = audioContexts[p.id];
-// 	        if (context) {
-// 	            // 예: 음소거 토글
-// 	            const isMuted = context.muted;
-// 	            context.gainNode.gain.value = isMuted ? 1.0 : 0.0;
-// 	            context.muted = !isMuted;
-
-// 	            const muteBtn = document.getElementById(`mute-btn-${p.id}`);
-// 	            if (muteBtn) muteBtn.textContent = isMuted ? '🔊' : '🔇';
-
-// 	            const slider = document.getElementById(`volume-slider-${p.id}`);
-// 	            if (slider) slider.value = isMuted ? 1.0 : 0.0;
-// 	        } else {
-// 	            console.warn(`❌ audioContext 없음 for ${p.id}`);
-// 	        }
-// 	    });
-	    
 	});
 }
 
@@ -1493,14 +1474,28 @@ function toggleMute() {
 	    sfutest.unmuteAudio(); // 마이크 켜기
 	    button.textContent = "🎤 마이크 끄기";
 	    isMicMuted = false;
+	    updateMyAudioMuted(false); // 🔊 내 마이크 상태 업데이트
 	    console.log("🔊 마이크 활성화됨");
 	} else {
 	    sfutest.muteAudio(); // 마이크 끄기
 	    button.textContent = "🔇 마이크 켜기";
 	    isMicMuted = true;
+	    updateMyAudioMuted(true); // 🔊 내 마이크 상태 업데이트
 	    console.log("🔇 마이크 음소거됨");
 	}
 }
+
+// audioMuted 값 업데이트
+function updateMyAudioMuted(muted) {
+	participants = participants.map(p => {
+	    if (p.display === displayName) {
+	      return { ...p, audioMuted: muted };
+		}
+	    return p;
+	});
+	renderParticipants(); // UI 갱신
+}
+
 
 // websocket 연결 및 구독
 let stompClient = null;
@@ -1522,7 +1517,21 @@ function connectChat(roomId) {
     // 구독
     stompClient.subscribe(`/topic/chat/${roomId}`, function (messageOutput) {
       const msg = JSON.parse(messageOutput.body);
-      appendChatMessage(msg.sender, msg.message);
+      if(msg.type === 'chat'){
+	      appendChatMessage(msg.sender, msg.message);
+      }
+      
+      if (msg.type === 'audio-mute-status') {
+    	    // 참가자 배열 갱신
+    	  participants = participants.map(p => {
+    	      if (p.display === msg.sender) {
+    	      	return { ...p, audioMuted: msg.muted };
+    	      }
+    	   	  return p;
+    	  });
+    	  renderParticipants();
+      }
+      
     });
 	sendMessage(displayName + "님이 입장하셨습니다.");
   });
@@ -1585,6 +1594,7 @@ function sendMessage(message) {
 	const content = message;
 
 	stompClient.send("/app/chat.send", {}, JSON.stringify({
+		type: 'chat',
 		roomId: selectedRoomId,
 		sender: displayName,
 	    message: content
@@ -1637,6 +1647,24 @@ input.addEventListener("keypress", function (e) {
     sendBtn.click();    // 전송 버튼 클릭과 동일한 효과
   }
 });
+
+// 메시지 전송 함수
+function sendMessagePayload(payload) {
+	if (!stompClient || !stompClient.connected) return;
+	stompClient.send("/app/chat", {}, JSON.stringify(payload));
+}
+
+// 마이크 음소거 상태 전송
+function notifyAudioMuteStatus(isMuted) {
+	const payload = {
+	    type: 'audio-mute-status',
+	    roomId: selectedRoomId,
+	    sender: displayName,
+	    muted: isMuted
+	};
+	sendMessagePayload(payload);
+}
+
 
 </script>
 
