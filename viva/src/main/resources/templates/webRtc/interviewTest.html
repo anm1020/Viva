@@ -738,9 +738,7 @@ function createJanusSession() {
               display: displayName
             }
           });
-          
           console.log("세션 생성 : 성공");
-          
         },
 
      	// ICE 상태 변경 로그
@@ -786,11 +784,15 @@ function createJanusSession() {
         	const hasAudio = msg.publishers?.some(p => p.id === msg.id && p.audio_codec !== null) ?? true;
         	const hasVideo = msg.publishers?.some(p => p.id === msg.id && p.video_codec !== null) ?? true;
         	
+         	console.log("hasAudio " + hasAudio);
+        	
         	addParticipant(msg.id, displayName, !hasAudio, !hasVideo);
         	renderParticipants();
         	
             publishOwnFeed(displayName);
 // 				publishOwnDummyFeed()
+            
+            // 참가자 목록 처리
             if (msg.publishers) {
               
               msg.publishers.forEach(pub => {
@@ -806,6 +808,7 @@ function createJanusSession() {
                 }
                 
                 if (pub.display === displayName) return; // 본인은 무시
+                console.log("참가자 : " + pub.display, displayName);
                 
             	const audioMuted = pub.audio_codec === null;
                 const videoMuted = pub.video_codec === null;
@@ -833,6 +836,7 @@ function createJanusSession() {
 	        		}
         		}
         		
+	        	if (pub.display === displayName) return; // ✅ 본인은 제외
         		const alreadyExists = feeds.some(f => String(f.rfid) === idStr);
         		if (!alreadyExists && !isRecentlyLeft(pub.id)) {
         			const audioMuted = pub.audio_codec === null;
