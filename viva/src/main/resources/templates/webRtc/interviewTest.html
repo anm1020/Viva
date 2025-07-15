@@ -445,6 +445,8 @@ main {
 		</div>
 		
 	    <div style="margin-top: 20px;">
+	    	<!-- 마이크 음소거 토글 버튼 -->
+			<button id="mute-toggle" class="mic-toggle-btn">🎤 마이크 끄기</button>
 	    	<button id="startCamBtn">📷 캠 시작</button>
 	    	<button id="exitBtn">종료</button>
 	    </div>
@@ -471,6 +473,7 @@ let hostId = null;
 let isDataChannelReady = false;
 let currentView = null;
 const feedHandles = {}; 
+let isMicMuted = false;			//현재 음소거 상태 저장용 전역 변수 (초기값 false)
 
 document.addEventListener("DOMContentLoaded", () => {
 	  // 'list-view'가 활성화된 경우 자동으로 방 목록 불러오기
@@ -626,10 +629,16 @@ function logParticipants() {
 
 // ✅ 참가자 추가 함수
 function addParticipant(id, display, audioMuted = false, videoMuted = false) {
-  if (!participants.find(p => p.id === id)) {
-    participants.push({ id, display, audioMuted, videoMuted });
-    logParticipants();
-  }
+	const idStr = String(id);
+	const exists = participants.some(p => p.display === display);
+
+	if (!exists) {
+	    participants.push({ id: idStr, display, audioMuted, videoMuted });
+	    console.log(`✅ 참가자 추가됨: ${idStr} (${display})`);
+	    renderParticipants();
+	} else {
+	    console.log(`⚠️ 중복 참가자 무시: ${display}`);
+	}  
 }
 
 // ✅ 참가자 제거 함수
@@ -802,6 +811,8 @@ function createJanusSession() {
             publishOwnFeed(displayName);
 // 				publishOwnDummyFeed()
             if (msg.publishers) {
+//               if (pub.id === msg.id) return;	// 본인인 경우 스킵
+              
               msg.publishers.forEach(pub => {
             	const idStr = String(pub.id);
             	
@@ -892,7 +903,7 @@ function createJanusSession() {
         onlocalstream: function (stream) {		// 내 출력화면
         	
         	console.log("onlocalstream 진입");
-        	
+        		
         	const remoteId = 'local'; // 고정 ID
         	const videoElId = `remotevideo-${remoteId}`;
         	const boxElId = `remote-box-${remoteId}`;
@@ -1328,20 +1339,39 @@ function newRemoteFeed(id, display) {
   });
 }
 
+const detachedFeeds = new Set();  // 전역 캐시
+
 // ✅ remote feed 제거
 function removeRemoteFeed(id) {
   console.log(`🧹 remote feed 제거: ${id}`);
   const idStr = String(id);
   
-  // 이미 제거되었는지 체크
-  const idx = feeds.findIndex(f => f && String(f.rfid) === idStr);
-  if (idx === -1) {
-    console.log(`⚠️ 이미 제거된 remote feed: ${idStr}`);
+  //중복 제거 방지
+  if (detachedFeeds.has(idStr)) {
+    console.log(`⏹️ 중복 제거 차단: ${idStr}`);
+    return;
+  }
+  detachedFeeds.add(idStr);
+  
+  // feeds에서 제거 대상 찾기
+  const targetFeed = feeds.find(f => f && String(f.rfid) === idStr);
+  if (!targetFeed) {
+    console.warn(`⚠️ 이미 제거된 remote feed: ${idStr}`);
     return;
   }
   
+  // ✅ detach feed handle
+  try {
+    targetFeed.detach();
+  } catch (e) {
+    console.warn("❌ detach 중 예외:", e);
+  }
+  
+  // feeds 배열에서 제거
+  feeds = feeds.filter(f => String(f.rfid) !== idStr);
+
   // 비디오 DOM 제거
-  $(`#remote-box-${id}`).remove();
+  document.getElementById(`remote-box-${idStr}`)?.remove();
   
   // 오디오 컨텍스트 제거
   if (audioContexts[id]) {
@@ -1351,14 +1381,22 @@ function removeRemoteFeed(id) {
 	  delete audioContexts[id];
   }
   
-  // feeds 배열에서 제거
-  feeds = feeds.filter(f => String(f.rfid) !== String(id));
   
   // 핸들 제거
-  if (feedHandles[id]) {
-  	feedHandles[id].detach();
-  	delete feedHandles[id];
+  if (feedHandles && feedHandles[idStr]) {
+    try {
+      feedHandles[idStr].detach();
+    } catch (e) {}
+    delete feedHandles[idStr];
   }
+  
+  //✅ 참가자 리스트에서도 제거
+  const p = participants.find(p => String(p.id) === idStr);
+  if (p) {
+    removeParticipant(p.id);
+    renderParticipants();
+  }
+  
   
 }
 
@@ -1384,19 +1422,22 @@ function isRecentlyLeft(id) {
 // ✅ 전체 정리
 function cleanupAllFeeds() {
 
-	 if (isDestroying) return;
-	  isDestroying = true; // 🔐 진입 플래그 설정
+	if (isDestroying) return;
+	isDestroying = true; // 🔐 진입 플래그 설정
 
-	  console.log("🧹 cleanupAllFeeds() 실행");
+	console.log("🧹 cleanupAllFeeds() 실행");
 	
-  // remote feed detach + 배열 초기화
+   // remote feed detach + 배열 초기화
+   // 중복 제거 방지
    feeds.forEach((f, i) => {
-    if (f) {
+    if (f && !seen.has(f.rfid)) {
       try { f.detach(); } catch (e) {}
-      feeds[i] = null;
+      seen.add(f.rfid);
     }
+    feeds[i] = null;
   });
-  feeds = [];
+   
+   feeds = [];
   
   // 영상 DOM 제거
   $('#remoteContainer').empty();
@@ -1434,15 +1475,30 @@ document.getElementById("startCamBtn").addEventListener("click", function () {
 	restartPublisherWithRealCam();
 });
 
-// 내 캠 음소거
+//마이크 토글 버튼 클릭 핸들러
+document.getElementById("mute-toggle").addEventListener("click", toggleMute);
+
+// 내 마이크 음소거
 function toggleMute() {
+	if (!sfutest) {
+	    console.warn("❗ sfutest 핸들이 아직 연결되지 않음");
+	    return;
+	  }
+
+	const button = document.getElementById("mute-toggle");
+
+	
 	const muted = sfutest.isAudioMuted();
-	if (muted) {
-	    sfutest.unmuteAudio();
-	    $('#mute').html("Mute");
+	if (isMicMuted) {
+	    sfutest.unmuteAudio(); // 마이크 켜기
+	    button.textContent = "🎤 마이크 끄기";
+	    isMicMuted = false;
+	    console.log("🔊 마이크 활성화됨");
 	} else {
-	    sfutest.muteAudio();
-	    $('#mute').html("Unmute");
+	    sfutest.muteAudio(); // 마이크 끄기
+	    button.textContent = "🔇 마이크 켜기";
+	    isMicMuted = true;
+	    console.log("🔇 마이크 음소거됨");
 	}
 }
 
@@ -1521,6 +1577,7 @@ function leaveRoom() {
 	// 5. 전역 상태 초기화
 	selectedRoomId = null;
 	displayName = null;
+	participants = [];
 }
 
 // 메세지 전송
