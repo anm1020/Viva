@@ -874,7 +874,7 @@ function createJanusSession() {
           }
         	
           // stream이 비어있는 경우에도 attachMediaStream 처리 (검은 화면 표시)
-          Janus.attachMediaStream(document.getElementById('localvideo'), stream);
+//           Janus.attachMediaStream(document.getElementById('localvideo'), stream);
         },
 
         oncleanup: cleanupAllFeeds,
@@ -1122,7 +1122,11 @@ function newRemoteFeed(id, display) {
       	
       	// 비디오 스트림 연결
         const videoElement = document.getElementById(videoElId);
-        Janus.attachMediaStream(videoElement, stream);
+        if (!videoElement) {
+        	  console.error("❌ video element가 존재하지 않습니다");
+        	  return;
+        }
+      	Janus.attachMediaStream(videoElement, stream);
         
      	// ✅ 오디오 트랙 있는 경우에만 오디오 제어 처리
         const hasAudio = stream.getAudioTracks().length > 0;
