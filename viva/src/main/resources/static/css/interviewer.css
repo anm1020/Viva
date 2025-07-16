@@ -125,6 +125,8 @@
   padding: 20px 30px 0 30px;
   background: #fff;
   text-align: left;
+    padding: 20px 30px 20px 30px; /* ✅ 하단 패딩 추가 */
+   overflow: visible !important;  /* ✅ 추가 */
 }
 
 .teacher-contents .list-wrap .teacher-item .text-box .desc {

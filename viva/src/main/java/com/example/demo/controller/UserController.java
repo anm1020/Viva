@@ -19,10 +19,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+
 import com.example.demo.model.entity.Jaso;
-import com.example.demo.model.entity.Users;
 import com.example.demo.security.CustomUserDetails;
 import com.example.demo.service.JasoService;
+
+import com.example.demo.model.entity.Payment;
+import com.example.demo.model.entity.PointExchange;
+import com.example.demo.model.entity.Users;
+import com.example.demo.security.CustomUserDetails;
+import com.example.demo.service.PaymentService;
+import com.example.demo.service.PointExchangeService;
+
 import com.example.demo.service.PointService;
 //import com.example.demo.model.entity.User.UserRole;
 import com.example.demo.service.UserService;
@@ -38,6 +46,9 @@ public class UserController {
 	private final UserService service;
 	private final PointService pointService;
 	private final JasoService jasoService;
+	private final PaymentService paymentService;
+	private final PointExchangeService pointExchangeService;
+
 	
 	@Autowired
 	private PasswordEncoder passwordEncoder;
@@ -273,6 +284,13 @@ public class UserController {
 	    // 포인트
 	    int point =pointService.getPoint(userId);
 	    model.addAttribute("point", point);
+	    // 결제 내역 조회 추가
+	    List<Payment> payments = paymentService.getPaymentsByUserId(userId);
+	    model.addAttribute("payments", payments);
+	    // 환전 신청 내역 추가
+	    List<PointExchange> exchanges = pointExchangeService.getUserExchangeList(userId);
+	    System.out.println("환전 신청 내역 수: " + exchanges.size());
+	    model.addAttribute("exchanges", exchanges);
 	    
 	    // 자소서
 	    List<Jaso> jasoList = jasoService.getJasoByUserId(userId); 

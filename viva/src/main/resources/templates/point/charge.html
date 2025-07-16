@@ -43,11 +43,12 @@
             userId: userId,
             payResno: rsp.merchant_uid,
             payAmount: rsp.paid_amount,
-            resId: 0
+            resId: 0,       // 예약ID 없음을 의미, 충전 기록용
+            payType: "CARD" // 충전은 카드로 결제했으므로 CARD
           }),
           success: function (data) {
-            alert('충전 성공! + ' + data.amount + '원');
-            location.href = '/reservation/mylist';
+            alert('포인트 충전 성공! + ' + data.amount + '원');
+            location.href = "/mypage?tab=schedule";
           },
           error: function () {
             alert('충전 처리 중 오류 발생');
