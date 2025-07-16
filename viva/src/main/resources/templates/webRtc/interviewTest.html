@@ -1701,7 +1701,7 @@ let mixedStream;
 
 const remoteAudioMap = new Map(); 	// feedId → remoteStream
 let myMicStream = null;           	// 내 마이크 스트림
-
+let screenStream = null;
 
 // ✅ 녹화 시작
 async function startFullRecording() {
@@ -1709,7 +1709,7 @@ async function startFullRecording() {
     recordedChunks = [];
 
     // 1. 화면 공유 시작 (탭 or 전체 화면 선택)
-    const screenStream = await navigator.mediaDevices.getDisplayMedia({
+    screenStream = await navigator.mediaDevices.getDisplayMedia({
       video: true,
       audio: false   // 오디오는 AudioContext에서 따로 믹싱
     });
@@ -1720,14 +1720,25 @@ async function startFullRecording() {
     };
     
     // 2. 마이크 입력 (오디오)
-  	myMicStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
+  	try {
+      myMicStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (err) {
+      console.warn("🎙️ 마이크 접근 실패:", err);
+      myMicStream = null;
+    }
+    
     // 3. AudioContext로 모든 오디오 합성 (remote + 내 마이크)
     const audioCtx = new AudioContext();
     const destination = audioCtx.createMediaStreamDestination();
 
     // 믹싱할 스트림: remote + 마이크
     const allAudioStreams = [...remoteAudioMap.values(), myMicStream];
+    if (myMicStream) allAudioStreams.push(myMicStream);
+
+    if (allAudioStreams.length === 0) {
+      throw new Error("오디오 입력이 존재하지 않습니다.");
+    }
+    
     allAudioStreams.forEach(stream => {
       try {
         const source = audioCtx.createMediaStreamSource(stream);
@@ -1756,11 +1767,12 @@ async function startFullRecording() {
     mediaRecorder.onstop = () => {
       const blob = new Blob(recordedChunks, { type: 'video/webm' });
       const url = URL.createObjectURL(blob);
+      
       const saveLink = document.createElement('a');
       saveLink.href = url;
       saveLink.download = `녹화파일_${new Date().toISOString().slice(0,19).replace(/[:T]/g, '-')}.webm`;
       saveLink.textContent = "🔽 녹화파일 저장";
-      document.body.appendChild(saveLink);
+      saveLink.click();
     };
 
     mediaRecorder.start();
@@ -1768,6 +1780,13 @@ async function startFullRecording() {
 
   } catch (err) {
     console.error("🎥 녹화 시작 실패:", err);
+    
+ 	// 👉 화면 공유 자동 종료
+    if (screenStream) {
+      screenStream.getTracks().forEach(track => track.stop());
+      console.log("🛑 예외 발생 → 화면 공유 중단됨");
+    }
+    alert("녹화를 시작할 수 없습니다: " + err.message);
   }
 }
 
@@ -1777,15 +1796,21 @@ function stopFullRecording() {
     mediaRecorder.stop();
     console.log("🛑 녹화 중지됨");
   }
+  
+  if (screenStream) {
+	    screenStream.getTracks().forEach(track => track.stop()); // 화면 공유 종료
+	    console.log("🖥️ 화면 공유 중단됨");
+	    screenStream = null;
+  }
+  
 }
 
 // remote feed 퇴장시 제거
 function removeRemoteStreamFromAudioList(feedId) {
-	// remoteAudioStreams는 stream 배열이므로 id로 직접 찾을 수 없을 수 있음
-	remoteAudioStreams = remoteAudioStreams.filter(stream => {
-	    const trackLabel = stream.getAudioTracks()[0]?.label || '';
-	    return !trackLabel.includes(feedId); // stream label에 feedId가 포함돼 있을 수 있음
-	});
+	if (remoteAudioMap.has(feedId)) {
+    	remoteAudioMap.delete(feedId);
+    	console.log(`🧹 feed ${feedId} 오디오 스트림 제거됨`);
+  	}
 }
 </script>
 
