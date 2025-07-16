@@ -1,27 +1,19 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-<meta charset="UTF-8">
-<title>게시판 목록</title>
-<style>
-table {
-	width: 100%;
-	border-collapse: collapse;
-	margin-top: 20px;
-}
+    <meta charset="UTF-8">
+    <title>게시판 목록</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+   	<link rel="stylesheet" th:href="@{/css/common.css}">
+    <style>
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+        th { background-color: #f0f0f0; }
+    </style>
 
-th, td {
-	border: 1px solid #ccc;
-	padding: 10px;
-	text-align: center;
-}
-
-th {
-	background-color: #f0f0f0;
-}
-</style>
 </head>
 <body>
+<div th:replace="fragments/header :: header"></div>
 
 	<h2>게시판 목록</h2>
 

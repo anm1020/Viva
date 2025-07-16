@@ -24,7 +24,9 @@ public class UserService {
 	}
 
 	public boolean isUserIdDuplicate(String userId) {
-	    return usersRepository.existsById(userId); // true면 중복!
+	    boolean result = usersRepository.existsById(userId);
+	    System.out.println("userId=" + userId + " / 중복? " + result);
+	    return result;
 	}
 	
 	// "중복방지 회원가입"이 필요하면 아래처럼 추가로 활용 가능

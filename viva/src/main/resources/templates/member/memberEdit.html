@@ -188,11 +188,7 @@
     <!-- 이름 -->
     <div class="form-group">
 		<label for="userName">이름</label>
-		  <input type="text"
-		         th:field="*{userName}"
-		         id="userName"
-		         placeholder="이름"
-		         required readonly class="readonly-field" />
+		<input type="text" th:field="*{userName}" id="userName" required />
 		  <span id="nameCheckResult" style="margin-left:10px;font-size:13px;"></span>
 		</div>
 
