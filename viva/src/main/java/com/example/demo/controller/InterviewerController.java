@@ -3,7 +3,7 @@ package com.example.demo.controller;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
@@ -20,8 +20,12 @@ import com.example.demo.model.entity.Review;
 import com.example.demo.model.entity.Users;
 import com.example.demo.repository.ReviewRepository;
 import com.example.demo.service.InterviewerService;
+import com.example.demo.service.ReservationService;
 import com.example.demo.service.UserService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 @Controller
@@ -29,8 +33,10 @@ import lombok.RequiredArgsConstructor;
 public class InterviewerController {
 
     private final InterviewerService interviewerService;
+    private final ReservationService reservationService;
     private final ReviewRepository reviewRepository;
     private final UserService userService;
+    private final ObjectMapper objectMapper; 
     
     // 리스트 페이지 
     @GetMapping("/interviewer")
@@ -99,12 +105,34 @@ public class InterviewerController {
     }
 
     @GetMapping("/interviewer/{intrId}")
-    public String getInterviewerDetail(@PathVariable("intrId") Long intrId, Model model) {
+    public String getInterviewerDetail(@PathVariable("intrId") Long intrId, Model model, HttpSession session
+    		)throws JsonProcessingException {
         InterviewerDetailDTO detail = interviewerService.getInterviewerDetail(intrId);
         model.addAttribute("interviewer", detail);
         // 리뷰 리스트 추가
         List<Review> reviews = reviewRepository.findByIntrIdOrderByCreatedDtDesc(intrId.intValue());
         model.addAttribute("reviews", reviews);
+        
+        // 이슬이 예약 폼에 필요한 데이터
+     // 예약 및 비활성화 슬롯 Map 조회
+        Map<String, List<String>> reservedSlots = reservationService.getReservedSlotsByIntrId(intrId.toString());
+        Map<String, List<String>> disabledSlots = reservationService.getDisabledSlotsByIntrIdGrouped(intrId.toString());
+
+        // JSON 변환
+        String reservedSlotsJson = objectMapper.writeValueAsString(reservedSlots);
+        String disabledSlotsJson = objectMapper.writeValueAsString(disabledSlots);
+
+        model.addAttribute("intrId", intrId); // 숫자 PK (필요하면)
+        model.addAttribute("intrUserId", detail.getUserId()); // users.user_id (문자열, 예약할 때 꼭 필요)
+        model.addAttribute("reservedSlotsJson", reservedSlotsJson);
+        model.addAttribute("disabledSlotsJson", disabledSlotsJson);
+
+        Users user = (Users) session.getAttribute("user");
+        if (user != null) {
+            model.addAttribute("userId", user.getUserId());
+            model.addAttribute("userName", user.getUserName());
+            model.addAttribute("userTel", user.getUserNum());
+        }
         return "interviewer/detail";
     }
 
