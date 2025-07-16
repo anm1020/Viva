@@ -20,6 +20,7 @@
   <title>취준생 마이페이지</title>
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <link rel="stylesheet" th:href="@{/css/common.css}">
+  <link rel="stylesheet" th:href="@{/css/reservation.css}">
   
   <style>
     html, body {
@@ -206,6 +207,7 @@
       .info-cards { flex-direction: column; gap: 14px; }
     }
   </style>
+
 <script th:inline="javascript">
   /*<![CDATA[*/
   var reservedSlots = /*[[${reservedSlotsJson}]]*/ {};
@@ -215,7 +217,6 @@
 </head>
 <body>
 <div th:replace="fragments/header :: header"></div>
-
 
   <div class="mypage-layout">
    <!-- 사이드바 -->
@@ -231,7 +232,7 @@
           <!-- <a th:href="@{/mypage/jasolist}">자소서 관리</a> -->
           <a href="#" id="loadJaso">자소서 관리</a>
           <a href="#">AI 대화 내역</a>
-          <a th:href="@{/memReservation}">결제 내역</a>
+          <a href="#" id="loadPaymentList">결제 내역</a> <!-- 결제내역 탭 또는 버튼 -->
           <a th:href="@{/jobsite}">취업 사이트</a>
         </div>
       </div>
@@ -257,24 +258,34 @@
           </div>
         </div>
         
-         <!-- 포인트만 표시하는 활동통계 -->
+        <!-- 포인트만 표시하는 활동통계 -->
         <div class="stat-info">
           <h2>나의 포인트</h2>
-           <div class="point-value" th:text="${point + 'P'}">
-          <!--  <div th:text="${point + 'P'}"></div> -->
-              </div>   
-        </div> 
+           	<div class="point-value" th:text="${point + 'P'}">
+           	<!--  <div th:text="${point + 'P'}"></div> -->
+           	</div>   
+        	<!--환전 버튼 추가 -->
+  			<button id="exchangeBtn" type="button" style="margin-top: 10px; padding: 8px 16px;">환전하기</button>
+			<!-- 예: 환전 모달을 넣을 페이지 -->
+			<div th:replace="mypage/exchangeModal :: exchangeModal"></div>
+        </div>
+
+		<!-- '내 예약 목록'-->
+		<div id="schedule">
+			<div id="reservationContainer"></div>
+		</div>
+
+		<!-- 결제내역 표시 영역 -->
+		<div id="paymentListContainer" style="display:none;"></div>
          
-         <!-- fragment 설정 -->
-      <!-- '내 예약 목록'-->
-	  <div id="reservationContainer"></div>
-	  <!-- 마이페이지 내정보 수정 -->
-	  <div id="editContainer" style="display:none; width:100%; justify-content:center;"></div>
-	  <!-- 내활동관리 임시-->
-	  <div id="activityContainer" style="display:none;"></div>
-	  <!-- 자소서 관리 메뉴 컨테이너-->
-	  <!-- <div th:replace="~{mypage/jasolist :: jasoList(jasoList=${jasoList})}"></div> -->
-    	<div id="jasoContainer" style="display:none;"></div>
+        <!-- 마이페이지 내정보 수정 -->
+        <div id="editContainer" style="display:none; width:100%; justify-content:center;"></div>
+        <!-- 내활동관리 임시-->
+        <div id="activityContainer" style="display:none;"></div>
+        <!-- 자소서 관리 메뉴 컨테이너-->
+        <!-- <div th:replace="~{mypage/jasolist :: jasoList(jasoList=${jasoList})}"></div> -->
+        <div id="jasoContainer" style="display:none;"></div>
+        </div>
     </section>
   </div>
   
@@ -313,10 +324,13 @@
 <script>
 // 공통 함수
 function hideAllFragments() {
-	  $('#reservationContainer, #editContainer, #activityContainer, #reviewContainer, #jasoContainer').hide();
+	  $('#reservationContainer, #editContainer, #activityContainer, #reviewContainer, #jasoContainer, #exchangeBtn').hide();
 	  $('.member-info, .stat-info').hide();
 	}
 
+</script> 
+
+<script>
 $(function(){
   // 1. "회원 탈퇴" 링크 클릭 시 팝업 열기
   $("#withdrawBtn").on("click", function(e){
@@ -392,35 +406,40 @@ $(function(){
 	        alert('예약 목록 로드 실패: ' + xhr.statusText);
 	        return;
 	      }
+        // 4) reservedSlotsJson 추출
+        const $jsonScript = $('#reservationContainer').find('#reservedSlotsJson');
+        if ($jsonScript.length) {
+          try {
+            window.reservedSlots = JSON.parse($jsonScript.text());
+            console.log("✅ reservedSlots loaded:", window.reservedSlots);
+          } catch (e) {
+            console.error("❌ reservedSlots 파싱 실패:", e);
+            window.reservedSlots = {};
+          }
+        } else {
+          console.warn("⚠️ reservedSlotsJson 태그 없음");
+          window.reservedSlots = {};
+        }
 
-	      // 4) reservedSlotsJson 추출
-	      const $jsonScript = $('#reservationContainer').find('#reservedSlotsJson');
-	      if ($jsonScript.length) {
-	        try {
-	          window.reservedSlots = JSON.parse($jsonScript.text());
-	          console.log("✅ reservedSlots loaded:", window.reservedSlots);
-	        } catch (e) {
-	          console.error("❌ reservedSlots 파싱 실패:", e);
-	          window.reservedSlots = {};
-	        }
-	      } else {
-	        console.warn("⚠️ reservedSlotsJson 태그 없음");
-	        window.reservedSlots = {};
-	      }
+        // 5) 스케줄러 초기화 함수 호출
+        if (typeof window.initReservationSchedule === 'function') {
+          window.initReservationSchedule();
+        } else {
+          console.warn("⚠️ initReservationSchedule 함수가 없음");
+        }
+      });
+    });
 
-	      // 5) 스케줄러 초기화 함수 호출
-	      if (typeof window.initReservationSchedule === 'function') {
-	        window.initReservationSchedule();
-	      } else {
-	        console.warn("⚠️ initReservationSchedule 함수가 없음");
-	      }
-	    });
-	  });
-	});
+    // ✅ 페이지 로드시 ?tab=schedule 이면 자동 클릭
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("tab") === "schedule") {
+      $('#loadReservations').click();
+    }
+  });
 </script>
 
-<!-- 예약변경 -->
-<script>
+	<!-- 예약변경 -->
+	<script>
 // 💡 스케줄러 초기화 함수
 window.initReservationSchedule = function() {
   $(document).on('click', '.action-link.change', function(e){
@@ -498,10 +517,8 @@ window.disableTimeButtons = function(dateStr){
 };
 </script>
 
-
-
-<!-- 환불 -->
-<script>
+	<!-- 환불 -->
+	<script>
 $(document).on('click', '.action-link.cancel', function(e){
 	  e.preventDefault();
 	  const resId = $(this).data('res-id');
@@ -523,7 +540,7 @@ $(document).on('click', '.action-link.cancel', function(e){
 	      alert("취소 실패: " + xhr.responseText);
 	    });
 	});
-	
+
 // 내정보 수정
 $('#memberEdit').on('click', function(e){
   e.preventDefault();
@@ -543,7 +560,6 @@ $('#memberEdit').on('click', function(e){
     bindEmailDomainEvents();
   });
 });
-	
 	
 // 정보 수정 취소 버튼
 $(document).on('click', '#editCancelBtn', function(){
@@ -583,5 +599,89 @@ $('#loadJaso').on('click', function(e) {
 });
  
 </script>
+
+<!--결제내역 -->
+<script>
+$(function() {
+	  // 결제내역 탭 또는 버튼 클릭 시 프래그먼트 로드
+	  $('#loadPaymentList').on('click', function(e) {
+	    e.preventDefault();
+
+	    // 탭 활성화 토글 (선택사항)
+	    $('.sidebar-menu a').removeClass('active');
+	    $(this).addClass('active');
+
+	    // 다른 메인 컨텐츠 숨기기 (필요하면)
+	    $('.member-info, .stat-info, #reservationContainer').hide();
+
+	    // 결제내역 컨테이너 보이기
+	    $('#paymentListContainer').show();
+
+	    // AJAX로 결제내역 프래그먼트 로드
+	    $('#paymentListContainer').load('/payment/mypage/paymentList', function(response, status, xhr) {
+	      if (status !== "success") {
+	        alert("결제 내역을 불러오는 중 오류가 발생했습니다: " + xhr.statusText);
+	      }
+	    });
+	  });
+
+	  // 페이지 로드 시 특정 파라미터에 따라 자동 클릭 예시
+	  const params = new URLSearchParams(window.location.search);
+	  if (params.get("tab") === "payment") {
+	    $('#loadPaymentList').click();
+	  }
+	});
+
+</script>
+
+<!-- 환전쓰 -->
+
+<script>
+  $(function() {
+    $("#exchangeBtn").on("click", function() {
+      $("#exchangeModal").show();
+    });
+    $(document).on("click", "#cancelExchange", function() {
+      $("#exchangeModal").hide();
+      $("#exchangeForm")[0].reset();
+    });
+  });
+  
+  $(function() {
+	  $("#exchangeForm").on("submit", function(e) {
+	    e.preventDefault();
+
+	    // 폼 데이터 객체로 수집
+	    const data = {
+	      name: $("input[name='name']").val(),
+	      phone: $("input[name='phone']").val(),
+	      bank: $("select[name='bank']").val(),
+	      account: $("input[name='account']").val(),
+	      amount: parseInt($("input[name='amount']").val(), 10)
+	    };
+
+	    $.ajax({
+	      url: "/point/exchange/request",
+	      type: "POST",
+	      contentType: "application/json",
+	      data: JSON.stringify(data),
+	      success: function(response) {
+	        if(response.success) {
+	          alert(response.message);
+	          $("#exchangeModal").hide();
+	          $("#exchangeForm")[0].reset();
+	          // 필요시 포인트 잔액 갱신 코드 추가
+	        } else {
+	          alert("실패: " + response.message);
+	        }
+	      },
+	      error: function() {
+	        alert("서버 요청 중 오류가 발생했습니다.");
+	      }
+	    });
+	  });
+	});
+</script>
+
 </body>
 </html>

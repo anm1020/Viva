@@ -1,37 +1,139 @@
-/* src/main/resources/static/css/reservation.css */
-
-/* ─── 컨테이너 ───────────────────────────────────────────────────────────── */
-.reservation-list {
-  background: #fff;
-  border-radius: 10px;
-  padding: 70px;	/* 24에서 70으로 수정 (예원)*/
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  
-}
-.reservation-title {
-  font-size: 22px;
-  color: #2951a3;
-  margin-bottom: 16px;
-}
-.reservation-summary {
+/* 예약 페이지 전체 레이아웃 */
+.reservation-wrapper {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+  gap: 40px;
+  justify-content: center;
+  align-items: stretch; /* ✅ 모든 칼럼 높이 맞춤 */
+  margin-top: 20px;
+  min-height: 400px;
 }
-.btn-charge {
-  background: #2951a3;
-  color: #fff;
-  padding: 6px 14px;
-  border-radius: 4px;
-  text-decoration: none;
-  font-size: 14px;
-  transition: opacity .2s;
+/* 옆으로 슬라이드  */
+.step {
+  opacity: 0;
+  transition: opacity 0.4s ease;
 }
-.btn-charge:hover {
-  opacity: .85;
+.step[style*="display: block"] {
+  opacity: 1;
+}
+/* 각 패널 너비 조절 */
+.calendar-panel {
+  width: 280px;
+  background: #fff;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.05);
 }
 
+.time-panel {
+  width: 240px;
+  background: #fff;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+}
+
+.summary-panel {
+  width: 200px;
+  background: #fff;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+/* ───── [1] 달력 영역 ───── */
+.calendar-panel {
+  width: 260px;
+  background: #fff;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+}
+
+/* ───── [2] 시간 선택 영역 ───── */
+.time-panel {
+  width: 240px;
+  background: #fff;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+}
+#selected-date-label {
+  margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: bold;
+}
+.times-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.times-grid button {
+  padding: 10px 14px;
+  border: 2px solid #666;
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.times-grid button.selected {
+  background: #dbe6ff;
+  border-color: #0033cc;
+  font-weight: bold;
+}
+.times-grid button.disabled {
+  background: #eee;
+  color: #aaa;
+  border-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* ───── [3] 정보 요약 영역 ───── */
+.summary-panel {
+  width: 240px;
+  background: #fff;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* ✅ 버튼을 아래로 붙이기 */
+}
+.summary-box {
+  font-size: 14px;
+  line-height: 1.6;
+}
+#btn-confirm {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  background: #1a237e;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 20px;
+}
+#btn-confirm:hover {
+  background: #0f195b;
+}
+
+/* 확인 버튼 */
+#btn-confirm {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 16px;
+  background: #3b5dd9;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#btn-confirm:hover {
+  background: #2e4ab3;
+}
 /* ─── 테이블 ───────────────────────────────────────────────────────────── */
 .reservation-table {
   width: 100%;
@@ -278,12 +380,19 @@
 .back-link a:hover {
   opacity: .8;
 }
-
-/* ─── 반응형 ───────────────────────────────────────────────────────────── */
+/* 반응형 대응 */
 @media (max-width: 768px) {
-  .reservation-table {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
+  .reservation-wrapper {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .times-grid {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  #calendar {
+    max-width: 100%;
   }
 }

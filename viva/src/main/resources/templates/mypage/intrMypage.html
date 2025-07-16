@@ -178,6 +178,10 @@
            <div class="point-value" th:text="${point + 'P'}">
           <!--  <div th:text="${point + 'P'}"></div> -->
            	</div>	
+           	  <!--환전 버튼 추가 -->
+  		<button id="exchangeBtn" type="button" style="margin-top: 10px; padding: 8px 16px;">환전하기</button>
+			<!-- 예: 환전 모달을 넣을 페이지 -->
+			<div th:replace="mypage/exchangeModal :: exchangeModal"></div>
         </div> 
       </div>
        <!-- ✅ 일정 관리 영역 (Ajax로 로드) -->
@@ -293,5 +297,55 @@ $(function(){
       });
     });
   </script>
+<!-- 환전쓰 -->
+
+<script>
+  $(function() {
+    $("#exchangeBtn").on("click", function() {
+      $("#exchangeModal").show();
+    });
+    $(document).on("click", "#cancelExchange", function() {
+      $("#exchangeModal").hide();
+      $("#exchangeForm")[0].reset();
+    });
+  });
+  
+  $(function() {
+	  $("#exchangeForm").on("submit", function(e) {
+	    e.preventDefault();
+
+	    // 폼 데이터 객체로 수집
+	    const data = {
+	      name: $("input[name='name']").val(),
+	      phone: $("input[name='phone']").val(),
+	      bank: $("input[name='bank']").val(),
+	      account: $("input[name='account']").val(),
+	      amount: parseInt($("input[name='amount']").val(), 10)
+	    };
+
+	    $.ajax({
+	      url: "/point/exchange/request",
+	      type: "POST",
+	      contentType: "application/json",
+	      data: JSON.stringify(data),
+	      success: function(response) {
+	        if(response.success) {
+	          alert(response.message);
+	          $("#exchangeModal").hide();
+	          $("#exchangeForm")[0].reset();
+	          // 필요시 포인트 잔액 갱신 코드 추가
+	        } else {
+	          alert("실패: " + response.message);
+	        }
+	      },
+	      error: function() {
+	        alert("서버 요청 중 오류가 발생했습니다.");
+	      }
+	    });
+	  });
+	});
+</script>
+</body>
+</html>
 </body>
 </html>

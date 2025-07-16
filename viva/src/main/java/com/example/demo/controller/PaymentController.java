@@ -1,5 +1,9 @@
 package com.example.demo.controller;
 
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -12,8 +16,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.demo.model.entity.Payment;
+import com.example.demo.model.entity.PointExchange;
 import com.example.demo.model.entity.Users;
 import com.example.demo.service.PaymentService;
+import com.example.demo.service.PointExchangeService;
+import com.example.demo.service.PointService;
 import com.example.demo.service.ReservationService;
 
 import jakarta.servlet.http.HttpSession;
@@ -26,6 +33,7 @@ public class PaymentController {
 
 	private final PaymentService service;
 	private final ReservationService reservationService;
+	private final PointExchangeService pointExchangeService;
 
 	// application.properties 에서 읽어 오는 impKey
 	@Value("${portone.imp-key}")
@@ -69,6 +77,18 @@ public class PaymentController {
 		 // 1) 세션에서 userId 꺼내오기 (생략)
 	    //String user_id = "s";
 	    payment.setUserId(user_id);
+	    
+
+	    // 결제 타입이 없는 경우 기본값 지정 (예: CARD)
+	    if(payment.getPayType() == null) {
+	        payment.setPayType(Payment.PayType.CARD);
+	    }
+	    if(payment.getPayStatus() == null) {
+	        payment.setPayStatus(Payment.PayStatus.paid);
+	    }
+
+	    System.out.println("payType: " + payment.getPayType());
+	    System.out.println("Saving payment: " + payment);
 
 	    // 2) 결제 정보 저장
 	    Payment result = service.savePayment(payment);
@@ -98,6 +118,21 @@ public class PaymentController {
 		return "payment/result";
 	}
    
+	// 결제내역
+	@GetMapping("/mypage/paymentList")
+	public String loadPaymentListFragment(Model model, Principal principal) {
+	    String userId = principal.getName();
+	    List<Payment> payments = service.getPaymentsByUserId(userId);
+	    
+	 // 포인트 환전 내역 조회
+	    List<PointExchange> exchanges = pointExchangeService.getUserExchangeList(userId);
+	    if (exchanges == null) {
+	        exchanges = new ArrayList<>();
+	    }
+	    model.addAttribute("payments", payments);
+	    model.addAttribute("exchanges", exchanges);
+	    return "mypage/paymentListFragment :: paymentListFragment";
+	}
     
  
 
