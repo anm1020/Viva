@@ -1714,6 +1714,11 @@ async function startFullRecording() {
       audio: false   // 오디오는 AudioContext에서 따로 믹싱
     });
 
+    screenStream.getVideoTracks()[0].onended = () => {
+    	stopFullRecording();
+    	console.log("📴 화면 공유 종료됨 → 녹화 자동 중지");
+    };
+    
     // 2. 마이크 입력 (오디오)
   	myMicStream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
@@ -1751,10 +1756,11 @@ async function startFullRecording() {
     mediaRecorder.onstop = () => {
       const blob = new Blob(recordedChunks, { type: 'video/webm' });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `full-recording-${Date.now()}.webm`;
-      a.click();
+      const saveLink = document.createElement('a');
+      saveLink.href = url;
+      saveLink.download = `녹화파일_${new Date().toISOString().slice(0,19).replace(/[:T]/g, '-')}.webm`;
+      saveLink.textContent = "🔽 녹화파일 저장";
+      document.body.appendChild(saveLink);
     };
 
     mediaRecorder.start();
