@@ -240,4 +240,5 @@ public class JasoController {
         }
         return "redirect:/mypage/jaso/view/" + id;
     }
+    
 }

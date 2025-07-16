@@ -3,57 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <title>게시판 목록</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+   	<link rel="stylesheet" th:href="@{/css/common.css}">
     <style>
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
         th { background-color: #f0f0f0; }
     </style>
+
 </head>
 <body>
+<div th:replace="fragments/header :: header"></div>
 
-<h2>게시판 목록</h2>
+	<h2>게시판 목록</h2>
 
-<table>
-    <thead>
-        <tr>
-            <th>No</th>
-            <th>제목</th>
-            <th>작성자</th>
-            <th>작성일</th>
-            <th>조회수</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr th:each="board : ${boardPage.content}">
-            <td th:text="${board.id}">1</td>
-            <td>
-                <a th:href="@{/board/view/{id}(id=${board.id})}" th:text="${board.title}">제목</a>
-            </td>
-            <td th:text="${board.userId}">작성자</td>
-            <td th:text="${#temporals.format(board.createdAt, 'yyyy-MM-dd HH:mm')}">날짜</td>
-            <td th:text="${board.viewCount}">0</td>
-        </tr>
-        <tr th:if="${#lists.isEmpty(boardPage.content)}">
-            <td colspan="5">게시글이 없습니다.</td>
-        </tr>
-    </tbody>
-</table>
+<form th:action="@{/board/list}" method="get" style="margin-bottom: 10px;">
+  <!-- 기존 검색 파라미터는 hidden으로 넘기기 -->
+  <input type="hidden" name="type" th:value="${type}" />
+  <input type="hidden" name="keyword" th:value="${keyword}" />
 
-<!-- ✅ 페이징 영역 -->
-<div style="text-align:center; margin-top:20px;">
+ <div style="margin-bottom: 10px; font-size: 16px; text-align: right;">
+  <a th:href="@{/board/list(sort='date', type=${type}, keyword=${keyword})}"
+     th:classappend="${sort == 'date'} ? 'active' : ''"
+     style="cursor: pointer; margin-right: 8px;">날짜순</a>
+  ・
+  <a th:href="@{/board/list(sort='views', type=${type}, keyword=${keyword})}"
+     th:classappend="${sort == 'views'} ? 'active' : ''"
+     style="cursor: pointer; margin-left: 8px;">조회수순</a>
+</div>
+</form>
+	<table>
+		<thead>
+			<tr>
+				<th>No</th>
+				<th>작성자</th>
+				<th>제목</th>
+				<th>작성일</th>
+				<th>조회수</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr th:each="board : ${boardPage.content}">
+				<td th:text="${board.id}">1</td>
+				<td th:text="${board.userId}">작성자</td>
+				<td><a th:href="@{/board/view/{id}(id=${board.id})}"
+					th:text="${board.title}">제목</a></td>
+				<td
+					th:text="${#temporals.format(board.createdAt, 'yyyy-MM-dd HH:mm')}">날짜</td>
+				<td th:text="${board.viewCount}">0</td>
+			</tr>
+			<tr th:if="${#lists.isEmpty(boardPage.content)}">
+				<td colspan="5">게시글이 없습니다.</td>
+			</tr>
+		</tbody>
+	</table>
+<!--검색바 -->
+<!-- 검색 폼 (테이블 아래) -->
+<form th:action="@{/board/list}" method="get" style="margin-top: 10px;">
+  <select name="type">
+    <option value="title" th:selected="${type == 'title'}">제목</option>
+    <option value="content" th:selected="${type == 'content'}">내용</option>
+    <option value="userId" th:selected="${type == 'userId'}">작성자</option>
+  </select>
+
+  <input type="text" name="keyword" th:value="${keyword}" placeholder="검색어 입력" />
+  
+  <!-- 기존 정렬값 유지시키려면 hidden 추가 -->
+  <input type="hidden" name="sort" th:value="${sort}" />
+
+  <button type="submit">검색</button>
+</form>
+
+	<!-- ✅ 페이징 영역 -->
+	<div style="text-align:center; margin-top:20px;">
     <span th:if="${boardPage.hasPrevious()}">
-        <a th:href="@{/board/list(page=${boardPage.number - 1})}">이전</a>
+        <a th:href="@{/board/list(page=${boardPage.number - 1}, type=${type}, keyword=${keyword})}">이전</a>
     </span>
 
     <span th:text="${boardPage.number + 1} + ' / ' + ${boardPage.totalPages}">1 / 1</span>
 
     <span th:if="${boardPage.hasNext()}">
-        <a th:href="@{/board/list(page=${boardPage.number + 1})}">다음</a>
+        <a th:href="@{/board/list(page=${boardPage.number + 1}, type=${type}, keyword=${keyword})}">다음</a>
     </span>
 </div>
 
-<br>
-<a th:href="@{/board/write}">글쓰기</a>
+	<br>
+	<a th:href="@{/board/write}">글쓰기</a>
 
 </body>
 </html>

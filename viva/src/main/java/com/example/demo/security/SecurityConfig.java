@@ -35,7 +35,10 @@ public class SecurityConfig {
             public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, org.springframework.security.core.Authentication authentication)
                     throws IOException, ServletException {
             	 System.out.println(">>> [DEBUG] onAuthenticationSuccess principal class: " + authentication.getPrincipal().getClass().getName());
-                
+
+            	 // 로그인 세션 1시간 유지(전체)
+            	 request.getSession().setAttribute("loginTime", System.currentTimeMillis());
+            	 
             	 // 로그인 폼에서 넘어온 role 값(취준생/면접관 구분)
                 String formRole = request.getParameter("role"); // "mem" 또는 "intr"
                 
@@ -81,11 +84,14 @@ public class SecurityConfig {
                 .requestMatchers(
                 		"/loginmain", 			// 로그인 페이지
                 		"/memberform",			// 회원가입 페이지
+                		"/member/checkId",
                 		"/memberinsert",		// 회원가입 페이지
                 		"/css/**", 				// css 파일
                 		"/images/**",			// 이미지 파일
+                		"/js/**",
                 		"/main",				// 메인 페이지
-                		"/index.html"
+                		"/",
+                		"/notice/**"
                 		).permitAll()	
                                    
 //              // 2) 관리자 페이지는 admin만 접근 허용!

@@ -1,0 +1,100 @@
+@charset "UTF-8";
+html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .jaso-list-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 30px;
+      flex: 1 0 auto;
+    }
+    .jaso-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 30px;
+    }
+    .jaso-header h2 {
+      margin: 0;
+      font-size: 2rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+    }
+    .btn-new {
+      background: #fff;
+      color: #c97a00;
+      border: 1px solid #c97a00;
+      border-radius: 5px;
+      padding: 8px 18px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s, color 0.2s;
+    }
+    .btn-new:hover {
+      background: #c97a00;
+      color: #fff;
+    }
+    .jaso-item {
+      border: 1px solid #ccc;
+      padding: 18px 20px 15px 20px;
+      margin-bottom: 18px;
+      border-radius: 12px;
+      background: #fafbfc;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    .jaso-item-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .jaso-title-link {
+      font-size: 1.15rem;
+      font-weight: bold;
+      color: #222;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .jaso-title-link:hover {
+      color: #007bff;
+      text-decoration: underline;
+    }
+    .jaso-date {
+      color: #888;
+      font-size: 0.95rem;
+      margin: 8px 0 0 0;
+    }
+    .actions {
+      display: flex;
+      flex-direction: row-reverse;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .actions a {
+      background: #f4f4f4;
+      color: #333;
+      border: 1px solid #bbb;
+      border-radius: 4px;
+      padding: 6px 14px;
+      font-size: 0.98rem;
+      text-decoration: none;
+      transition: background 0.2s, color 0.2s;
+    }
+    .actions a:hover {
+      background: #007bff;
+      color: #fff;
+      border-color: #007bff;
+    }
+    /* 푸터 항상 하단 */
+    .footer-fixed {
+      margin-top: auto;
+    }

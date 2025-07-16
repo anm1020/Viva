@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>공지사항 수정</title>
+    <link rel="stylesheet" th:href="@{/css/notice.css}">
+</head>
+<body>
+<div class="notice-table-wrap">
+    <h2>공지사항 수정</h2>
+    <form th:action="@{|/notice/edit/${notice.noticeId}|}" th:object="${notice}" method="post" id="noticeEditForm">
+        <input type="hidden" th:field="*{noticeId}" />
+        <div>
+            <label>제목</label>
+            <input type="text" th:field="*{title}" required/>
+        </div>
+        <div>
+            <label>내용</label>
+            <textarea th:field="*{content}" required></textarea>
+        </div>
+        <button type="submit">수정완료</button>
+        <button type="button" id="notice-list-btn">목록으로</button>
+    </form>
+</div>
+</body>
+</html>

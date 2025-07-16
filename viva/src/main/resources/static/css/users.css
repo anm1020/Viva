@@ -26,17 +26,15 @@
 .user-role-filter {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 .user-role-filter label {
-  font-size: 1.07rem;
-  font-weight: 400;
   color: #555;
   cursor: pointer;
 }
 .user-role-filter input[type="radio"] {
   accent-color: #4272f8;
-  margin-right: 5px;
+  margin-right: 3px;
 }
 
 /* 테이블 */

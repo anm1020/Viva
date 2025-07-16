@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.demo.model.entity.Board;
 import com.example.demo.model.entity.Users;
@@ -29,12 +31,34 @@ public class BoardController {
 
 	// 🔹 게시글 목록
 	@GetMapping("/list")
-	public String list(Model model, 
-						@RequestParam(name = "page", defaultValue = "0") int page,
-						@RequestParam(name = "size", defaultValue = "10") int size) {
-		Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
-		Page<Board> boardPage = boardService.getBoardPage(pageable);
-		model.addAttribute("boardPage", boardPage); // ✅ 모델 이름 일치
+	public String list(Model model, @RequestParam(name = "page", defaultValue = "0") int page,
+			@RequestParam(name = "size", defaultValue = "10") int size,
+			@RequestParam(value = "type", required = false) String type,
+			@RequestParam(value = "keyword", required = false) String keyword,
+			@RequestParam(value = "sort", defaultValue = "date") String sort // 기본값 날짜순
+	) {
+		// 날짜순조회수순으로보기
+		Sort sortOrder;
+		if ("views".equals(sort)) {
+			sortOrder = Sort.by("viewCount").descending();
+		} else {
+			sortOrder = Sort.by("createdAt").descending();
+		}
+
+		Pageable pageable = PageRequest.of(page, size, sortOrder);
+		Page<Board> boardPage;
+
+		if (type == null || type.isEmpty() || keyword == null || keyword.isEmpty()) {
+			// 검색어 없으면 전체 조회
+			boardPage = boardService.getBoardPage(pageable);
+		} else {
+			// 검색어가 있으면 조건 검색 (서비스에서 구현 필요)
+			boardPage = boardService.searchBoards(type, keyword, pageable);
+		}
+		model.addAttribute("boardPage", boardPage);
+		model.addAttribute("type", type);
+		model.addAttribute("keyword", keyword);
+		model.addAttribute("sort", sort);
 		return "board/list";
 	}
 
@@ -100,5 +124,13 @@ public class BoardController {
 	public String delete(@PathVariable("id") Integer id) {
 		boardService.deleteBoard(id);
 		return "redirect:/board/list";
+	}
+
+	//추천수
+	@PostMapping("/like/{id}")
+	@ResponseBody
+	public ResponseEntity<String> likePost(@PathVariable("id") Integer id) {
+	    boardService.incrementLikeCount(id);
+	    return ResponseEntity.ok("success");
 	}
 }
