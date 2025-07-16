@@ -1335,14 +1335,14 @@ function newRemoteFeed(id, display) {
 
     oncleanup: function () {
       removeRemoteFeed(id);
-//       remoteAudioMap.delete(id);
-//       console.log(`🧹 remoteAudioMap에서 제거됨: ${id}`);
+      remoteAudioMap.delete(id);
+      console.log(`🧹 remoteAudioMap에서 제거됨: ${id}`);
     },
 
     ondetached: function () {
       removeRemoteFeed(id);
-//       remoteAudioMap.delete(id);  // ✅ Map에서 제거
-//       console.log(`🧹 remoteAudioMap에서 제거됨: ${id}`);
+      remoteAudioMap.delete(id);  // ✅ Map에서 제거
+      console.log(`🧹 remoteAudioMap에서 제거됨: ${id}`);
     }
   });
 }
@@ -1544,20 +1544,20 @@ function connectChat(roomId) {
     // 구독
     stompClient.subscribe(`/topic/chat/${roomId}`, function (messageOutput) {
       const msg = JSON.parse(messageOutput.body);
-      if(msg.type === 'chat'){
-	      appendChatMessage(msg.sender, msg.message);
-      }
+
+	  appendChatMessage(msg.sender, msg.message);
+
       
-      if (msg.type === 'audio-mute-status') {
-    	    // 참가자 배열 갱신
-    	  participants = participants.map(p => {
-    	      if (p.display === msg.sender) {
-    	      	return { ...p, audioMuted: msg.muted };
-    	      }
-    	   	  return p;
-    	  });
-    	  renderParticipants();
-      }
+//       if (msg.type === 'audio-mute-status') {
+//     	    // 참가자 배열 갱신
+//     	  participants = participants.map(p => {
+//     	      if (p.display === msg.sender) {
+//     	      	return { ...p, audioMuted: msg.muted };
+//     	      }
+//     	   	  return p;
+//     	  });
+//     	  renderParticipants();
+//       }
       
     });
 	sendMessage(displayName + "님이 입장하셨습니다.");
@@ -1694,93 +1694,93 @@ function notifyAudioMuteStatus(isMuted) {
 </script>
 
 <script>
-// 녹화?
-// let mediaRecorder;
-// let recordedChunks = [];
-// let mixedStream;
+//녹화?
+let mediaRecorder;
+let recordedChunks = [];
+let mixedStream;
 
-// const remoteAudioMap = new Map(); 	// feedId → remoteStream
-// let myMicStream = null;           	// 내 마이크 스트림
+const remoteAudioMap = new Map(); 	// feedId → remoteStream
+let myMicStream = null;           	// 내 마이크 스트림
 
 
-// // ✅ 녹화 시작
-// async function startFullRecording() {
-//   try {
-//     recordedChunks = [];
+// ✅ 녹화 시작
+async function startFullRecording() {
+  try {
+    recordedChunks = [];
 
-//     // 1. 화면 공유 시작 (탭 or 전체 화면 선택)
-//     const screenStream = await navigator.mediaDevices.getDisplayMedia({
-//       video: true,
-//       audio: false   // 오디오는 AudioContext에서 따로 믹싱
-//     });
+    // 1. 화면 공유 시작 (탭 or 전체 화면 선택)
+    const screenStream = await navigator.mediaDevices.getDisplayMedia({
+      video: true,
+      audio: false   // 오디오는 AudioContext에서 따로 믹싱
+    });
 
-//     // 2. 마이크 입력 (오디오)
-//   	myMicStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    // 2. 마이크 입력 (오디오)
+  	myMicStream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-//     // 3. AudioContext로 모든 오디오 합성 (remote + 내 마이크)
-//     const audioCtx = new AudioContext();
-//     const destination = audioCtx.createMediaStreamDestination();
+    // 3. AudioContext로 모든 오디오 합성 (remote + 내 마이크)
+    const audioCtx = new AudioContext();
+    const destination = audioCtx.createMediaStreamDestination();
 
-//     // 믹싱할 스트림: remote + 마이크
-//     const allAudioStreams = [...remoteAudioMap.values(), myMicStream];
-//     allAudioStreams.forEach(stream => {
-//       try {
-//         const source = audioCtx.createMediaStreamSource(stream);
-//         source.connect(destination);
-//       } catch (err) {
-//         console.warn("⚠️ 오디오 믹싱 실패:", err);
-//       }
-//     });
+    // 믹싱할 스트림: remote + 마이크
+    const allAudioStreams = [...remoteAudioMap.values(), myMicStream];
+    allAudioStreams.forEach(stream => {
+      try {
+        const source = audioCtx.createMediaStreamSource(stream);
+        source.connect(destination);
+      } catch (err) {
+        console.warn("⚠️ 오디오 믹싱 실패:", err);
+      }
+    });
 
-//     // 4. video (화면 캡처) + audio (믹싱된 트랙) 결합
-//     const mixedTracks = [
-//       ...screenStream.getVideoTracks(),
-//       ...destination.stream.getAudioTracks()
-//     ];
-//     mixedStream = new MediaStream(mixedTracks);
+    // 4. video (화면 캡처) + audio (믹싱된 트랙) 결합
+    const mixedTracks = [
+      ...screenStream.getVideoTracks(),
+      ...destination.stream.getAudioTracks()
+    ];
+    mixedStream = new MediaStream(mixedTracks);
 
-//     // 5. MediaRecorder로 녹화 시작
-//     mediaRecorder = new MediaRecorder(mixedStream, {
-//     	mimeType: 'video/webm;codecs=vp8,opus'
-//   	});
+    // 5. MediaRecorder로 녹화 시작
+    mediaRecorder = new MediaRecorder(mixedStream, {
+    	mimeType: 'video/webm;codecs=vp8,opus'
+  	});
 
-//     mediaRecorder.ondataavailable = e => {
-//       if (e.data.size > 0) recordedChunks.push(e.data);
-//     };
+    mediaRecorder.ondataavailable = e => {
+      if (e.data.size > 0) recordedChunks.push(e.data);
+    };
 
-//     mediaRecorder.onstop = () => {
-//       const blob = new Blob(recordedChunks, { type: 'video/webm' });
-//       const url = URL.createObjectURL(blob);
-//       const a = document.createElement('a');
-//       a.href = url;
-//       a.download = `full-recording-${Date.now()}.webm`;
-//       a.click();
-//     };
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(recordedChunks, { type: 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `full-recording-${Date.now()}.webm`;
+      a.click();
+    };
 
-//     mediaRecorder.start();
-//     console.log("✅ 녹화 시작됨");
+    mediaRecorder.start();
+    console.log("✅ 녹화 시작됨");
 
-//   } catch (err) {
-//     console.error("🎥 녹화 시작 실패:", err);
-//   }
-// }
+  } catch (err) {
+    console.error("🎥 녹화 시작 실패:", err);
+  }
+}
 
-// // ✅ 녹화 중지
-// function stopFullRecording() {
-//   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-//     mediaRecorder.stop();
-//     console.log("🛑 녹화 중지됨");
-//   }
-// }
+// ✅ 녹화 중지
+function stopFullRecording() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+    console.log("🛑 녹화 중지됨");
+  }
+}
 
-// // remote feed 퇴장시 제거
-// function removeRemoteStreamFromAudioList(feedId) {
-// 	// remoteAudioStreams는 stream 배열이므로 id로 직접 찾을 수 없을 수 있음
-// 	remoteAudioStreams = remoteAudioStreams.filter(stream => {
-// 	    const trackLabel = stream.getAudioTracks()[0]?.label || '';
-// 	    return !trackLabel.includes(feedId); // stream label에 feedId가 포함돼 있을 수 있음
-// 	});
-// }
+// remote feed 퇴장시 제거
+function removeRemoteStreamFromAudioList(feedId) {
+	// remoteAudioStreams는 stream 배열이므로 id로 직접 찾을 수 없을 수 있음
+	remoteAudioStreams = remoteAudioStreams.filter(stream => {
+	    const trackLabel = stream.getAudioTracks()[0]?.label || '';
+	    return !trackLabel.includes(feedId); // stream label에 feedId가 포함돼 있을 수 있음
+	});
+}
 </script>
 
 
