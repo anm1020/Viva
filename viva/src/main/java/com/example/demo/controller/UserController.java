@@ -19,8 +19,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.example.demo.model.entity.Jaso;
 import com.example.demo.model.entity.Users;
 import com.example.demo.security.CustomUserDetails;
+import com.example.demo.service.JasoService;
 import com.example.demo.service.PointService;
 //import com.example.demo.model.entity.User.UserRole;
 import com.example.demo.service.UserService;
@@ -35,6 +37,7 @@ public class UserController {
 
 	private final UserService service;
 	private final PointService pointService;
+	private final JasoService jasoService;
 	
 	@Autowired
 	private PasswordEncoder passwordEncoder;
@@ -271,6 +274,10 @@ public class UserController {
 	    int point =pointService.getPoint(userId);
 	    model.addAttribute("point", point);
 	    
+	    // 자소서
+	    List<Jaso> jasoList = jasoService.getJasoByUserId(userId); 
+	    model.addAttribute("jasoList", jasoList);
+	    
 	    // user_role에 따라 다른 뷰 리턴
 	    if ("mem".equals(users.getUserRole())) {
 	        return "mypage/memMypage";      // 취준생 마이페이지 (memMypage.html)
@@ -450,10 +457,24 @@ public class UserController {
 		return "mypage/jobsite"; // jobSites.html
 	}
 
-	// 결제 내역
+	// 결제 내역(마이페이지)
 	@GetMapping("/memReservation")
 	public String memReservation() {
-		return "mypage/memReservation"; // jobSites.html
+		return "mypage/memReservation"; 
+	}
+	
+	// 내 활동 관리(마이페이지)
+	@GetMapping("/memberActivity")
+	public String loadActivityFragment() {
+	    return "mypage/memberActivity :: memberActivity";  
 	}
 
+	// 자소서(마이페이지) fragment
+	@GetMapping("/mypage/jaso/fragment")
+	public String getJasoFragment(Model model, Principal principal) {
+	    String userId = principal.getName();
+	    List<Jaso> jasoList = jasoService.getJasoByUserId(userId); 
+	    model.addAttribute("jasoList", jasoList);
+	    return "mypage/jasolist :: jasoList"; // fragment 위치와 이름
+	}
 }

@@ -13,6 +13,8 @@
    <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
   <!--  <script th:src="@{/js/check2.js}"></script> -->
   
+  <!-- 예원추가) jaso.css분리. 여기서 임포트 -->
+  <link rel="stylesheet" th:href="@{/css/jaso.css}">
   
   <meta charset="UTF-8">
   <title>취준생 마이페이지</title>
@@ -162,10 +164,11 @@
           <a th:href="@{/mypage}">내 정보</a>
           <a th:href="@{/memberEdit}" id="memberEdit">내 정보 수정</a>
           <!-- <a href="#" id="memberEdit">내 정보 수정</a> -->
-          <a href="#">내 후기 관리</a>
-         <!--  <a href="#" id="loadReservations">일정 관리</a> -->
+          <a th:href="@{/memberActivity}" id="memberActivity">내 활동 관리</a>
+          <!--  <a href="#" id="loadReservations">일정 관리</a> -->
           <a th:href="@{/memschedule}" id="loadReservations">일정 관리</a>
-          <a th:href="@{/mypage/jaso/list}">자소서 관리</a>
+          <!-- <a th:href="@{/mypage/jasolist}">자소서 관리</a> -->
+          <a href="#" id="loadJaso">자소서 관리</a>
           <a href="#">AI 대화 내역</a>
           <a th:href="@{/memReservation}">결제 내역</a>
           <a th:href="@{/jobsite}">취업 사이트</a>
@@ -201,9 +204,16 @@
               </div>   
         </div> 
          
-         <!-- '내 예약 목록'-->
+         <!-- fragment 설정 -->
+      <!-- '내 예약 목록'-->
 	  <div id="reservationContainer"></div>
+	  <!-- 마이페이지 내정보 수정 -->
 	  <div id="editContainer" style="display:none; width:100%; justify-content:center;"></div>
+	  <!-- 내활동관리 임시-->
+	  <div id="activityContainer" style="display:none;"></div>
+	  <!-- 자소서 관리 메뉴 컨테이너-->
+	  <!-- <div th:replace="~{mypage/jasolist :: jasoList(jasoList=${jasoList})}"></div> -->
+    	<div id="jasoContainer" style="display:none;"></div>
     </section>
   </div>
   
@@ -232,6 +242,7 @@
   
  <script th:src="@{/js/memformEdit.js}"></script>  
 
+
   <!-- 회원정보 수정 후 메세지 -->
 <script th:if="${editSuccess != null}" th:inline="javascript">
 	 alert('[[${editSuccess}]]');
@@ -239,6 +250,12 @@
   
   
 <script>
+// 공통 함수
+function hideAllFragments() {
+	  $('#reservationContainer, #editContainer, #activityContainer, #reviewContainer, #jasoContainer').hide();
+	  $('.member-info, .stat-info').hide();
+	}
+
 $(function(){
   // 1. "회원 탈퇴" 링크 클릭 시 팝업 열기
   $("#withdrawBtn").on("click", function(e){
@@ -300,9 +317,10 @@ $(function(){
 	    $('.sidebar-menu a').removeClass('active');
 	    $(this).addClass('active');
 	    
-	    // 예원 추가	>>	수정폼 fragment 숨기기해야 메뉴 클릭시 오류 없음
-		$('#editContainer').hide();
-		$('#reservationContainer').show();    // 💡 이거 추가!
+	    // 예원 추가	>>	수정폼 fragment 숨기기해야 메뉴 클릭시 호출됨
+		hideAllFragments();  // 추가. 숨기는 코드가 먼저 와야 함. 
+		// $('#editContainer').hide();	//	 hideAll이 있어서 개별적으로 숨김 안 해도 됨
+		$('#reservationContainer').show();    // 이거 꼭 있어야 fragment가 보임!
 	    
 	    // 2) 카드 요소만 숨기기
 	    $('.member-info, .stat-info').hide();
@@ -450,6 +468,9 @@ $('#memberEdit').on('click', function(e){
   e.preventDefault();
   $('.sidebar-menu a').removeClass('active');
   $(this).addClass('active');
+  
+  hideAllFragments();  // ✅ 추가
+  
   $('#reservationContainer').hide();	
   $('.member-info, .stat-info').hide();
   $('#editContainer').css('display','flex').load('/memberEdit', function(resp, status, xhr){
@@ -465,13 +486,41 @@ $('#memberEdit').on('click', function(e){
 	
 // 정보 수정 취소 버튼
 $(document).on('click', '#editCancelBtn', function(){
+  hideAllFragments();  // ✅ 추가
   $('#editContainer').hide();
   $('.member-info, .stat-info').show();
 });
-</script>
 
-
-
+// 내활동관리
+$('#memberActivity').on('click', function(e){
+  e.preventDefault();
+  $('.sidebar-menu a').removeClass('active');
+  $(this).addClass('active');
   
+  hideAllFragments();  // ✅ 추가
+  
+  $('.member-info, .stat-info, #reservationContainer, #editContainer, #reviewContainer').hide();
+  $('#activityContainer').show().load('/memberActivity', function(resp, status, xhr){
+    if (status !== 'success') {
+      $('#activityContainer').html('<div>불러오기 실패</div>');
+    }
+  });
+});
+ 
+// 자소서 메뉴 fragment
+$('#loadJaso').on('click', function(e) {
+    e.preventDefault();
+    $('.sidebar-menu a').removeClass('active');
+    $(this).addClass('active');
+
+    hideAllFragments(); // 기존 함수 재활용
+    $('#jasoContainer').show().load('/mypage/jaso/fragment', function(resp, status){
+        if (status !== 'success') {
+            $('#jasoContainer').html('<p>불러오기 실패</p>');
+        }
+    });
+});
+ 
+</script>
 </body>
 </html>
