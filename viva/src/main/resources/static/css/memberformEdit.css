@@ -1,12 +1,23 @@
 @charset "UTF-8";
+/* 스크롤 허용 */
+html, body {
+  height: auto;
+  min-height: 100vh;
+  overflow-y: auto;
+  display: block;
+}
+
 /* 카드 컨테이너 */
    .form-frame {
+  
+   width: 100%;
      max-width: 360px;
      margin: 2rem auto;
      padding: 1.5rem;
      background-color: #ffffff;
      border-radius: 0.5rem;
      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+     /* ↓ 여기만 추가/수정 */
    }
    .form-frame h2 {
      text-align: center;

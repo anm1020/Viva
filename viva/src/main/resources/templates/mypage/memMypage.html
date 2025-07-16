@@ -22,37 +22,54 @@
   <link rel="stylesheet" th:href="@{/css/common.css}">
   
   <style>
-    body {
-      background: #f7f9fc;
-      font-family: 'Segoe UI', '맑은 고딕', sans-serif;
+    html, body {
+      height: auto;
+      min-height: 100vh;
       margin: 0;
       padding: 0;
+      overflow-y: auto;
     }
+
     .mypage-layout {
-      display: flex;
-      max-width: 1100px;
-      margin: 50px auto 0 auto;
-      min-height: 550px;
-      background: #fff;
-      border-radius: 14px;
-      box-shadow: 0 2px 14px rgba(70,110,180,0.08);
-      overflow: hidden;
-    }
-    /* 사이드바 */
+  /* display: flex;
+  max-width: 1100px;
+  margin: 40px auto;
+  height: auto;
+  min-height: 550px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 14px rgba(70,110,180,0.08); */
+  display: flex;
+  max-width: 1100px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 16px 24px rgba(0, 0, 0, 0.08);
+  overflow: hidden; /* 둥근 모서리 안 넘치게 */
+  box-sizing: border-box;
+  
+  /* ✅ 배경과 테두리 */
+  /* background: #fff;
+  border-radius: 16px; 
+  box-shadow: 0 16px 24px rgba(0, 0, 0, 0.08); 
+     */
+}
     .sidebar {
-      width: 230px;
+      flex: 0 0 230px;
       background: #eaf1fb;
       padding: 36px 0 0 0;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
     }
+
     .sidebar-menu {
       display: flex;
       flex-direction: column;
       gap: 5px;
       padding-left: 24px;
     }
+
     .sidebar-menu a {
       font-size: 17px;
       color: #314266;
@@ -63,16 +80,19 @@
       font-weight: 500;
       letter-spacing: -0.2px;
     }
+
     .sidebar-menu a.active,
     .sidebar-menu a:hover {
       background: #c3d3ee;
       color: #2951a3;
       font-weight: bold;
     }
+
     .sidebar-bottom {
       padding-left: 24px;
       padding-bottom: 38px;
     }
+
     .sidebar-bottom a {
       color: #d34040;
       font-weight: bold;
@@ -80,21 +100,44 @@
       font-size: 15px;
       transition: color 0.2s;
     }
+
     .sidebar-bottom a:hover {
       color: #b80000;
       text-decoration: underline;
     }
-    /* 메인컨텐츠 */
+
     .main-content {
+   	 /* 기존 속성 유지 */
+  flex: 1;
+  width: 100%;
+  max-width: 960px;
+  padding: 46px 44px;
+  background: #f7f9fc;
+  box-sizing: border-box;
+
+  /* ↓ 자식들을 세로 방향(column)으로 쌓되, 가로(수평) 중앙 정렬 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+	  
+    /* 
       flex: 1;
       padding: 46px 44px;
       background: #f7f9fc;
-      min-width: 0;
+      box-sizing: border-box;
+      min-width: 0; */
     }
+
     .info-cards {
       display: flex;
       gap: 36px;
+      justify-content: center;
     }
+
+    .member-info, .stat-info {
+      margin-bottom: 24px;
+    }
+
     .member-info {
       background: #fff;
       border-radius: 9px;
@@ -102,19 +145,16 @@
       padding: 32px 38px 30px 38px;
       min-width: 320px;
       flex: 1;
-      margin-bottom: 24px;
     }
+
     .member-info h2 {
-      margin-top: 0;
-      font-size: 21px;
-      color: #314266;
-      margin-bottom: 16px;
+      margin-top: 0; font-size: 21px; color: #314266; margin-bottom: 16px;
     }
+
     .member-info-list {
-      font-size: 16px;
-      line-height: 2.1;
-      color: #222;
+      font-size: 16px; line-height: 2.1; color: #222;
     }
+
     .stat-info {
       background: #eaf1fb;
       border-radius: 9px;
@@ -124,24 +164,45 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      margin-bottom: 24px;
+      align-items: center;
     }
+
     .stat-info h2 {
-      margin-top: 0;
-      font-size: 20px;
-      color: #2951a3;
-      margin-bottom: 18px;
+      margin-top: 0; font-size: 20px; color: #2951a3; margin-bottom: 18px;
     }
+
     .stat-info .point-value {
-      font-size: 25px;
-      color: #314266;
-      font-weight: bold;
-      margin-bottom: 8px;
+      font-size: 25px; color: #314266; font-weight: bold; margin-bottom: 8px;
     }
+
+	#editContainer,
+#activityContainer,
+#jasoContainer {
+  max-width: 840px;
+  min-width: 840px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+    /* #editContainer {
+      display: flex;
+      justify-content: center;
+    } */
+
+    #editContainer .form-frame {
+    margin:auto;
+      width: 100%;
+      max-width: 360px;
+    }
+
     @media (max-width: 900px) {
       .mypage-layout { flex-direction: column; }
-      .sidebar { width: 100%; flex-direction: row; padding: 0; }
-      .main-content { padding: 24px 10px; }
+      .sidebar {
+        width: 100%;
+        height: auto;
+        flex-direction: row;
+        padding: 0;
+      }
       .info-cards { flex-direction: column; gap: 14px; }
     }
   </style>
