@@ -1881,6 +1881,20 @@ function stopAudioRecording() {
   }
 }
 
+// 녹음 파일 서버로 업로드
+function uploadAudio(blob) {
+	const formData = new FormData();
+	const filename = `recorded_audio_${Date.now()}.webm`;
+	formData.append("audioFile", blob, filename);
+
+	fetch("/api/audio/upload", {
+	    method: "POST",
+	    body: formData
+	})
+	.then(res => res.text())
+	.then(msg => alert("✅ 서버 업로드 완료\n" + msg))
+	.catch(err => console.error("❌ 업로드 실패", err));
+}
 
 // remote feed 퇴장시 제거
 function removeRemoteStreamFromAudioList(feedId) {
