@@ -1865,7 +1865,7 @@ async function startAudioRecording() {
 //       uploadAudio(blob);
     };
 
-    mediaRecorder.start();
+    mediaRecorder2.start();
     console.log("🎙️ 오디오 녹음 시작됨");
   } catch (err) {
     console.error("🎙️ 오디오 녹음 실패:", err);
@@ -1875,8 +1875,8 @@ async function startAudioRecording() {
 
 // ✅ 오디오 녹음 중지
 function stopAudioRecording() {
-  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-    mediaRecorder.stop();
+  if (mediaRecorder2 && mediaRecorder2.state !== 'inactive') {
+    mediaRecorder2.stop();
     console.log("🛑 오디오 녹음 중지됨");
   }
 }
