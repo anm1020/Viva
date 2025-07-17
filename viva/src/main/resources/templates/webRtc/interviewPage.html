@@ -451,6 +451,8 @@ main {
 	    	<button id="exitBtn">종료</button>
 	    	<button onclick="startFullRecording()">🎥 녹화 시작</button>
 			<button onclick="stopFullRecording()">🛑 녹화 중지</button>
+	    	<button onclick="startAudioRecording()">🎥 녹음 시작</button>
+			<button onclick="stopAudioRecording()">🛑 녹음 중지</button>
 	    </div>
 	</div>
 
@@ -1804,6 +1806,81 @@ function stopFullRecording() {
   }
   
 }
+
+// 녹음 기능
+let mediaRecorder2;
+let recordedChunks2 = [];
+let mixedAudioStream;
+let myMicStream2 = null;
+
+const remoteAudioMap2 = new Map();   // feedId → MediaStream
+
+// ✅ 오디오 녹음 시작
+async function startAudioRecording() {
+  try {
+    recordedChunks2 = [];
+
+    // 마이크 입력
+    try {
+      myMicStream2 = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (err) {
+      console.warn("🎙️ 마이크 접근 실패:", err);
+      myMicStream2 = null;
+    }
+
+    const audioCtx = new AudioContext();
+    const destination = audioCtx.createMediaStreamDestination();
+
+    const allStreams = [...remoteAudioMap2.values()];
+    if (myMicStream2) allStreams.push(myMicStream2);
+
+    if (allStreams.length === 0) {
+      alert("🎧 오디오 입력이 없습니다.");
+      return;
+    }
+
+    // 오디오 믹싱
+    allStreams.forEach(stream => {
+      try {
+        const source = audioCtx.createMediaStreamSource(stream);
+        source.connect(destination);
+      } catch (err) {
+        console.warn("⚠️ 오디오 믹싱 실패:", err);
+      }
+    });
+
+    mixedAudioStream2 = destination.stream;
+
+    mediaRecorder2 = new MediaRecorder(mixedAudioStream2, {
+      mimeType: 'audio/webm'
+    });
+
+    mediaRecorder2.ondataavailable = e => {
+      if (e.data.size > 0) recordedChunks2.push(e.data);
+    };
+
+    mediaRecorder2.onstop = () => {
+      const blob = new Blob(recordedChunks2, { type: 'audio/webm' });
+      console.log("녹음 여기까진 되나");
+//       uploadAudio(blob);
+    };
+
+    mediaRecorder.start();
+    console.log("🎙️ 오디오 녹음 시작됨");
+  } catch (err) {
+    console.error("🎙️ 오디오 녹음 실패:", err);
+    alert("녹음을 시작할 수 없습니다.");
+  }
+}
+
+// ✅ 오디오 녹음 중지
+function stopAudioRecording() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+    console.log("🛑 오디오 녹음 중지됨");
+  }
+}
+
 
 // remote feed 퇴장시 제거
 function removeRemoteStreamFromAudioList(feedId) {

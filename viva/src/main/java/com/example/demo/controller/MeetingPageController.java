@@ -20,7 +20,7 @@ public class MeetingPageController {
 		
 		model.addAttribute("userId", userId);
 		
-		return "webRtc/interviewTest"; // templates/webRtc/interview-spa.html
+		return "webRtc/interviewPage"; // templates/webRtc/interview.html
     }
 	
 	@GetMapping("/demoTest")
