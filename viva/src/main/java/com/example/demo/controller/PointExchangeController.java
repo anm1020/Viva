@@ -85,6 +85,21 @@ public class PointExchangeController {
         return "mypage/paymentListFragment :: paymentListFragment";
     }
     
+    @GetMapping("/mypage/exchange-list-fragment")
+    public String exchangeListFragment(Model model, HttpSession session) {
+    	System.out.println("paymentListFragment 호출됨");
+        String userId = ((Users) session.getAttribute("user")).getUserId();
+        System.out.println("userId = " + userId);
+
+        List<PointExchange> exchanges = pointExchangeService.getUserExchangeList(userId);
+        if (exchanges == null) {
+            exchanges = new ArrayList<>();
+        }
+        model.addAttribute("exchanges", exchanges);
+
+        return "mypage/exchangeList :: fragment";
+    }
+    
     // 마이페이지 메인 뷰 (부모 뷰) : exchanges 포함 추가
     @GetMapping("/mypage/memMypage")
     public String memMypage(Model model, HttpSession session) {
@@ -101,4 +116,21 @@ public class PointExchangeController {
 
         return "mypage/memMypage";
     }
+    
+    @GetMapping("/mypage/intrMypage")
+    public String intrMypage(Model model, HttpSession session) {
+        String userId = ((Users) session.getAttribute("user")).getUserId();
+
+        List<PointExchange> exchanges = pointExchangeService.getUserExchangeList(userId);
+        if (exchanges == null) {
+            exchanges = new ArrayList<>();
+        }
+        model.addAttribute("exchanges", exchanges);
+
+        // intrMypage에 필요한 다른 데이터도 추가 가능
+        // 예) 면접관 관련 예약 내역, 일정 등
+
+        return "mypage/intrMypage";
+    }
+
 }

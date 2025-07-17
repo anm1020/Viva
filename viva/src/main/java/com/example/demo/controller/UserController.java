@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -41,6 +42,10 @@ public class UserController {
 	private final PointService pointService;
 	private final PaymentService paymentService;
 	private final PointExchangeService pointExchangeService;
+	// application.properties 에서 읽어 오는 impKey
+		@Value("${portone.imp-key}")
+		private String impKey;
+
 	
 	@Autowired
 	private PasswordEncoder passwordEncoder;

@@ -1,40 +1,33 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <title>환전 신청 내역</title>
-  <link rel="stylesheet" th:href="@{/css/main.css}" />
-</head>
-<body>
-  <h2>나의 환전 신청 내역</h2>
-  <table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse; width: 100%;">
-    <thead>
-      <tr>
-        <th>신청 번호</th>
-        <th>환전자 이름</th>
-        <th>휴대폰 번호</th>
-        <th>은행명</th>
-        <th>계좌번호</th>
-        <th>신청 포인트</th>
-        <th>신청 시간</th>
-        <th>상태</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr th:each="exchange : ${exchanges}">
-        <td th:text="${exchange.id}">1</td>
-        <td th:text="${exchange.name}">홍길동</td>
-        <td th:text="${exchange.phone}">010-0000-0000</td>
-        <td th:text="${exchange.bank}">국민은행</td>
-        <td th:text="${exchange.account}">123-456-7890</td>
-        <td th:text="${exchange.amount}">10000</td>
-        <td th:text="${#dates.format(exchange.requestedAt, 'yyyy-MM-dd HH:mm')}">2025-07-15 13:45</td>
-        <td th:text="${exchange.status}">PENDING</td>
-      </tr>
-      <tr th:if="${#lists.isEmpty(exchanges)}">
-        <td colspan="8" style="text-align:center;">신청 내역이 없습니다.</td>
-      </tr>
-    </tbody>
-  </table>
-</body>
-</html>
+<!-- 환전 신청 내역 프래그먼트 -->
+<div th:fragment="fragment" class="exchange-list">
+<h2>나의 환전 신청 내역</h2>
+<table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse; width: 100%;">
+  <thead>
+    <tr>
+      <th>신청 번호</th>
+      <th>환전자 이름</th>
+      <th>휴대폰 번호</th>
+      <th>은행명</th>
+      <th>계좌번호</th>
+      <th>신청 포인트</th>
+      <th>신청 시간</th>
+      <th>상태</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr th:each="exchange : ${exchanges}">
+      <td th:text="${exchange.id}">1</td>
+      <td th:text="${exchange.name}">홍길동</td>
+      <td th:text="${exchange.phone}">010-0000-0000</td>
+      <td th:text="${exchange.bank}">국민은행</td>
+      <td th:text="${exchange.account}">123-456-7890</td>
+      <td th:text="${exchange.amount}">10000</td>
+      <td th:text="${T(java.time.format.DateTimeFormatter).ofPattern('yyyy-MM-dd HH:mm').format(exchange.requestedAt)}">2025-07-17 10:00</td>
+      <td th:text="${exchange.status}">PENDING</td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(exchanges)}">
+      <td colspan="8" style="text-align:center;">신청 내역이 없습니다.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
