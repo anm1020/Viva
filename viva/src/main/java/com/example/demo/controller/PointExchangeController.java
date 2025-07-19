@@ -31,6 +31,7 @@ public class PointExchangeController {
             // 세션에서 로그인 사용자 아이디 꺼내서 엔티티에 세팅
             String userId = ((Users) session.getAttribute("user")).getUserId();
             pointExchange.setUserId(userId);
+            System.out.println("bank = " + pointExchange.getBank());  // 추가 로그
 
             // 신청 시간 설정
             pointExchange.setRequestedAt(LocalDateTime.now());

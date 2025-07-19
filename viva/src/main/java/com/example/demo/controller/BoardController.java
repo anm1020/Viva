@@ -98,16 +98,16 @@ public class BoardController {
 	// 수정 폼 (기존 게시글 불러오기)
 	@GetMapping("/edit/{id}")
 	public String editForm(@PathVariable("id") Integer id, Model model, HttpSession session) {
-		Board board = boardService.getBoardById(id);
+	    Board board = boardService.getBoardById(id);
 
-		// 작성자 본인만 수정 가능
-		Users loginUser = (Users) session.getAttribute("user");
-		if (loginUser == null || !loginUser.getUserId().equals(board.getUserId())) {
-			return "redirect:/board/list"; // 권한 없음
-		}
+	    // 작성자 본인만 수정 가능
+	    Users loginUser = (Users) session.getAttribute("user");
+	    if (loginUser == null || !loginUser.getUserId().equals(board.getUserId())) {
+	        return "redirect:/board/list"; // 권한 없음
+	    }
 
-		model.addAttribute("board", board);
-		return "board/edit";
+	    model.addAttribute("board", board);
+	    return "board/edit";
 	}
 
 	// 수정 처리

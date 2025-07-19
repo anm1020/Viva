@@ -1,142 +1,166 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-<meta charset="UTF-8">
-<title>게시글 상세</title>
-<style>
-table {
-	width: 700px;
-	margin: 40px auto;
-	border-collapse: collapse;
-}
+  <meta charset="UTF-8" />
+  <title>게시글 상세보기</title>
 
-th, td {
-	padding: 12px;
-	border: 1px solid #ccc;
-	text-align: left;
-}
+  <link rel="stylesheet" th:href="@{/css/common.css}" />
+  <link rel="stylesheet" th:href="@{/css/board.css}" />
 
-th {
-	width: 150px;
-	background-color: #f8f8f8;
-}
-
-.btns {
-	width: 700px;
-	margin: 20px auto;
-	text-align: right;
-}
-
-.btns a {
-	margin-left: 10px;
-}
-</style>
 </head>
 <body>
 
-	<h2 style="text-align: center;">게시글 상세보기</h2>
+  <!-- Header -->
+  <div th:replace="fragments/header :: headerFragment"></div>
 
-	<table>
-		<tr>
-			<th>제목</th>
-			<td th:text="${board.title}">제목입니다</td>
-		</tr>
-		<tr>
-			<th>작성자</th>
-			<td th:text="${board.userId}">작성자</td>
-		</tr>
-		<tr>
-			<th>조회수</th>
-			<td th:text="${board.viewCount}">0</td>
-		</tr>
-		<tr>
-			<th>작성일</th>
-			<td
-				th:text="${#temporals.format(board.createdAt, 'yyyy-MM-dd HH:mm')}">2025-07-11</td>
-		</tr>
-		<tr>
-			<th>내용</th>
-			<td><pre th:text="${board.content}">본문 내용</pre></td>
-		</tr>
-	</table>
+  <!-- 상세 컨테이너 -->
+  <div class="detail-container">
 
-	<button class="like-button" th:attr="data-id=${board.id}">
-		추천 (<span id="like-count" th:text="${board.likeCount}">0</span>)
-	</button>
+    <!-- 목록 버튼 -->
+    <div class="btn-group btn-group-list">
+      <a th:href="@{/board/list}">목록으로</a>
+    </div>
 
-	<script src="https://code.jquery.com/jquery-latest.min.js"></script>
-	<script>
-		$(function() {
-			$('.like-button').click(function() {
-				const id = $(this).attr('data-id');  // th:attr로 넣은 data-id 읽기
-				const $countElem = $('#like-count');
-				$.post('/board/like/' + id)
-					.done(function() {
-						let count = parseInt($countElem.text()) || 0;
-						count++;
-						$countElem.text(count);
-					})
-					.fail(function() {
-						alert('추천 처리 실패');
-					});
-			});
-		});
-	</script>
+    <!-- 제목과 날짜/조회수 -->
+    <div class="title-row">
+      <h2 th:text="${board.title}">게시글 제목</h2>
+      <div class="meta-info">
+        <span th:text="${#temporals.format(board.createdAt, 'yyyy-MM-dd HH:mm')}">2025-07-18 14:22</span>
+        <span>조회수: <span th:text="${board.viewCount}">0</span></span>
+      </div>
+    </div>
 
-	<!-- 댓글 영역 -->
-	<div class="comment-box">
-		<h3>댓글</h3>
+    <!-- 작성자 -->
+    <div class="detail-author">
+      작성자: <span th:text="${board.userId}">작성자</span>
+    </div>
 
-		<!-- ✅ 댓글 작성 폼 -->
-		<form th:action="@{/comment/add}" method="post">
-			<input type="hidden" name="boardId" th:value="${board.id}" />
-			<textarea name="content" rows="3" cols="50" required></textarea>
-			<br>
-			<button type="submit">댓글 작성</button>
-		</form>
+    <!-- 내용 -->
+    <div class="detail-content" th:text="${board.content}">게시글 내용이 여기에 들어갑니다.</div>
 
-		<hr>
+    <!-- 추천수 -->
+    <div class="detail-like">
+      추천 수: <span class="like-count" th:text="${board.likeCount}">0</span>
+    </div>
 
-		<!-- ✅ 댓글 목록 -->
-		<div th:each="comment : ${board.comments}" class="comment-item">
-			<div>
-				<span class="comment-meta"> <strong
-					th:text="${comment.user.userId}">작성자 ID</strong> · <span
-					th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</span>
-				</span>
-			</div>
-			<div th:text="${comment.content}">댓글 내용</div>
+    <!-- 수정/삭제 버튼 그룹 -->
+   <!-- 수정/삭제 버튼 그룹 -->
+<div class="btn-group"
+     th:if="${session.user != null
+             and board.userId != null
+             and session.user.userId == board.userId}">
+  <a class="btn-edit" th:href="@{/board/edit/{id}(id=${board.id})}">수정</a>
+  <a class="btn-delete" th:href="@{/board/delete/{id}(id=${board.id})}"
+     onclick="return confirm('정말 삭제할까요?')">삭제</a>
+</div>
 
-			<!-- ✅ 수정/삭제는 본인일 경우만 표시 -->
-			<div class="comment-actions"
-				th:if="${session.user != null and comment.user != null and session.user.userId == comment.user.userId}">
-				<form th:action="@{/comment/delete/{id}(id=${comment.id})}"
-					method="get" style="display: inline;">
-					<input type="hidden" name="boardId" th:value="${board.id}" />
-					<button type="submit">삭제</button>
-				</form>
+    <!-- 추천 버튼 -->
+    <button class="like-button" th:attr="data-id=${board.id}">추천</button>
 
-				<!-- 간단 수정 폼 (inline) -->
-				<form th:action="@{/comment/update}" method="post"
-					style="display: inline;">
-					<input type="hidden" name="commentId" th:value="${comment.id}" />
-					<input type="hidden" name="boardId" th:value="${board.id}" /> <input
-						type="text" name="content" th:value="${comment.content}" required />
-					<button type="submit">수정</button>
-				</form>
-			</div>
+    <!-- 댓글 영역 -->
+    <div class="comment-box">
+      <h3>댓글</h3>
 
-		</div>
+      <!-- 댓글 작성 폼 -->
+      <form th:action="@{/comment/add}" method="post">
+        <input type="hidden" name="boardId" th:value="${board.id}" />
+        <textarea name="content" rows="3" required></textarea><br />
+        <button class="commentwrite" type="submit">댓글 작성</button>
+      </form>
 
-		<div class="btns">
-			<a th:href="@{/board/list}">목록으로</a>
-			<!-- 로그인된 사용자와 작성자가 같은 경우만 보여주기 -->
-			<div class="btns"
-				th:if="${session.user != null and session.user.userId == board.userId}">
-				<a th:href="@{/board/edit/{id}(id=${board.id})}">수정</a> <a
-					th:href="@{/board/delete/{id}(id=${board.id})}"
-					onclick="return confirm('정말 삭제할까요?')">삭제</a>
-			</div>
-		</div>
+      <!-- 댓글 목록 -->
+      <div th:each="comment : ${board.comments}" class="comment-item">
+        <div class="comment-wrapper">
+          <!-- 댓글 메타 + 내용 -->
+          <div class="comment-main">
+            <span class="comment-meta">
+              <strong th:text="${comment.user.userId}">작성자 ID</strong> ·
+              <span th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</span>
+            </span>
+
+            <!-- 댓글 내용 -->
+            <div class="comment-content" th:id="'content-' + ${comment.id}" th:text="${comment.content}">댓글 내용</div>
+
+            <!-- 댓글 수정 폼 (기본 숨김) -->
+            <form th:action="@{/comment/update}" method="post" th:id="'form-' + ${comment.id}" class="comment-edit-form" style="display:none;">
+              <input type="hidden" name="commentId" th:value="${comment.id}" />
+              <input type="hidden" name="boardId" th:value="${board.id}" />
+              <input type="text" name="content" th:value="${comment.content}" required />
+              <button type="submit" class="btn-editok">수정완료</button>
+              <button type="button" class="btn-cancel" th:data-id="${comment.id}">취소</button>
+            </form>
+          </div>
+
+          <!-- 수정/삭제 버튼 (본인만) -->
+          <div class="btn-group" th:if="${session.user != null and comment.user != null and session.user.userId == comment.user.userId}">
+            <div class="comment-actions" th:if="${session.user != null and comment.user != null and session.user.userId == comment.user.userId}">
+              <!-- 수정 버튼 -->
+              <button type="button" class="btn-edit btn-edit-toggle" th:data-id="${comment.id}">수정</button>
+              <form th:action="@{/comment/delete/{id}(id=${comment.id})}" method="get" style="margin:0;">
+                <input type="hidden" name="boardId" th:value="${board.id}" />
+                <button type="submit" class="btn-delete">삭제</button>
+              </form>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- JQuery 및 스크립트 -->
+  <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+  <script>
+    $(function() {
+      // 추천 버튼 클릭
+      $('.like-button').click(function() {
+        const button = $(this);
+        const boardId = button.data('id');
+
+        if (localStorage.getItem('liked_' + boardId)) {
+          alert('이미 추천하셨습니다.');
+          return;
+        }
+
+        const countSpan = $('.detail-like .like-count');
+
+        $.ajax({
+          url: '/board/like/' + boardId,
+          type: 'POST',
+          success: function() {
+            let currentCount = parseInt(countSpan.text()) || 0;
+            countSpan.text(currentCount + 1);
+            localStorage.setItem('liked_' + boardId, 'true');
+            alert('추천 감사합니다!');
+          },
+          error: function() {
+            alert('추천 처리에 실패했습니다.');
+          }
+        });
+      });
+
+      // 수정 버튼 클릭 시 수정폼 토글
+      $('.btn-edit-toggle').click(function() {
+        const commentId = $(this).data('id');
+        $('#content-' + commentId).hide();
+        $('#form-' + commentId).show();
+        $(this).hide();
+      });
+
+      // 취소 버튼 클릭 시 원래 상태 복구
+      $('.btn-cancel').click(function() {
+        const commentId = $(this).data('id');
+        $('#form-' + commentId).hide();
+        $('#content-' + commentId).show();
+        $('.btn-edit-toggle[data-id="' + commentId + '"]').show();
+      });
+    });
+  </script>
+
+  <!-- Footer -->
+  <div th:replace="fragments/footer :: footerFragment"></div>
+
 </body>
 </html>

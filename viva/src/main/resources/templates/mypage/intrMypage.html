@@ -380,7 +380,7 @@ body {
 				const data = {
 					name : $("input[name='name']").val(),
 					phone : $("input[name='phone']").val(),
-					bank : $("input[name='bank']").val(),
+					bank: $("select[name='bank']").val(),
 					account : $("input[name='account']").val(),
 					amount : parseInt($("input[name='amount']").val(), 10)
 				};
@@ -432,6 +432,8 @@ $(function() {
   });
 });
 </script>
+<!-- Footer -->
+  <div th:replace="fragments/footer :: footerFragment"></div>
 
 </body>
 </html>

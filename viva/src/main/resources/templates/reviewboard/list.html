@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<title>리뷰 리스트</title>
+<link rel="stylesheet" th:href="@{/css/common.css}">
+<link rel="stylesheet" th:href="@{/css/hero.css}">
+<link rel="stylesheet" th:href="@{/css/review.css}">
+<link rel="stylesheet" th:href="@{/css/board.css}">
+
+</head>
+<body>
+	<!-- Header -->
+	<div th:replace="fragments/header :: headerFragment"></div>
+	<section class="hero-banner">
+		<div class="text-area">
+			<h1>Review</h1>
+			<p>Shining Management</p>
+		</div>
+		<div class="img-area">
+			<!-- 이미지 숨김 처리됨 -->
+		</div>
+	</section>
+	<div class="board-footer">리뷰 게시판</div>
+
+	<div>
+
+		<div>
+			<div th:each="review : ${reviews}" class="review-item">
+				<div class="review-left">
+					<div class="review-header">
+						<div class="star-rating" th:text="${'★'.repeat(review.rating)}"></div>
+						<div class="review-user" th:text="${review.user.userId}">작성자ID</div>
+						<div class="review-date"
+							th:text="${#temporals.format(review.createdAt, 'yy.MM.dd')}">22.07.05</div>
+						<div class="review-report">| 신고</div>
+					</div>
+					<div class="review-text" th:text="${review.content}">리뷰 내용이
+						들어갑니다.</div>
+				</div>
+
+				<!-- 수정/삭제 버튼-->
+				<!-- 수정/삭제 버튼-->
+				<div class="review-actions">
+					<a th:if="${loginUserId == review.user.userId}"
+						th:href="@{/reviewboard/edit/{id}(id=${review.reviewId})}"
+						class="btn btn-edit">수정</a>
+
+					<form th:if="${loginUserId == review.user.userId}"
+						th:action="@{/reviewboard/delete/{id}(id=${review.reviewId})}"
+						method="post" style="display: inline;"
+						onsubmit="return confirm('정말 삭제하시겠습니까?');">
+						<button type="submit" class="btn btn-delete">삭제</button>
+					</form>
+				</div>
+
+			</div>
+		</div>
+
+		<a class="write-btn" th:href="@{/reviewboard/write}"> 작성하기 </a>
+
+
+		<!-- Header -->
+		<div th:replace="fragments/footer :: footerFragment"></div>
+</body>
+</html>
