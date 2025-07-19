@@ -7,12 +7,23 @@
   <title>면접관 리스트</title> 
   <link rel="stylesheet" th:href="@{/css/common.css}">
   <link rel="stylesheet" th:href="@{/css/interviewer.css}">
+  <link rel="stylesheet" th:href="@{/css/hero.css}">
    
 </head>
 <body>
 
   <!-- Header -->
   <div th:replace="fragments/header :: headerFragment"></div>
+  <section class="hero-banner">
+		<div class="text-area">
+			<h1>Interviewer</h1>
+			<p>Please choose your interviewer</p>
+		</div>
+		<div class="img-area">
+			<!-- 이미지 숨김 처리됨 -->
+		</div>
+	</section>
+	<div class="board-footer">면접관</div>
 
   <div class="container">
     <h1>면접관 목록이다ㅇ</h1>

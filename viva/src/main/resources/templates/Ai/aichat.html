@@ -7,40 +7,24 @@
   <link rel="stylesheet" th:href="@{/css/common.css}" />
   <link rel="stylesheet" th:href="@{/css/main.css}" />
   <link rel="stylesheet" th:href="@{/css/chat.css}" />
-  <style>
-    /* 커스텀 상단 버튼 영역 */
-    .custom-header {
-      display: flex;
-      justify-content: center;
-      gap: 40px;
-      background-color: #b9936d; /* 모카무스 브라운 배경 */
-      padding: 18px 0;
-      font-weight: 600;
-      font-size: 1.2rem;
-      color: #ffffff; /* 흰 글씨 */
-    }
-    .custom-header button {
-      background: none;
-      border: none;
-      font-weight: 600;
-      color: #ffffff; /* 흰 글씨 */
-      cursor: pointer;
-      padding: 6px 12px;
-      font-size: 1.2rem;
-      border-bottom: 3px solid transparent;
-      transition: border-color 0.3s ease;
-    }
-    .custom-header button:hover,
-    .custom-header button:focus {
-      border-bottom: 3px solid #8f7a53; /* 진한 브라운 하이라이트 */
-      outline: none;
-    }
-  </style>
+  <link rel="stylesheet" th:href="@{/css/hero.css}" />
+  
 </head>
 <body>
   <!-- Header -->
   <div th:replace="fragments/header :: headerFragment"></div>
 
+ <section class="hero-banner">
+		<div class="text-area">
+			<h1>AI Chat</h1>
+			<p>Prepare for your interview</p>
+		</div>
+		<div class="img-area">
+			<!-- 이미지 숨김 처리됨 -->
+		</div>
+	</section>
+	<div class="board-footer">AI Chat</div>
+	
   <!-- 커스텀 상단 -->
   <div class="custom-header">
     <button type="button" id="new-chat-btn">새로운 대화 생성</button>
