@@ -29,7 +29,7 @@ body {
 	background: #fff;
 	border-radius: 14px;
 	box-shadow: 0 2px 14px rgba(70, 110, 180, 0.08);
-	overflow: hidden;
+	overflow: visible; /* 또는 auto 로 바꿔보세요 */
 }
 /* 사이드바 */
 .sidebar {
@@ -88,6 +88,9 @@ body {
 	padding: 46px 44px;
 	background: #f7f9fc;
 	min-width: 0;
+	height: auto; /* 높이를 자동으로 */
+	overflow-y: auto; /* 세로 스크롤 자동 생성 */
+	width:1100px;
 }
 
 .info-cards {

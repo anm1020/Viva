@@ -2,7 +2,7 @@
 /* 게시판 본문 컨테이너 스타일 */
 /* ---------------------------------------- */
 .container {
-  max-width: 1100px;
+  width: 1100px;
   margin: 60px auto 80px auto;
   padding: 0 40px;
   background-color: white;
@@ -192,7 +192,7 @@ tbody td a:hover {
 /* 상세 컨테이너 */
 /* ---------------------------------------- */
 .detail-container {
-  max-width: 900px;
+  width: 1100px;
   margin: 60px auto 40px auto;
   padding: 20px 40px;
   background-color: white;
@@ -304,7 +304,7 @@ tbody td a:hover {
 /* ---------------------------------------- */
 /* 댓글 영역 전체 컨테이너 */
 .comment-box {
-  max-width: 900px;
+  max-width: 1030px;
   margin: 0 auto 60px auto;
   padding: 20px 40px;
   background-color: #fff;
@@ -625,7 +625,7 @@ padding: 10px 20px;
 /* ---------------------------------------- */
 
 .edit-form-container {
-  max-width: 900px;
+  width: 1100px;
   margin: 40px auto;
   padding: 20px 40px;
   background-color: white;
@@ -713,5 +713,25 @@ padding: 10px 20px;
 
 .edit-back-link:hover {
   background-color: gray;
+  color: white;
+}
+/* 댓글 작성 폼 토글 버튼 스타일 */
+#show-comment-form {
+  background-color: #f0f0f0;
+  color: black;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 10px; /* 폼과의 간격 */
+  transition: background-color 0.3s ease;
+  /* 우측 상단 고정 배치 추가 */
+  display: block;
+  margin-left: auto; /* 왼쪽 여백 자동으로 밀어서 오른쪽 정렬 */
+}
+
+#show-comment-form:hover {
+background-color: gray;
   color: white;
 }
