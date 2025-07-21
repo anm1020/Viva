@@ -73,7 +73,7 @@
 				<option value="15:00">18:00</option>
 		</select>
 		</label>
-		<button type="submit" class="btn-delete">비활성화 등록</button>
+		<button type="submit" class="btn-register">비활성화 등록</button>
 	</form>
 
 	<!--등록 -->
@@ -111,7 +111,7 @@
 
 	</script>
 	<script>
-	$(document).off("click", ".delete-btn").on("click", ".delete-btn", function () {
+	$(document).off("click", ".btn-delete").on("click", ".btn-delete", function () {
 		  const id = $(this).data("id");
 
 		  if (!confirm("정말 삭제하시겠습니까?")) return;
