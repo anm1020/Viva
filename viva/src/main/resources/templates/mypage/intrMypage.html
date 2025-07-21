@@ -170,6 +170,7 @@
           <a th:href="@{/memberEdit}" id="memberEdit">내 정보 수정</a>
           <a th:href="@{/intrReview}" id="intrReview">후기 관리</a>
           <a href="#" id="menuSchedule">일정 관리</a><!-- 이슬 수정 -->
+          <a href="#" id="loadExchangeList">환전 내역</a>
           <a href="#">이력서 관리</a>
           <a th:href="@{/jobsite}">취업 사이트</a>
           <div class="sidebar-bottom">
@@ -212,6 +213,8 @@
         <div id="editContainer" style="display:none; width:100%; justify-content:center;"></div>
         <!-- ✅ 일정 관리 영역 (Ajax로 로드) -->
  	    <div id="contentArea" style="display:none; width:100%; justify-content:center;"><!-- 여기에 fragment가 동적으로 들어옴 --></div>
+      	<!-- 환전내역 컨테이너 -->
+		<div id="exchangeListContainer" style="display: none;"></div>
       </div>
     </section>
   </div>
@@ -358,53 +361,77 @@ $('#memberEdit').on('click', function(e){
       });
     });
   </script>
-<!-- 환전쓰 -->
+	<!-- 환전쓰 -->
+	<script>
+		$(function() {
+			$("#exchangeBtn").on("click", function() {
+				$("#exchangeModal").show();
+			});
+			$(document).on("click", "#cancelExchange", function() {
+				$("#exchangeModal").hide();
+				$("#exchangeForm")[0].reset();
+			});
+		});
 
-<script>
-  $(function() {
-    $("#exchangeBtn").on("click", function() {
-      $("#exchangeModal").show();
-    });
-    $(document).on("click", "#cancelExchange", function() {
-      $("#exchangeModal").hide();
-      $("#exchangeForm")[0].reset();
+		$(function() {
+			$("#exchangeForm").on("submit", function(e) {
+				e.preventDefault();
+
+				// 폼 데이터 객체로 수집
+				const data = {
+					name : $("input[name='name']").val(),
+					phone : $("input[name='phone']").val(),
+					bank: $("select[name='bank']").val(),
+					account : $("input[name='account']").val(),
+					amount : parseInt($("input[name='amount']").val(), 10)
+				};
+
+				$.ajax({
+					url : "/point/exchange/request",
+					type : "POST",
+					contentType : "application/json",
+					data : JSON.stringify(data),
+					success : function(response) {
+						if (response.success) {
+							alert(response.message);
+							$("#exchangeModal").hide();
+							$("#exchangeForm")[0].reset();
+							// 필요시 포인트 잔액 갱신 코드 추가
+						} else {
+							alert("실패: " + response.message);
+						}
+					},
+					error : function() {
+						alert("서버 요청 중 오류가 발생했습니다.");
+					}
+				});
+			});
+		});
+
+
+$(function() {
+  $("#loadExchangeList").on("click", function(e) {
+    e.preventDefault();
+
+    $(".sidebar-menu a").removeClass("active");
+    $(this).addClass("active");
+
+    $(".info-cards").hide();
+
+    // 기존 load() 대신 $.ajax()로 fragment 로드
+    $.ajax({
+      url: "/mypage/exchange-list-fragment",
+      success: function(data) {
+        $("#exchangeListContainer").html(data).show();
+        console.log("✅ fragment 로드 성공");
+      },
+      error: function(xhr) {
+        console.error("❌ fragment 로드 실패", xhr.status, xhr.statusText);
+        alert("환전 내역 로드 실패: " + xhr.statusText);
+      }
     });
   });
-  
-  $(function() {
-	  $("#exchangeForm").on("submit", function(e) {
-	    e.preventDefault();
-
-	    // 폼 데이터 객체로 수집
-	    const data = {
-	      name: $("input[name='name']").val(),
-	      phone: $("input[name='phone']").val(),
-	      bank: $("input[name='bank']").val(),
-	      account: $("input[name='account']").val(),
-	      amount: parseInt($("input[name='amount']").val(), 10)
-	    };
-
-	    $.ajax({
-	      url: "/point/exchange/request",
-	      type: "POST",
-	      contentType: "application/json",
-	      data: JSON.stringify(data),
-	      success: function(response) {
-	        if(response.success) {
-	          alert(response.message);
-	          $("#exchangeModal").hide();
-	          $("#exchangeForm")[0].reset();
-	          // 필요시 포인트 잔액 갱신 코드 추가
-	        } else {
-	          alert("실패: " + response.message);
-	        }
-	      },
-	      error: function() {
-	        alert("서버 요청 중 오류가 발생했습니다.");
-	      }
-	    });
-	  });
-	});
+});
   
   // 면접관 리뷰 프래그먼트
   $(function() {
@@ -429,7 +456,8 @@ $('#memberEdit').on('click', function(e){
 	    });
 	  });
 </script>
-</body>
-</html>
+
+<!-- Footer -->
+  <div th:replace="fragments/footer :: footerFragment"></div>
 </body>
 </html>
