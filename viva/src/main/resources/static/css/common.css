@@ -61,11 +61,11 @@ nav a:hover {
 }
 /* 푸터 */
 footer {
-   background-color: #f9f6f1;
-   color: black;
-   padding: 30px;
-   text-align: center;
-   flex-shrink: 0; /* 축소 방지 */
-   margin-top:70px;
-   margin-bottom: 0px;
+	background-color: #f9f6f1;
+	color: black;
+	padding: 30px;
+	text-align: center;
+	flex-shrink: 0; /* 축소 방지 */
+	margin-top:150px;
+	margin-bottom: 0px;
 }
