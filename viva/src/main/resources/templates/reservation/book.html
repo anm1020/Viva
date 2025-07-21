@@ -3,23 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <title>예약 페이지</title>
+   <link rel="stylesheet" th:href="@{/css/common.css}">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://code.jquery.com/jquery-latest.js"></script>
   <link rel="stylesheet" href="/css/reservation.css"/>
+  <link rel="stylesheet" href="/css/book.css"/>
 </head>
 <body>
 
-<h1 th:text="'예약하기 - ' + ${userName} + '님'">예약하기</h1>
+  <div th:replace="fragments/header :: headerFragment"></div>
+<div class="header-wrapper">
+  <h1 th:text="  ${userName} + '님 '+ '예약 '">예약하기</h1>
 
-<p>
-  면접관: <span th:text="${intrName}">홍길동</span>
-</p>
+  <p>
+    면접관: <span th:text="${intrName}">홍길동</span>
+  </p>
 
-<p>
-  예약자: <span th:text="${userName} ?: '이름없음'"></span>
-  (ID: <span th:text="${userId}"></span>, 연락처: <span th:text="${userTel} ?: '미입력'"></span>)
-</p>
+  <p>
+    예약자: <span th:text="${userName} ?: '이름없음'"></span>
+  </p>
+</div>
 
 <!-- 3단 구성 -->
 <div class="reservation-wrapper">
@@ -37,8 +41,10 @@
   <!-- ③ 정보 + 확인 버튼 -->
   <div class="summary-panel">
     <div class="summary-box">
-      <p><strong>선택 날짜:</strong> <span id="summary-date">-</span></p>
-      <p><strong>선택 시간:</strong> <span id="summary-time">-</span></p>
+      <p><strong>선택한 날짜</strong> </p>
+      <p><span id="summary-date">-</span></p>
+      <p><strong>선택한 시간</strong> </p>
+      <p><span id="summary-time">-</span></p>
     </div>
     <button id="btn-confirm">확인</button>
   </div>
@@ -126,6 +132,8 @@
     });
   });
 </script>
+<!-- Footer -->
+  <div th:replace="fragments/footer :: footerFragment"></div>
 
 </body>
 </html>

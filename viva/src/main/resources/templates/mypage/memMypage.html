@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
+
   <script src="https://code.jquery.com/jquery-latest.js"></script>
    <link rel="stylesheet" th:href="@{/css/reservation.css}" />
-   
+   <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
    <!-- 달력 -->
    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
@@ -21,6 +22,8 @@
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <link rel="stylesheet" th:href="@{/css/common.css}">
   <link rel="stylesheet" th:href="@{/css/reservation.css}">
+  <link rel="stylesheet" th:href="@{/css/point.css}">
+  
   
   <style>
     html, body {
@@ -671,6 +674,84 @@ $(function() {
 	  });
 	});
 </script>
+
+
+ <script th:inline="javascript">
+$(function() {
+  console.log("iamport loaded:", typeof IMP !== 'undefined');
+
+  if (typeof IMP !== 'undefined') {
+    IMP.init("imp14397622");
+  } else {
+    console.error("IMP 객체가 정의되지 않았습니다! iamport.js가 제대로 로드되었는지 확인하세요.");
+  }
+
+  // 이벤트 위임 바인딩(동적 버튼도 문제없게)
+  $(document).on('click', '.btn-pay.btn-card', function(e) {
+    e.preventDefault();
+    
+    console.log("카드결제 버튼 클릭됨");
+    const resId = $(this).data('resid');
+    console.log("선택된 예약ID:", resId);
+
+    const userId = /*[[${userId}]]*/ 'UNKNOWN';
+    console.log("사용자 ID:", userId);
+
+    const amount = 100; // 결제 금액 (필요에 따라 변경)
+
+    if (typeof IMP === 'undefined') {
+      alert('IMP 객체를 찾을 수 없습니다. iamport.js 로딩 문제');
+      return;
+    }
+
+    IMP.request_pay({
+      channelKey : "channel-key-01764171-b249-4c16-9d18-e9174fa8e611",
+      pay_method: 'card',
+      merchant_uid: 'order_' + new Date().getTime(),
+      name: '면접 예약 결제',
+      amount: amount,
+      buyer_tel: '010-0000-0000'
+    }, function(rsp) {
+      console.log('IAMPORT response:', rsp);
+
+      if (!rsp.success) {
+        alert('결제 실패: ' + rsp.error_msg);
+        return;
+      }
+
+      $.ajax({
+        type: 'POST',
+        url: '/payment/save',
+        contentType: 'application/json',
+        data: JSON.stringify({
+          payResno: rsp.merchant_uid,
+          payAmount: rsp.paid_amount,
+          payStatus: rsp.status,
+          resId: resId,
+          userId: userId,
+          payType: "CARD"
+        }),
+        success: function(data) {
+            if (data==1) {
+              alert('카드결제 완료');
+             // location.href = "result?amount="+rsp.paid_amount
+              location.href = "/mypage?tab=schedule";
+            } else {
+              alert('검증 실패: ' + data.message);
+            }
+          },
+          error: function(xhr, status, err) {
+            console.error('AJAX error', status, err);
+            alert('서버 통신 중 오류가 발생했습니다.');
+        }
+      });
+    });
+  });
+});
+</script>
+
+<!-- Footer -->
+  <div th:replace="fragments/footer :: footerFragment"></div>
 
 </body>
 </html>

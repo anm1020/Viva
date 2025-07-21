@@ -1,36 +1,19 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+  <div th:replace="fragments/header :: headerFragment"></div>
+   <link rel="stylesheet" th:href="@{/css/common.css}">
+   <link rel="stylesheet" th:href="@{/css/board.css}">
+   
 <meta charset="UTF-8">
+
 <title>게시글 작성</title>
-<style>
-form {
-	width: 600px;
-	margin: 30px auto;
-}
-
-label {
-	display: block;
-	margin-top: 10px;
-}
-
-input[type="text"], textarea {
-	width: 100%;
-	padding: 8px;
-	margin-top: 5px;
-}
-
-button {
-	margin-top: 15px;
-	padding: 10px 20px;
-}
-</style>
 </head>
 <body>
-
+<div style="text-align:center; font-family: 'Georgia', serif; font-weight: 700; margin-top: 30px;">
 	<h2>게시글 작성</h2>
-
-	<form th:action="@{/board/write}" th:object="${board}" method="post">
+</div>
+	<form th:action="@{/board/write}" th:object="${board}" method="post" class="edit-form-container">
 		<label for="title">제목</label> <input type="text" id="title"
 			th:field="*{title}" required /> <label for="content">내용</label>
 		<textarea id="content" th:field="*{content}" rows="10" required></textarea>
@@ -38,8 +21,10 @@ button {
 
 		<button type="submit">등록</button>
 	</form>
-
-	<a th:href="@{/board/list}">목록으로</a>
-
+ <div style="text-align:center;">
+	<a th:href="@{/board/list}" class="edit-back-link">목록으로</a>
+	</div>
+<!-- Footer -->
+	<div th:replace="fragments/footer :: footerFragment"></div>
 </body>
 </html>
