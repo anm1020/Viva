@@ -213,21 +213,21 @@
    <nav class="sidebar">
       <div>
         <div class="sidebar-menu">
+
           <a th:href="@{/mypage}">내 정보</a>
           <a th:href="@{/memberEdit}" id="memberEdit">내 정보 수정</a>
           <!-- <a href="#" id="memberEdit">내 정보 수정</a> -->
           <a th:href="@{/memberActivity}" id="memberActivity">내 활동 관리</a>
           <!--  <a href="#" id="loadReservations">일정 관리</a> -->
           <a th:href="@{/memschedule}" id="loadReservations">일정 관리</a>
-          <!-- <a th:href="@{/mypage/jasolist}">자소서 관리</a> -->
-          <a href="#" id="loadJaso">자소서 관리</a>
-          <a href="#">AI 대화 내역</a>
+          <a th:href="@{/mypage/jaso/list}">자소서 관리</a>
+          <a th:href="@{/resume/list}">이력서 관리</a> 
           <a href="#" id="loadPaymentList">결제 내역</a> <!-- 결제내역 탭 또는 버튼 -->
           <a th:href="@{/jobsite}">취업 사이트</a>
-	      <div class="sidebar-bottom">
-	      	<!-- 페이지 이동 없이 자바스크립트로만 동작 -->
-	        <a href="#" id="withdrawBtn" style="color:#d34040;">회원 탈퇴</a>
-	      </div>
+          <div class="sidebar-bottom">
+            <!-- 페이지 이동 없이 자바스크립트로만 동작 -->
+            <a href="#" id="withdrawBtn" style="color:#d34040;">회원 탈퇴</a>
+          </div>
           
         </div>
       </div>

@@ -13,6 +13,7 @@ public interface InterviewerService {
     void save(Interviewer interviewer); 
     Optional<Interviewer> findById(Long id);
     InterviewerDetailDTO getInterviewerDetail(Long intrId);
+    void deleteById(Long id);
 }
 
 

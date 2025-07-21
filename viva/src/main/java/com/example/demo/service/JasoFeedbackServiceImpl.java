@@ -51,7 +51,7 @@ public class JasoFeedbackServiceImpl implements JasoFeedbackService {
         StringBuilder promptBuilder = new StringBuilder();
         promptBuilder.append("【성장과정】\n").append(jaso.getGrowth() != null ? jaso.getGrowth() : "").append("\n\n");
         promptBuilder.append("【성격의 장단점】\n").append(jaso.getPersonality() != null ? jaso.getPersonality() : "").append("\n\n");
-        promptBuilder.append("【학창시절 및 동아리활동】\n").append(jaso.getSchool() != null ? jaso.getSchool() : "").append("\n\n");
+        promptBuilder.append("【직무역량】\n").append(jaso.getSchool() != null ? jaso.getSchool() : "").append("\n\n");
         promptBuilder.append("【지원동기】\n").append(jaso.getMotivation() != null ? jaso.getMotivation() : "").append("\n\n");
         promptBuilder.append("【입사 후 포부】\n").append(jaso.getFuture() != null ? jaso.getFuture() : "").append("\n\n");
         promptBuilder.append("【기타 특별한 경험】\n").append(jaso.getExperience() != null ? jaso.getExperience() : "");

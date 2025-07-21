@@ -1,0 +1,550 @@
+/* 이력서 전체 컨테이너 */
+.resume-container {
+  max-width: 210mm;
+  margin: 20px auto;
+  padding: 30px;
+  background: #fff;
+  font-family: 'Malgun Gothic', 'Dotum', sans-serif;
+  color: #000;
+  line-height: 1.4;
+  font-size: 12px;
+}
+
+/* 헤더 영역 */
+.resume-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #ccc;
+}
+
+.header-left {
+  flex: 1;
+}
+
+.resume-name {
+  font-size: 24px;
+  font-weight: bold;
+  color: #000;
+  margin: 0 0 5px 0;
+}
+
+.resume-title {
+  font-size: 14px;
+  color: #333;
+  font-weight: normal;
+  margin: 0;
+}
+
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.photo-placeholder {
+  width: 80px;
+  height: 100px;
+  background-color: #e8f4fd;
+  border: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #666;
+}
+
+.resume-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.edit-btn {
+  padding: 4px 8px;
+  background-color: #f0f0f0;
+  color: #333;
+  text-decoration: none;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  font-size: 11px;
+  font-weight: normal;
+}
+
+.edit-btn:hover {
+  background-color: #e0e0e0;
+}
+
+/* 개인정보 섹션 */
+.info-section {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #ccc;
+}
+
+.info-row {
+  display: flex;
+  margin-bottom: 5px;
+}
+
+.info-label {
+  width: 80px;
+  font-weight: bold;
+  color: #000;
+  flex-shrink: 0;
+}
+
+.info-value {
+  color: #000;
+}
+
+/* 입력 필드 스타일 */
+.info-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: #000;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+}
+
+.info-input:focus {
+  background-color: #f8f9fa;
+}
+
+.section-textarea {
+  width: 100%;
+  min-height: 80px;
+  border: none;
+  background: transparent;
+  color: #000;
+  font-size: 12px;
+  font-family: inherit;
+  line-height: 1.4;
+  resize: vertical;
+  outline: none;
+}
+
+.section-textarea:focus {
+  background-color: #f8f9fa;
+}
+
+.date-input, .org-input, .detail-input {
+  border: none;
+  background: transparent;
+  color: #000;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+}
+
+.date-input {
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.org-input {
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.detail-input {
+  flex: 1;
+}
+
+.date-input:focus, .org-input:focus, .detail-input:focus {
+  background-color: #f8f9fa;
+}
+
+.skill-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: #000;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+}
+
+.skill-input:focus {
+  background-color: #f8f9fa;
+}
+
+/* 프로젝트 입력 필드 */
+.project-date-input, .project-title-input {
+  border: none;
+  background: transparent;
+  color: #000;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+}
+
+.project-date-input {
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.project-title-input {
+  flex: 1;
+  font-weight: bold;
+}
+
+.project-date-input:focus, .project-title-input:focus {
+  background-color: #f8f9fa;
+}
+
+.project-link-input {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.link-label {
+  font-weight: bold;
+  color: #000;
+  font-size: 12px;
+  margin-right: 10px;
+  min-width: 40px;
+}
+
+.link-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: #000;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+}
+
+.link-input:focus {
+  background-color: #f8f9fa;
+}
+
+/* 프로젝트 링크 스타일 */
+.project-link {
+  margin-bottom: 10px;
+}
+
+.project-link a {
+  color: #0066cc;
+  text-decoration: underline;
+}
+
+.project-link a:hover {
+  color: #004499;
+}
+
+/* 섹션 공통 스타일 */
+.resume-section {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #ccc;
+}
+
+.resume-section:last-child {
+  border-bottom: none;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: #000;
+  margin: 0 0 10px 0;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #000;
+}
+
+/* 3열 구조 (날짜 | 기관/회사 | 상세내용) */
+.section-row {
+  display: flex;
+  margin-bottom: 5px;
+  align-items: center;
+}
+
+.date-col {
+  width: 150px;
+  flex-shrink: 0;
+  color: #000;
+}
+
+.org-col {
+  width: 140px;
+  flex-shrink: 0;
+  color: #000;
+}
+
+.detail-col {
+  flex: 1;
+  color: #000;
+}
+
+/* 프로젝트 섹션 */
+.project-item {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #ccc;
+}
+
+.project-item:last-child {
+  border-bottom: none;
+}
+
+.project-header {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.project-date {
+  width: 120px;
+  flex-shrink: 0;
+  color: #000;
+  font-size: 12px;
+}
+
+.project-title {
+  flex: 1;
+  color: #000;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.project-content {
+  margin-left: 120px;
+}
+
+.project-subsection {
+  margin-bottom: 10px;
+}
+
+.subsection-title {
+  font-weight: bold;
+  color: #000;
+  font-size: 12px;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.project-subsection p {
+  margin: 0 0 5px 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #000;
+}
+
+.project-subsection ul {
+  margin: 0 0 5px 0;
+  padding-left: 15px;
+}
+
+.project-subsection li {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #000;
+  margin-bottom: 3px;
+}
+
+/* Skill Set 2열 구조 */
+.skill-row {
+  display: flex;
+  margin-bottom: 5px;
+}
+
+.skill-category {
+  width: 120px;
+  font-weight: bold;
+  color: #000;
+  flex-shrink: 0;
+}
+
+.skill-value {
+  flex: 1;
+  color: #000;
+}
+
+/* 섹션 내용 (핵심역량용) */
+.section-content {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #000;
+}
+
+.section-content p {
+  margin: 0 0 8px 0;
+  white-space: pre-line;
+}
+
+.section-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .resume-container {
+    margin: 10px;
+    padding: 20px;
+  }
+  
+  .resume-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .header-right {
+    align-items: flex-start;
+  }
+  
+  .section-row {
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .date-col, .org-col, .detail-col {
+    width: auto;
+  }
+  
+  .skill-row {
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .skill-category {
+    width: auto;
+  }
+  
+  .project-header {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .project-date {
+    width: auto;
+  }
+  
+  .project-content {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .resume-container {
+    margin: 5px;
+    padding: 15px;
+  }
+  
+  .resume-name {
+    font-size: 20px;
+  }
+  
+  .resume-title {
+    font-size: 12px;
+  }
+  
+  .photo-placeholder {
+    width: 60px;
+    height: 80px;
+  }
+}
+
+/* 동적 행 추가/제거 버튼 */
+.add-btn, .remove-btn {
+  padding: 2px 6px;
+  background-color: #f0f0f0;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  font-size: 10px;
+  cursor: pointer;
+  margin-left: 5px;
+  min-width: 20px;
+  flex-shrink: 0;
+}
+
+.add-btn:hover, .remove-btn:hover {
+  background-color: #e0e0e0;
+}
+
+.add-btn {
+  background-color: #d4edda;
+  color: #155724;
+  border-color: #c3e6cb;
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.add-btn:hover {
+  background-color: #c3e6cb;
+}
+
+.remove-btn {
+  background-color: #f8d7da;
+  color: #721c24;
+  border-color: #f5c6cb;
+}
+
+.remove-btn:hover {
+  background-color: #f5c6cb;
+}
+
+/* 병역사항 버튼 스타일 */
+.military-section {
+  margin-bottom: 10px;
+}
+
+.military-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.military-btn {
+  padding: 6px 12px;
+  background-color: #f8f9fa;
+  color: #495057;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.military-btn:hover {
+  background-color: #e9ecef;
+}
+
+.military-btn.selected {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.military-detail {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* 컨테이너 스타일 */
+#education-container, #training-container, #experience-container, #certifications-container, #languages-container, #projects-container {
+  margin-bottom: 10px;
+}
+
+/* 뷰 페이지용 병역사항 스타일 */
+.military-status {
+  margin-bottom: 10px;
+}
+
+.military-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  background-color: #007bff;
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
