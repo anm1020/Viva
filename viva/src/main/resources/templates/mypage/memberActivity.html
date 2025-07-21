@@ -1,0 +1,84 @@
+<!-- memberActivity.html 내부 프래그먼트 -->
+<div th:fragment="memberActivity" id="activityContainer">
+  <div style="background:#fff; padding:24px 30px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+
+    <!-- 내가 쓴 글 목록 -->
+    <h3 style="margin-top:30px;">📌 내가 작성한 글</h3>
+    <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+      <thead>
+        <tr style="background:#f5f5f5;">
+          <th style="padding:10px; border:1px solid #ddd;">글번호</th>
+          <th style="padding:10px; border:1px solid #ddd;">제목</th>
+          <th style="padding:10px; border:1px solid #ddd;">작성자</th>
+          <th style="padding:10px; border:1px solid #ddd;">작성일</th>
+          <th style="padding:10px; border:1px solid #ddd;">조회수</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:if="${#lists.isEmpty(myPosts)}">
+          <td colspan="5" style="padding:10px; text-align:center;">작성한 글이 없습니다.</td>
+        </tr>
+        <tr th:each="post : ${myPosts}">
+          <td th:text="${post.id}" style="padding:10px; border:1px solid #ddd;"></td>
+          <td style="padding:10px; border:1px solid #ddd;">
+            <a th:href="@{'/board/view/' + ${post.id}}" th:text="${post.title}" style="color:#007BFF; text-decoration:none;"></a>
+          </td>
+          <td th:text="${post.userId}" style="padding:10px; border:1px solid #ddd;"></td>
+          <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}" style="padding:10px; border:1px solid #ddd;"></td>
+          <td th:text="${post.viewCount}" style="padding:10px; border:1px solid #ddd;"></td>
+        </tr>
+      </tbody>
+    </table>
+	
+	<!-- 내가 쓴 댓글 목록 -->
+	<h3 style="margin-top:30px;">💬 내가 작성한 댓글</h3>
+	<table style="width:100%; border-collapse:collapse; margin-top:10px;">
+	  <thead>
+	    <tr style="background:#f5f5f5;">
+	      <th style="padding:10px; border:1px solid #ddd;">글번호</th>
+	      <th style="padding:10px; border:1px solid #ddd;">글제목</th>
+	      <th style="padding:10px; border:1px solid #ddd;">댓글 내용</th>
+	      <th style="padding:10px; border:1px solid #ddd;">작성일</th>
+	    </tr>
+	  </thead>
+	  <tbody>
+	    <tr th:if="${#lists.isEmpty(myComments)}">
+	      <td colspan="4" style="padding:10px; text-align:center;">작성한 댓글이 없습니다.</td>
+	    </tr>
+	    <tr th:each="comment : ${myComments}">
+	      <td th:text="${comment.id}" style="padding:10px; border:1px solid #ddd;"></td>
+	      <td style="padding:10px; border:1px solid #ddd;">
+	        <a th:href="@{'/board/view/' + ${comment.board.id}}" th:text="${comment.board.title}" style="color:#007BFF; text-decoration:none;"></a>
+	      </td>
+	      <td th:text="${comment.content}" style="padding:10px; border:1px solid #ddd;"></td>
+	      <td th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}" style="padding:10px; border:1px solid #ddd;"></td>
+	    </tr>
+	  </tbody>
+	</table>
+
+	<!-- mypage/review.html -->
+	<h3 style="margin-top:30px;">⭐ 내가 작성한 리뷰</h3>
+<table style="width:100%; border-collapse:collapse; margin-top:10px;">
+  <thead>
+    <tr style="background:#f5f5f5;">
+      <th style="padding:10px; border:1px solid #ddd;">면접관 이름</th>
+      <th style="padding:10px; border:1px solid #ddd;">리뷰 내용</th>
+      <th style="padding:10px; border:1px solid #ddd;">평점</th>
+      <th style="padding:10px; border:1px solid #ddd;">작성일</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr th:if="${#lists.isEmpty(myReviews)}">
+      <td colspan="4" style="padding:10px; text-align:center;">작성한 리뷰가 없습니다.</td>
+    </tr>
+    <tr th:each="review : ${myReviews}">
+      <td th:text="${review.interviewer.user.userName}" style="padding:10px; border:1px solid #ddd;"></td>
+      <td th:text="${review.content}" style="padding:10px; border:1px solid #ddd;"></td>
+      <td th:text="${review.score}" style="padding:10px; border:1px solid #ddd;"></td>
+      <td th:text="${#temporals.format(review.createdDt, 'yyyy-MM-dd HH:mm')}" style="padding:10px; border:1px solid #ddd;"></td>
+    </tr>
+  </tbody>
+</table>
+    <!-- 추후 댓글/리뷰 탭 여기에 추가 가능 -->
+  </div>
+</div>

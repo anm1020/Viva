@@ -7,12 +7,24 @@
   <title>면접관 리스트</title> 
   <link rel="stylesheet" th:href="@{/css/common.css}">
   <link rel="stylesheet" th:href="@{/css/interviewer.css}">
+  <link rel="stylesheet" th:href="@{/css/hero.css}">
    
 </head>
 <body>
 
   <!-- Header -->
   <div th:replace="fragments/header :: headerFragment"></div>
+  <section class="hero-banner">
+		<div class="text-area">
+			<h1>Interviewer</h1>
+			<p>Please choose your interviewer</p>
+		</div>
+		<div class="img-area">
+			<!-- 이미지 숨김 처리됨 -->
+		</div>
+	</section>
+	<div class="board-footer">면접관</div>
+
 
   <div class="interviewer-layout">
     <div class="container">
@@ -43,6 +55,7 @@
     <hr>
 
     <!-- ✅ 면접관 카드 리스트 -->
+
     <div class="interviewer-grid">
         <!-- 면접관 카드 (최대 9개) -->
         <div class="interviewer-card" th:each="i, iterStat : ${interviewers}" th:if="${iterStat.index} < 9" th:onclick="'location.href=\'/interviewer/' + ${i.intrId} + '\''">
@@ -65,11 +78,13 @@
               <div class="categories">
                 <span th:each="cate, iterStat : ${#strings.arraySplit(i.intrCate, ',')}" th:if="${iterStat.index < 3}" th:with="categoryType=${T(com.example.demo.model.entity.CategoryType).valueOf(cate.trim())}" th:text="${categoryType}" class="category-tag"></span>
               </div>
+
             </div>
             <p class="intro" th:text="${i.intrIntro != null ? i.intrIntro : '소개 없음'}">한줄소개</p>
             <button class="reserve-btn" th:onclick="'event.stopPropagation(); location.href=\'/reservation/book?intrId=' + ${i.intrId} + '\''">예약하기</button>
           </div>
         </div>
+
         
         <!-- 빈 박스 (9개 미만일 때) -->
         <div class="empty-box" th:each="i : ${#numbers.sequence(1, 9 - #lists.size(interviewers))}" th:if="${#lists.size(interviewers) < 9}">
@@ -77,7 +92,24 @@
             <span>면접관 없음</span>
           </div>
         </div>
+
+      </a>
+
+      <form th:if="${session.user != null and session.user.userRole != 'intr'}"
+              th:action="@{/reservation/book}" method="get" style="text-align:center; margin: 10px 0;">
+          <input type="hidden" name="intrId" th:value="${i.userId}" />
+          <button type="submit" class="reserve-btn">예약하기</button>
+        </form>
+        <!-- ✅ 면접관 본인인 경우 안내 문구 -->
+        <div style="text-align: center; margin: 10px 0;"
+             th:if="${session.user != null and session.user.userRole == 'intr'}">
+          <span style="color: gray; font-size: 13px;">(면접관은 예약할 수 없습니다)</span>
+        </div>
+      </form>
     </div>
+  </div>
+</div>
+
 
     <!-- 페이징 UI -->
     <div class="paging">

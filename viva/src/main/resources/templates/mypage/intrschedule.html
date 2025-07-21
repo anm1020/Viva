@@ -5,17 +5,18 @@
 		<thead>
 			<tr>
 				<th>예약번호</th>
-				<th>회원 ID</th>
+				<th>회원 이름</th>
 				<th>예약일</th>
 				<th>예약시간</th>
 				<th>예약 생성일</th>
 				<th>상태</th>
+				<th>생성</th>
 			</tr>
 		</thead>
 		<tbody>
 			<tr th:each="r : ${reservations}">
 				<td th:text="${r.resId}">1</td>
-				<td th:text="${r.memId}">mem01</td>
+				<td th:text="${memNames[r.memId]} ?: '알 수 없음'">예약자 이름</td>
 				<td th:text="${r.reservedDate}">2025-07-09</td>
 				<td th:text="${r.reservedTime}">12:00</td>
 				<td th:text="${#dates.format(r.resCreateDt, 'yyyy-MM-dd HH:mm')}">2025-07-06
@@ -24,6 +25,7 @@
 					th:classappend="${r.resStatus=='pending'?'pending':r.resStatus=='confirmed'?'confirmed':r.resStatus=='cancelled'?'cancelled':''}"
 					th:text="${r.resStatus=='pending'?'결제 전':r.resStatus=='confirmed'?'결제 완료':r.resStatus=='cancelled'?'취소됨':'알 수 없음'}">
 				</span></td>
+				<td><button class="creation">생성</button></td>
 			</tr>
 		</tbody>
 	</table>
@@ -73,7 +75,7 @@
 				<option value="15:00">18:00</option>
 		</select>
 		</label>
-		<button type="submit" class="btn-delete">비활성화 등록</button>
+		<button type="submit" class="btn-register">비활성화 등록</button>
 	</form>
 
 	<!--등록 -->
@@ -111,7 +113,7 @@
 
 	</script>
 	<script>
-	$(document).off("click", ".delete-btn").on("click", ".delete-btn", function () {
+	$(document).off("click", ".btn-delete").on("click", ".btn-delete", function () {
 		  const id = $(this).data("id");
 
 		  if (!confirm("정말 삭제하시겠습니까?")) return;

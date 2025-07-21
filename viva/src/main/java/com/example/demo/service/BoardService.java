@@ -62,4 +62,33 @@ public class BoardService {
     public Page<Board> getBoardPage(Pageable pageable) {
         return boardRepository.findAll(pageable);
     }
+    
+    
+ // 검색 조건별 게시글 페이징 조회
+    public Page<Board> searchBoards(String type, String keyword, Pageable pageable) {
+        switch (type) {
+            case "title":
+                return boardRepository.findByTitleContaining(keyword, pageable);
+            case "content":
+                return boardRepository.findByContentContaining(keyword, pageable);
+            case "userId":
+                return boardRepository.findByUserIdContaining(keyword, pageable);
+            default:
+                return boardRepository.findAll(pageable);
+        }
+    }
+    
+    //추천
+    @Transactional
+    public void incrementLikeCount(Integer id) {
+        boardRepository.findById(id).ifPresent(board -> {
+            board.setLikeCount(board.getLikeCount() + 1);
+            boardRepository.save(board);
+        });
+    }
+    
+    // 예원 추가: 특정 회원의 글 목록 조회
+    public List<Board> getBoardsByUserId(String userId) {
+        return boardRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    }
 }

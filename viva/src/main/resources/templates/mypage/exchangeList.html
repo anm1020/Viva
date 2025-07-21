@@ -1,0 +1,34 @@
+<!-- 환전 신청 내역 프래그먼트 -->
+<div th:fragment="fragment" class="exchange-list" >
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<h2>나의 환전 신청 내역</h2>
+<table class="reservation-table">
+  <thead>
+    <tr>
+      <th>신청 번호</th>
+      <th>환전자 이름</th>
+      <th>휴대폰 번호</th>
+      <th>은행명</th>
+      <th>계좌번호</th>
+      <th>신청 포인트</th>
+      <th>신청 시간</th>
+      <th>상태</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr th:each="exchange : ${exchanges}">
+      <td th:text="${exchange.id}">1</td>
+      <td th:text="${exchange.name}">홍길동</td>
+      <td th:text="${exchange.phone}">010-0000-0000</td>
+      <td th:text="${exchange.bank}">국민은행</td>
+      <td th:text="${exchange.account}">123-456-7890</td>
+      <td th:text="${exchange.amount}">10000</td>
+      <td th:text="${T(java.time.format.DateTimeFormatter).ofPattern('yyyy-MM-dd HH:mm').format(exchange.requestedAt)}">2025-07-17 10:00</td>
+      <td th:text="${exchange.status}">PENDING</td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(exchanges)}">
+      <td colspan="8" style="text-align:center;">신청 내역이 없습니다.</td>
+    </tr>
+  </tbody>
+</table>
+</div>

@@ -4,9 +4,10 @@
 
 	<div class="reservation-summary">
 		<span>보유 포인트: <strong th:text="${point}">0</strong>원
-		</span> <a th:href="@{/point/chargePage(userId=${userId})}"
-			class="btn-charge"> 💰 포인트 충전하기 </a>
-	</div>
+		</span>
+		<button th:onclick="'location.href=\'' + @{/point/chargePage(userId=${userId})} + '\''" class="btn-charge">
+  💰 포인트 충전하기
+</button>
 
 	<table class="reservation-table">
 		<thead>
@@ -39,8 +40,8 @@
 				</span></td>
 				<td>
 					<div th:if="${r.resStatus=='pending'}" class="payment-actions">
-						<a th:href="@{/payment/charge(resId=${r.resId})}"
-							class="btn-pay btn-card">카드결제</a>
+						<button type="button" class="btn-pay btn-card"
+							th:data-resid="${r.resId}">카드결제</button>
 						<form th:action="@{/point/use}" method="post" class="inline-form"
 							onsubmit="return confirm('포인트로 결제하시겠습니까?');">
 							<input type="hidden" name="userId" th:value="${userId}" /> <input
@@ -50,10 +51,9 @@
 						</form>
 					</div>
 				</td>
-				 <td>
-    <span th:if="${r.payment != null}" th:text="${r.payment.payType}">CARD</span>
-    <span th:if="${r.payment == null}">-</span>
-  </td>
+				<td><span th:if="${r.payment != null}"
+					th:text="${r.payment.payType}">CARD</span> <span
+					th:if="${r.payment == null}">-</span></td>
 				<td><a th:if="${r.resStatus!='cancelled'}" href="#"
 					class="action-link change">변경</a></td>
 				<td><a th:if="${r.resStatus != 'cancelled'}"
@@ -103,15 +103,10 @@
 		</div>
 	</div>
 
-	<p class="back-link">
-		<a href="/reservation/testlist">목록으로 돌아가기</a>
-	</p>
-
+	
 
 	<!-- reservedSlotsJson JSON 데이터 전달 -->
 	<script id="reservedSlotsJson" type="application/json"
 		th:utext="${reservedSlotsJson}"></script>
-
-
 </div>
 

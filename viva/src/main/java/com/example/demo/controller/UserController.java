@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -19,10 +20,31 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.example.demo.model.entity.Users;
+import com.example.demo.model.entity.Board;
+import com.example.demo.model.entity.Comment;
+import com.example.demo.model.entity.Jaso;
 import com.example.demo.security.CustomUserDetails;
+import com.example.demo.service.BoardService;
+import com.example.demo.service.CommentService;
+import com.example.demo.service.JasoService;
+
+import com.example.demo.model.entity.Payment;
+import com.example.demo.model.entity.PointExchange;
+
+import com.example.demo.model.entity.Review;
+import com.example.demo.model.entity.Reviewboard;
+
+import com.example.demo.model.entity.Users;
+import com.example.demo.repository.ReviewRepository;
+import com.example.demo.security.CustomUserDetails;
+
 import com.example.demo.service.InterviewerService;
+import com.example.demo.service.PaymentService;
+import com.example.demo.service.PointExchangeService;
+
+
 import com.example.demo.service.PointService;
+import com.example.demo.service.ReviewboardService;
 //import com.example.demo.model.entity.User.UserRole;
 import com.example.demo.service.UserService;
 
@@ -36,7 +58,23 @@ public class UserController {
 
 	private final UserService service;
 	private final PointService pointService;
+
 	private final InterviewerService interviewerService;
+	private final JasoService jasoService;
+	private final PaymentService paymentService;
+	private final PointExchangeService pointExchangeService;
+	private final BoardService boardService;
+	private final CommentService commentService;
+	private final ReviewRepository reviewRepository;
+
+	// application.properties 에서 읽어 오는 impKey
+	@Value("${portone.imp-key}")
+	private String impKey;
+    private final ReviewboardService reviewboardService;
+
+
+	
+
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
@@ -60,10 +98,7 @@ public class UserController {
 		model.addAttribute("users", users);
 		model.addAttribute("role", role); // 필요하면 role도 넘기기
 
-//	    if (role.equals("intr")) {
-//	        return "member/interviewerform"; // 면접관 폼
-//	    } else {
-		return "member/memberform"; // 취준생 폼
+		return "member/memberform"; // 공통 회원가입 폼
 
 	}
 
@@ -92,21 +127,43 @@ public class UserController {
 		String career = users.getUserCareer() + "/" + users.getUserCareer2();
 		users.setUserCareer(career);
 
-//	     **★★ user_id 중복 체크 후 저장!★★**
-		if (service.isUserIdDuplicate(users.getUserId())) {
-			model.addAttribute("users", users); // 폼 값 보존
-			model.addAttribute("msg", "이미 사용중인 아이디입니다.");
-			return "member/memberform"; // 취준생 폼 경로
-			// 또는 return "member/interviewerform"; // 역할(role)에 따라 분기 필요!
-		}
+//	     // 1. 아이디 중복 방어
+	    if (service.isUserIdDuplicate(users.getUserId())) {
+	        model.addAttribute("users", users);
+	        model.addAttribute("msg", "이미 사용중인 아이디입니다.");
+	        return "member/memberform";
+	    }
+	    // 2. (선택) 이메일 중복 방어
+	    // if (service.isUserEmailDuplicate(users.getUserEmail())) {
+	    //     model.addAttribute("users", users);
+	    //     model.addAttribute("msg", "이미 사용중인 이메일입니다.");
+	    //     return "member/memberform";
+	    // }
 
-		// 비밀번호, 비번확인 일치 검사
-//	    if (!user.getUserPass().equals(user.getUserPassConfirm())) {
-//	        model.addAttribute("user", user);
-//	        model.addAttribute("msg", "비밀번호가 일치하지 않습니다.");
-//	        return "member/memberform";
-//	    }
+	    // 3. 필수값/빈값 체크 (최소한의 방어)
+	    if (users.getUserName() == null || users.getUserName().isBlank()) {
+	        model.addAttribute("msg", "이름은 필수입니다.");
+	        return "member/memberform";
+	    }
+	    if (users.getUserNum() == null || users.getUserNum().isBlank()) {
+	        model.addAttribute("msg", "휴대폰번호는 필수입니다.");
+	        return "member/memberform";
+	    }
+	    // ... 등등
 
+	    // 4. (면접관) 경력 방어
+	    if ("intr".equals(users.getUserRole()) && (users.getUserCareer() == null || users.getUserCareer().isBlank())) {
+	        model.addAttribute("msg", "면접관은 경력이 필수입니다.");
+	        return "member/memberform";
+	    }
+
+	    // 5. (기술스택) 방어
+	    if (users.getUserSkill() == null || users.getUserSkill().isBlank()) {
+	        model.addAttribute("msg", "기술은 1개 이상 선택해야 합니다.");
+	        return "member/memberform";
+	    }
+
+	    // 6. 저장
 		try {
 			service.save(users);
 			// 성공 메시지 & 로그인 페이지로 리다이렉트
@@ -121,12 +178,14 @@ public class UserController {
 
 	// 아이디 중복 검사
 	@ResponseBody
-	@GetMapping("/check-id")
+	@GetMapping("/member/checkId")
 	public String checkUserId(@RequestParam("userId") String userId) {
-		boolean exists = service.isUserIdDuplicate(userId);
-		return exists ? "duplicated" : "ok";
+	    System.out.println("=== checkUserId() 호출됨 ===");
+	    boolean exists = service.isUserIdDuplicate(userId);
+	    System.out.println("userId=" + userId + " / 중복? " + exists);
+	    return exists ? "duplicated" : "OK";
 	}
-
+	
 	// 로그인
 //	@PostMapping("/loginAll")
 //	public String studentLogin(@RequestParam("userId") String userId,
@@ -216,7 +275,16 @@ public class UserController {
 				// (참고) 네이버 등은 구조가 다를 수 있으니 확인 필요
 			}
 		}
-
+		
+		// 로그인한 사용자의 리뷰만 조회
+		String loginUserId = null; // 추가
+		  List<Reviewboard> myReviews = loginUserId != null ? reviewboardService.findByUserId(loginUserId) : List.of();
+		   
+		// 전체 리뷰 목록 가져오기
+		   List<Reviewboard> allReviews = reviewboardService.findAll();
+		   System.out.println("allReviews size = " + allReviews.size());
+		model.addAttribute("allReviews", allReviews);
+		model.addAttribute("myReviews", myReviews);
 		model.addAttribute("displayName", displayName);
 		model.addAttribute("role", role);
 		model.addAttribute("interviewerList", interviewerService.getInterviewerList());
@@ -253,6 +321,17 @@ public class UserController {
 	    // 포인트
 	    int point =pointService.getPoint(userId);
 	    model.addAttribute("point", point);
+	    // 결제 내역 조회 추가
+	    List<Payment> payments = paymentService.getPaymentsByUserId(userId);
+	    model.addAttribute("payments", payments);
+	    // 환전 신청 내역 추가
+	    List<PointExchange> exchanges = pointExchangeService.getUserExchangeList(userId);
+	    System.out.println("환전 신청 내역 수: " + exchanges.size());
+	    model.addAttribute("exchanges", exchanges);
+	    
+	    // 자소서
+	    List<Jaso> jasoList = jasoService.getJasoByUserId(userId); 
+	    model.addAttribute("jasoList", jasoList);
 	    
 	    // user_role에 따라 다른 뷰 리턴
 	    if ("mem".equals(users.getUserRole())) {
@@ -261,8 +340,6 @@ public class UserController {
 	        return "mypage/intrMypage";     // 면접관 마이페이지 (intrMypage.html)
 	    } else {
 	        // 예외: 권한 이상/없는 경우
-	    	
-	    	
 	    	
 	        return "error/403"; // 혹은 공통 에러 페이지
 	    }
@@ -277,6 +354,9 @@ public class UserController {
 		// 2. DB에서 회원정보 조회
 		Users users = service.findByUserId(userId).orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
 
+		// 2-1. 이름 수정가능
+		users.setUserName(users.getUserName());
+		
 		// 1. 핸드폰 번호 분리
 		if (users.getUserNum() != null) {
 			String[] phone = users.getUserNum().split("-");
@@ -318,7 +398,8 @@ public class UserController {
 		// 3. 모델에 담아서 폼으로 전달
 		model.addAttribute("users", users);
 
-		return "mypage/memberEdit"; // editMember.html (Thymeleaf)
+		return "mypage/memberEdit :: editForm"; // editMember.html (Thymeleaf)
+		// "member/memberEdit :: editForm";
 	}
 
 	@PostMapping("/memberUpdate")
@@ -333,12 +414,22 @@ public class UserController {
 		// 2. 기존 정보 불러와서(아이디 등)
 		Users dbUser = service.findByUserId(userId).orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
 
+		// 2-1. 이름 수정가능
+		dbUser.setUserName(users.getUserName());
+		
 		// 2. 핸드폰 (3개 → 1개로 합쳐서 저장)
 		String fullPhone = (users.getPhonePrefix() != null ? users.getPhonePrefix() : "") + "-"
 				+ (users.getPhoneMiddle() != null ? users.getPhoneMiddle() : "") + "-"
 				+ (users.getPhoneLast() != null ? users.getPhoneLast() : "");
 		dbUser.setUserNum(fullPhone);
 
+
+		// ✨ 이메일도 합쳐서 저장! (이 부분이 꼭 필요!)
+		String userEmail = (users.getEmailId() != null ? users.getEmailId() : "") + 
+		                   "@" + 
+		                   (users.getEmailDomain() != null ? users.getEmailDomain() : "");
+		dbUser.setUserEmail(userEmail);
+		
 		// 경력 합치기 (수정 폼에서 받은 값)
 		String career = (users.getUserCareer() != null ? users.getUserCareer() : "") + "/"
 				+ (users.getUserCareer2() != null ? users.getUserCareer2() : "");
@@ -421,9 +512,61 @@ public class UserController {
 		return "mypage/jobsite"; // jobSites.html
 	}
 
+	// 결제 내역(마이페이지)
 	@GetMapping("/memReservation")
 	public String memReservation() {
-		return "mypage/memReservation"; // jobSites.html
+		return "mypage/memReservation"; 
+	}
+	
+	// 내 활동 관리(마이페이지)
+	@GetMapping("/memberActivity")
+	public String loadActivityFragment() {
+	    return "mypage/memberActivity :: memberActivity";  
 	}
 
+	// 자소서(마이페이지) fragment
+	@GetMapping("/mypage/jaso/fragment")
+	public String getJasoFragment(Model model, Principal principal) {
+	    String userId = principal.getName();
+	    List<Jaso> jasoList = jasoService.getJasoByUserId(userId); 
+	    model.addAttribute("jasoList", jasoList);
+	    return "mypage/jasolist :: jasoList"; // fragment 위치와 이름
+	}
+	
+	@GetMapping("/mypage/activity")
+	public String showMemberActivity(Model model, Principal principal) {
+	    // 1. 로그인한 사용자 ID 가져오기
+	    String userId = principal.getName(); // 세션에서 로그인한 사용자 ID 꺼내기
+	    System.out.println("🔍 로그인된 userId: " + userId);
+
+	    // 2. 사용자 작성 게시글 목록 조회
+	    List<Board> myPosts = boardService.getBoardsByUserId(userId);
+	    System.out.println("📝 가져온 게시글 수: " + myPosts.size());
+
+	    // 3. 내가 쓴 댓글
+	    List<Comment> myComments = commentService.getCommentsByUserId(userId);
+	    model.addAttribute("myComments", myComments);
+	    
+	    // 4. 내가 쓴 면접 리뷰
+	    List<Review> myReviews = reviewRepository.findByUserIdOrderByCreatedDtDesc(userId);
+	    System.out.println("📋 가져온 리뷰 수: " + myReviews.size());
+	    
+	    // 5. 모델에 담기
+	    model.addAttribute("myPosts", myPosts);
+	    model.addAttribute("myComments", myComments);
+	    model.addAttribute("myReviews", myReviews);
+
+	    // 4. 프래그먼트 반환 (마이페이지 본문영역 일부)
+	    return "mypage/memberActivity :: memberActivity";
+	}
+	
+	// 면접관 리뷰 프래그먼트
+	@GetMapping("/intrReview/fragment")
+    public String showIntrReviewFragment(Model model, Principal principal) {
+        String userId = principal.getName(); // 현재 로그인된 면접관 ID
+        List<Review> reviewList = reviewRepository.getReviewsByInterviewerId(userId);
+        model.addAttribute("reviewList", reviewList);
+        return "mypage/intrReview :: intrReviewFragment";
+    }
+	
 }

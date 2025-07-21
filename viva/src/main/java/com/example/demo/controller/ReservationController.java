@@ -4,6 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -70,7 +71,16 @@ public class ReservationController {
 	@GetMapping("/book")
 	public String showBookPage(@RequestParam("intrId") String intrId, Model model, HttpSession session) {
 		// (1) 예약하려는 면접관 ID
+		
 		model.addAttribute("intrId", intrId);
+
+	    //  면접관 이름만 추가
+	    Users intr = userRepo.findByUserId(intrId).orElse(null);
+	    System.out.println("면접관 정보: " + intr);
+	    System.out.println("📌 받은 intrId = " + intrId);
+	    if (intr != null) {
+	        model.addAttribute("intrName", intr.getUserName());
+	    }
 		// (2) 해당 면접관에 이미 예약된 날짜 목록 조회 (서비스 메서드)
 		// yyyy-MM-dd 포맷의 String 리스트를 반환한다고 가정
 		List<String> disabledDates = service.findReservedDatesByIntrId(intrId);
@@ -100,6 +110,8 @@ public class ReservationController {
 	@PostMapping("/save")
 	// public ResponseEntity<Integer> save
 	public ResponseEntity<?> save(@RequestBody Reservation res, HttpSession session) {
+		  System.out.println("intrId type: " + (res.getIntrId() != null ? res.getIntrId().getClass().getName() : "null"));
+		    System.out.println("intrId value: " + res.getIntrId());
 		System.out.println(res.getIntrId());
 		System.out.println(res.getReservedDate());
 		System.out.println(res.getReservedTime());
@@ -112,6 +124,8 @@ public class ReservationController {
 		String memId = user.getUserId();
 		res.setMemId(memId);
 		res.setResStatus("pending");// 상태저장
+		
+		
 
 		// 2) 면접관의 비활성화된 시간인지 검사
 		boolean disabled = service.isDisabled(res.getIntrId(), res.getReservedDate(), res.getReservedTime());
@@ -121,7 +135,6 @@ public class ReservationController {
 
 		// 저장된 예약 엔티티 받아오기
 		Reservation reservation = service.save(res);
-
 		// 저장된 예약의 PK 반환!
 		return ResponseEntity.ok(reservation.getResId());
 
@@ -253,20 +266,25 @@ public class ReservationController {
 	// 내 예약 목록
 	@GetMapping("/mylist")
 	 public String myList(Model model, HttpSession session) throws JsonProcessingException {
-
+		System.out.println(">>> myList() 메서드 진입"); // 여기가 찍히는지 먼저 확인
 		Users user = (Users) session.getAttribute("user");
 		System.out.println("user: " + user);
 		if (user == null)
 			return "redirect:/loginmain";
 
 		String userId = user.getUserId();
+		 // 여기에 테스트 코드 넣기
+	    Optional<Users> testUser = userRepo.findByUserId("gugu");
+	    System.out.println("Test user: " + testUser.orElse(null));
 
 		System.out.println("🧾 [세션 정보 확인]");
 		System.out.println("🔸 userId   : " + userId);
 
 		// 서비스에서 내 예약 목록(시간 내림차순) 가져오기
 		List<Reservation> myResList = service.findReservationsByMemId(userId);
-		
+		 myResList.forEach(r -> {
+		        System.out.println("예약 ID: " + r.getResId() + ", memId: " + r.getMemId());
+		    });
 
 		// 면접관 ID → 이름 매핑 Map 만들기
 		Map<String, String> intrNames = myResList.stream().map(Reservation::getIntrId).distinct()
@@ -280,13 +298,13 @@ public class ReservationController {
 		
 
 	    //  예약된 슬롯 정보(JSON) 직렬화
-
 		    // 🔽 예약/차단 시간 통합 처리
 		    String intrIdForSlots = myResList.isEmpty() ? userId : myResList.get(0).getIntrId();
 
 		    Map<String, List<String>> reservedSlots = service.getReservedSlotsForInterviewer(intrIdForSlots);
 		    Map<String, List<String>> disabledSlots = service.getDisabledSlotsByIntrIdGrouped(intrIdForSlots);
 
+		    //면접관Id 
 		    Map<String, Set<String>> merged = new LinkedHashMap<>();
 		    reservedSlots.forEach((date, times) -> merged
 		        .computeIfAbsent(date, k -> new LinkedHashSet<>())
@@ -295,6 +313,19 @@ public class ReservationController {
 		        .computeIfAbsent(date, k -> new LinkedHashSet<>())
 		        .addAll(times));
 
+		    //  예약한 사람(memId) → 이름 매핑 (추가)
+		    Map<String, String> memNames = myResList.stream()
+		        .map(Reservation::getMemId)
+		        .filter(id -> id != null && !id.isBlank())
+		        .distinct()
+		        .collect(Collectors.toMap(id -> id, id -> {
+		            Users mem = userRepo.findByUserId(id).orElse(null);
+		            return mem != null ? mem.getUserName() : "(알 수 없음)";
+		        }));
+		    // 로그 찍기: memNames Map 내용 확인
+		    memNames.forEach((id, name) -> {
+		        System.out.println("memId: " + id + ", 이름: " + name);
+		    });
 		    // 정렬해서 JSON 변환
 		    Map<String, List<String>> mergedSorted = merged.entrySet().stream()
 		        .collect(Collectors.toMap(
@@ -315,6 +346,7 @@ public class ReservationController {
 		model.addAttribute("userId", userId);
 		model.addAttribute("intrNames", intrNames);
 		model.addAttribute("userName", user.getUserName());
+		model.addAttribute("memNames", memNames); 
 
 		 return "mypage/memschedule :: memschedule";
 	}
@@ -336,12 +368,23 @@ public class ReservationController {
 		List<IntrDisabled> disabledList = service.getDisabledDatesByIntrId(user.getUserId());
 		// 포인트 조회
 		int point = pointservice.getPoint(userId);
+		
+		// 예약한 회원들(memId) → 이름 매핑 (추가)
+	    Map<String, String> memNames = reservations.stream()
+	        .map(Reservation::getMemId)
+	        .filter(id -> id != null && !id.isBlank())
+	        .distinct()
+	        .collect(Collectors.toMap(id -> id, id -> {
+	            Users mem = userRepo.findByUserId(id).orElse(null);
+	            return mem != null ? mem.getUserName() : "(알 수 없음)";
+	        }));
 		// 뷰로 전달
 		model.addAttribute("disabledList", disabledList);
 		model.addAttribute("reservations", reservations);
 		model.addAttribute("user", user);
 		model.addAttribute("users", user);
 		model.addAttribute("point", point);
+		model.addAttribute("memNames", memNames);
 		// AJAX 요청이면 fragment만 반환
 		if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
 		    return "mypage/intrschedule :: fragment"; // ← fragment 이름 명시

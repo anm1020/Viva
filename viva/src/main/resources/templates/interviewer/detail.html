@@ -1,10 +1,15 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>면접관 상세</title>
-  <link rel="stylesheet" th:href="@{/css/interviewer.css}">
-  <link rel="stylesheet" th:href="@{/css/common.css}">
+
+<meta charset="UTF-8">
+<title>면접관 상세</title>
+<link rel="stylesheet" th:href="@{/css/common.css}">
+<link rel="stylesheet" th:href="@{/css/interviewer.css}">
+<link rel="stylesheet" th:href="@{/css/reservation.css}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://code.jquery.com/jquery-latest.js"></script>
 </head>
 <body>
  <!-- Header -->
@@ -18,10 +23,27 @@
       </div>
       <div class="profile-info">
         <div class="profile-actions">
-          <a class="reserve-btn"
-             th:href="@{'/reservation/book?intrId=' + ${interviewer.intrId}}">
-            예약하기
-          </a>
+          <!-- 회원만 예약 버튼 이슬 -->
+          <div th:if="${session.user != null and session.user.userRole != 'intr'}">
+            <div style="margin-top: 40px; text-align: center;">
+              <button type="button" id="btn-open-popup" class="reserve-btn">👉
+                예약하러 가기</button>
+            </div>
+
+            <!-- ✅ 예약 폼 fragment 삽입 -->
+            <!-- ✅ 예약 폼: 처음엔 안 보이도록 숨김 -->
+            <div id="reservation-box" style="display: none; margin-top: 30px;">
+              <input type="hidden" id="intrUserId" th:value="${intrUserId}" />
+              <div th:replace="interviewer/reservationform :: reservationForm"></div>
+            </div>
+          </div>
+
+          <!-- ✅ 면접관은 안내 메시지만 출력 -->
+          <div
+            th:if="${session.user != null and session.user.userRole == 'intr'}"
+            style="margin-top: 40px; text-align: center;">
+            <span style="color: gray; font-size: 13px;">(면접관은 예약할 수 없습니다)</span>
+          </div>
           
           <!-- 면접관 본인만 보이는 수정/삭제 버튼 -->
           <div class="owner-actions" th:if="${role == 'intr' and #authentication.name == interviewer.userId}">
@@ -43,7 +65,14 @@
       </div>
     </div>
   </div>
-
+		<!-- ✅ 자기소개 영역 -->
+		<div class="detail-content-section">
+			<h3>자기소개</h3>
+			<div class="detail-content-box">
+				<p th:text="${interviewer.intrContent}">상담 방식, 강점, 이력 등을 작성해주세요.
+				</p>
+			</div>
+		</div>
   <!-- ✅ 후기 섹션 -->
   <hr>
   <div class="review-section">
@@ -84,89 +113,129 @@
     </div>
   </div>
 </div>
-</body>
-<style>
-.star-rating {
-  font-size: 2rem;
-  color: #ddd;
-  cursor: pointer;
-  display: flex;
-  gap: 4px;
-}
-.star-rating .star.selected,
-.star-rating .star.hovered {
-  color: #FFD600;
-  text-shadow: 0 0 2px #FFA000;
-}
-.review-score {
-  display: flex;
-  gap: 2px;
-  margin-bottom: 2px;
-}
-.review-score .star {
-  font-size: 1.3rem;
-  color: #ddd;
-}
-.review-score .star.filled {
-  color: #FFD600;
-  text-shadow: 0 0 2px #FFA000;
-}
 
-/* 프로필 액션 버튼 스타일 */
-.profile-actions {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
-}
+<script th:inline="javascript">
+  // 서버에서 내려오는 JSON이 null일 경우 빈 객체로 초기화
+  var reservedSlots = /*[[${reservedSlotsJson}]]*/ null;
+  var disabledSlots = /*[[${disabledSlotsJson}]]*/ null;
+  var intrId = /*[[${intrUserId}]]*/ null;
 
-.profile-actions .reserve-btn {
-  background: #007bff;
-  color: white;
-  text-decoration: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: background 0.2s;
-}
+  reservedSlots = reservedSlots || {};
+  disabledSlots = disabledSlots || {};
+</script>
 
-.profile-actions .reserve-btn:hover {
-  background: #0056b3;
-}
+<script th:inline="javascript">
+  var reservedSlots = /*[[${reservedSlotsJson}]]*/ '{}';
+  var disabledSlots = /*[[${disabledSlotsJson}]]*/ '{}';
 
-.owner-actions {
-  display: flex;
-  gap: 8px;
-}
+  reservedSlots = JSON.parse(reservedSlots);
+  disabledSlots = JSON.parse(disabledSlots);
+</script>
 
-.owner-actions .edit-btn {
-  background: #28a745;
-  color: white;
-  text-decoration: none;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: background 0.2s;
-}
+<script>
+  $(document).ready(function () {
+    let selectedDate = null;
+    let selectedTime = null;
 
-.owner-actions .edit-btn:hover {
-  background: #218838;
-}
+    $('#btn-open-popup').on('click', function () {
+      $('#reservation-box').slideDown();
 
-.owner-actions .delete-btn {
-  background: #dc3545;
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
+      flatpickr("#calendar", {
+        inline: true,
+        dateFormat: "Y-m-d",
+        minDate: "today",
+        onChange: function (_, dateStr) {
+          selectedDate = dateStr;
 
-.owner-actions .delete-btn:hover {
-  background: #c82333;
-}
-</style>
+          const label = document.getElementById('selected-date-label');
+          const koreanDate = new Date(dateStr).toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            weekday: 'short'
+          });
+          label.textContent = `${koreanDate} 시간 선택`;
+
+          document.getElementById('summary-date').textContent = koreanDate;
+
+          // Step 2 시간 선택 영역 보이기
+          $('#step-time').show();
+
+          // Step 3 예약 요약 영역 숨기기 (시간 선택 전)
+          $('#step-summary').hide();
+
+          renderTimes();
+        }
+      });
+    });
+
+    function renderTimes() {
+      console.log('renderTimes called, selectedDate:', selectedDate);
+      const grid = $('#times-grid').empty();
+      if (!selectedDate) return;
+
+      const reserved = (reservedSlots && reservedSlots[selectedDate]) || [];
+      console.log('reserved:', reserved);
+
+      const disabled = (disabledSlots && disabledSlots[selectedDate]) || [];
+      console.log('disabled:', disabled);
+
+      const blocked = [...reserved, ...disabled];
+      console.log('blocked:', blocked);
+
+      for (let h = 9; h <= 18; h++) {
+        const t = (h < 10 ? '0' : '') + h + ':00';
+        const isDisabled = blocked.includes(t);
+        console.log('time:', t, 'isDisabled:', isDisabled);
+
+        $('<button>')
+          .text(t)
+          .addClass(isDisabled ? 'disabled' : '')
+          .prop('disabled', isDisabled)
+          .on('click', function () {
+            if (isDisabled) return;
+
+            $('.times-grid button').removeClass('selected');
+            $(this).addClass('selected');
+            selectedTime = t;
+
+            document.getElementById('summary-time').textContent = t;
+
+            // Step 3 예약 요약 영역 보이기
+            $('#step-summary').show();
+          })
+          .appendTo(grid);
+      }
+    }
+
+    $('#btn-confirm').on('click', function () {
+      if (!selectedDate || !selectedTime) {
+        return alert('날짜와 시간을 모두 선택해주세요.');
+      }
+
+      const payload = {
+        intrId: intrId,
+        reservedDate: selectedDate,
+        reservedTime: selectedTime
+      };
+      console.log('예약할 intrId:', intrId);
+      $.ajax({
+        type: 'POST',
+        url: '/reservation/save',
+        contentType: 'application/json',
+        data: JSON.stringify(payload),
+        success: function (resId) {
+          window.location.href = `/reservation/result?resId=${resId}`;
+        },
+        error: function (xhr) {
+          alert('예약 저장 중 오류: ' + xhr.responseText);
+        }
+      });
+    });
+  });
+</script>
+
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   // 별점 기능
@@ -231,4 +300,5 @@ function deleteInterviewer(intrId) {
 </script>
 <!-- Footer -->
   <div th:replace="fragments/footer :: footerFragment"></div>
+  </body>
 </html>

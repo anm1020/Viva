@@ -5,7 +5,7 @@
   <title>회원가입</title>
   <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
   <script src="https://code.jquery.com/jquery-latest.js"></script>
-  <script th:src="@{/js/check.js}"></script>
+  <script th:src="@{/js/check2.js}"></script>
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <link rel="stylesheet" th:href="@{/css/common.css}">
   <style>
@@ -44,12 +44,13 @@
       background-color: #f9fafb;
       box-sizing: border-box;
     }
+    .warning{
+      font-size: 0.8rem;
+    }
     .inline-group {
       display: flex;
       gap: 0.5rem;
     }
-    
-    
     .inline-group > * {
       flex: 1;
     }
@@ -79,6 +80,34 @@
     .form-frame button[type="submit"]:hover {
       background-color: #0056b3;
     }
+    
+    
+    /* 1) 체크박스 숨기기 */
+.btn-checkbox input[type="checkbox"] {
+  display: none;
+}
+/* 2) 기본 버튼 스타일 */
+.btn-checkbox{
+  display : inline-block !important;
+}
+.btn-checkbox span {
+  display: inline-block;
+  padding: 4px 8px;
+  margin: 4px 6px 4px 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+/* 3) 체크되었을 때 스타일 */
+.btn-checkbox input[type="checkbox"]:checked + span {
+  background-color: #007bff;   /* 파란색 */
+  color: #fff;                /* 글자 흰색 */
+  border-color: #007bff;
+}
   </style>
 </head>
 <body>
@@ -93,19 +122,19 @@
   <input type="hidden" name="userOuth" value="N"/>
 
     <!-- 아이디 + 중복확인 -->
-    <div class="form-group inline-group">
-      <div style="flex: 2;">
-        <label for="userId">아이디</label>
+    <div class="form-group">
+      <label for="userId">아이디</label>
+       <div class="inline-group" >
         <input type="text"
                th:field="*{userId}"
                id="userId"
                placeholder="아이디"
                required />
-      </div>
-      <div style="flex: 1; align-self: end;">
+      <div style="flex: 0.32; align-self: end;">
         <button type="button" id="checkIdBtn">중복확인</button>
-        <span id="idCheckResult"></span>
       </div>
+      </div>
+        <span id="idCheckResult" class="warning"></span>
     </div>
 
     <!-- 비밀번호 -->
@@ -126,7 +155,7 @@
              id="userPassConfirm"
              placeholder="비밀번호 확인"
              required />
-      <span id="passCheckResult"></span>
+      <span id="passCheckResult" class="warning"></span>
     </div>
 
     <!-- 이름 -->
@@ -137,7 +166,7 @@
 		         id="userName"
 		         placeholder="이름"
 		         required />
-		  <span id="nameCheckResult" style="margin-left:10px;font-size:13px;"></span>
+		  <span id="nameCheckResult" class="warning"></span>
 		</div>
 
     <!-- 생년월일 -->
@@ -152,55 +181,54 @@
     <!-- 성별 -->
     <div class="form-group">
       <label>성별</label>
-      <div class="inline-group">
-        <input type="radio"
+      <div class="inline-group" style="align-items:start">
+        <input style="flex:0.1; margin-left:0;"
+        	   type="radio"
                th:field="*{userGender}"
                id="male"
                value="남성" />
         <label for="male">남성</label>
 
-        <input type="radio"
+        <input style="flex:0.1; margin-left:0;"
+        	   type="radio"
                th:field="*{userGender}"
                id="female"
                value="여성" />
         <label for="female">여성</label>
       </div>
     </div>
-    <span id="genderCheckResult" style="margin-left:10px; font-size:13px;"></span>
+    <span id="genderCheckResult" class="warning"></span>
 
     <!-- 이메일 -->
-    <div class="form-group inline-group">
-      <div style="flex: 2;">
-        <label for="emailId">이메일</label>
-        <div class="inline-group">
-          <input type="text"
-                 th:field="*{emailId}"
-                 id="emailId"
-                 placeholder="example"
-                 required />
-          <span>@</span>
-          <input type="text"
-                 th:field="*{emailDomain}"
-                 id="emailDomain"
-                 readonly
-                 required />
-        </div>
-        <span id="emailCheckResult" style="margin-left:10px; font-size:13px;"></span>
-      </div>
-      <div style="flex: 1; align-self: end;">
-        <select id="emailDomainSelect">
-          <option value="" selected>도메인 선택</option>
-          <option value="naver.com">naver.com</option>
-          <option value="gmail.com">gmail.com</option>
-          <option value="daum.net">daum.net</option>
-          <option value="custom">직접입력</option>
-        </select>
-      </div>
-    </div>
+	<div class="form-group">
+		<div class="inline-group">
+			<div>
+				<label for="emailId">이메일</label>
+				<div class="inline-group">
+					<input type="text" id="emailId" placeholder="example" required=""
+						name="emailId" value=""> <span style="flex: 0.1;">@</span>
+					<input type="text" name="emailDomain" id="emailDomain"
+						readonly="" required="" value="">
+					<div style="flex: 2;">
+						<select
+							id="emailDomainSelect">
+							<option value="" selected="">도메인 선택</option>
+							<option value="naver.com">naver.com</option>
+							<option value="gmail.com">gmail.com</option>
+							<option value="daum.net">daum.net</option>
+							<option value="custom">직접입력</option>
+						</select>
+					</div>
+				</div>
+				</div>
+			</div>
+			<span id="emailCheckResult"	class="warning"></span> 
+		</div>
 
-    <!-- 핸드폰번호 -->
-    <div class="form-group inline-group">
+	<!-- 핸드폰번호 -->
+    <div class="form-group">
       <label style="flex: none; align-self: center;" for="phonePrefix">핸드폰번호</label>
+      <div class="inline-group">
       <select th:field="*{phonePrefix}" id="phonePrefix">
         <option value="010">010</option>
         <option value="011">011</option>
@@ -217,26 +245,29 @@
              id="phoneLast"
              maxlength="4"
              placeholder="0000" />
-      <span id="phoneCheckResult"></span>
+     </div>
+      <span id="phoneCheckResult" class="warning"></span>
     </div>
 
     <!-- 주소 검색 -->
-    <div class="form-group inline-group">
-      <label style="flex: none; align-self: center;" for="userAdd">주소</label>
+    <div class="form-group">
+      <label style="flex:2; align-self: center;" for="userAdd">주소</label>
+      <div  class="inline-group">
       <input type="text"
              th:field="*{userAdd}"
              id="userAdd"
              placeholder="주소"
-             readonly />
+             readonly style="flex:2;"/>
       <button type="button" id="addrBtn">주소 검색</button>
-      <span id="addressCheckResult" style="margin-left:10px; font-size:13px;"></span>
+      </div>
+      <span id="addressCheckResult" class="warning"></span>
     </div>
     <div class="form-group">
       <input type="text"
              th:field="*{userAddDetail}"
              id="userAddDetail"
              placeholder="상세주소 입력" />
-       <span id="addressDetailCheckResult" style="margin-left:10px; font-size:13px;"></span>
+       <span id="addressDetailCheckResult" class="warning"></span>
     </div>
 
 	<!-- 면접관인 경우 -->
@@ -249,6 +280,47 @@
 
     <!-- 기술 스택 (체크박스 예시) -->
     <div class="form-group">
+	  <label>기술</label>
+	  <div >
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="Java" />
+	      <span>Java</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="React.js" />
+	      <span>React.js</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="Vue.js" />
+	      <span>Vue.js</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="JPA" />
+	      <span>JPA</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="MyBatis" />
+	      <span>MyBatis</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="Spring Boot" />
+	      <span>Spring Boot</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="MySQL" />
+	      <span>MySQL</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="Oracle" />
+	      <span>Oracle</span>
+	    </label>
+	    <!-- 나머지도 동일하게 -->
+	  </div>
+	</div>
+    
+    
+    
+    <!-- <div class="form-group">
       <label>기술</label>
       <div class="inline-group">
         <label>
@@ -268,110 +340,12 @@
         <label>
           <input type="checkbox" name="skill"  value="MySQL" /> MySQL</label>
       </div>
-    </div>
+    </div> -->
 
     <!-- 회원가입 버튼 -->
     <button type="submit">회원가입</button>
   </form>
 </div>
 
-<script>
-//--- 아이디 중복확인 플래그
-let isIdChecked = false;
-
-// 아이디 입력시, 중복확인 다시 해야 하니까 플래그 false + 가입버튼 비활성화
-$('#userId').on('input', function() {
-  isIdChecked = false;
-  $('#registerBtn').prop('disabled', true);
-  $('#idCheckResult').text('');
-});
-
-// 중복확인 버튼 클릭
-$('#checkIdBtn').click(function() {
-  const userId = $('#userId').val().trim();
-  if (!userId) {
-    $('#idCheckResult').text('아이디를 입력하세요.');
-    return;
-  }
-
-  // 실제 서버 엔드포인트에 맞춰서 URL 변경!
-  $.ajax({
-    url: '/member/checkId', // ex) /member/checkId?userId=aaa
-    type: 'GET',
-    data: { userId },
-    success: function(result) {
-      if (result === 'OK') {
-        $('#idCheckResult').text('사용 가능한 아이디입니다.');
-        isIdChecked = true;
-        $('#registerBtn').prop('disabled', false);
-      } else {
-        $('#idCheckResult').text('이미 사용 중인 아이디입니다.');
-        isIdChecked = false;
-        $('#registerBtn').prop('disabled', true);
-      }
-    },
-    error: function() {
-      $('#idCheckResult').text('오류 발생! 다시 시도하세요.');
-      isIdChecked = false;
-      $('#registerBtn').prop('disabled', true);
-    }
-  });
-});
-
-// form submit 시에도 우회방지(꼭 필요!)
-$('form[th\\:action="@{/memberinsert}"]').on('submit', function(e) {
-  if (!isIdChecked) {
-    alert('아이디 중복확인을 먼저 해주세요!');
-    e.preventDefault();
-  }
-});
-
-
-document.addEventListener('DOMContentLoaded', function() {
-  const domainSelect = document.getElementById('emailDomainSelect');
-  const domainInput  = document.getElementById('emailDomain');
-
-  domainSelect.addEventListener('change', function() {
-    const val = this.value;
-    if (val === 'custom') {
-      domainInput.value = '';
-      domainInput.removeAttribute('readonly');
-      domainInput.focus();
-    } else if (val) {
-      domainInput.value = val;
-      domainInput.setAttribute('readonly', 'readonly');
-    } else {
-      domainInput.value = '';
-      domainInput.setAttribute('readonly', 'readonly');
-    }
-  });
-});
-  
-  // ⬇️ 여기부터 주소 검색(카카오 우편번호) 추가!
-  document.getElementById('addrBtn').addEventListener('click', function() {
-    new daum.Postcode({
-      oncomplete: function(data) {
-        document.getElementById('userAdd').value = data.address; // 주소 입력
-      }
-    }).open();
-  });
- </script>
-  
-  
- <!--  <script>
-  const emailSelect    = document.getElementById('emailSelect');
-  const emailDomainIn  = document.getElementById('emailDomain');
-
-  emailSelect.addEventListener('change', function() {
-    if (this.value === 'custom') {
-      emailDomainIn.value    = '';
-      emailDomainIn.readOnly = false;
-      emailDomainIn.focus();
-    } else {
-      emailDomainIn.value    = this.value;
-      emailDomainIn.readOnly = true;
-    }
-  });
-</script> -->
 </body>
 </html>

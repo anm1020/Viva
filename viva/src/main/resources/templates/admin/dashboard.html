@@ -7,6 +7,7 @@
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
     <link rel="stylesheet" th:href="@{/css/users.css}">
+    <link rel="stylesheet" th:href="@{/css/notice.css}">
 </head>
 <body>
 <!-- 공통 헤더 -->
@@ -17,7 +18,7 @@
     <aside class="admin-sidebar">
         <div class="admin-title">관리자 대시보드</div>
         <nav>
-            <a href="#" class="sidebar-link" data-url="/admin/dashboard-content">공지관리</a>
+            <a href="#" class="sidebar-link" data-url="/notice/noticeList">공지관리</a>
             <a href="#" class="sidebar-link" data-url="/admin/users">회원관리</a>
             <a href="#" class="sidebar-link" data-url="/admin/posts">게시물관리</a>
             <a href="#" class="sidebar-link" data-url="/admin/points">포인트관리</a>
@@ -32,34 +33,15 @@
             <div>
                 <p>여기에 각종 통계, 주요 알림, 버튼 등을 넣으세요.</p>
             </div>
-        </div>
+        </div>  
     </main>
 </div>
 
 <!-- jQuery 및 AJAX 메뉴 클릭 처리 -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="/js/users.js"></script>
-<script>
-$(".sidebar-link").click(function(e) {
-    e.preventDefault();
-    const url = $(this).data("url");
-    if (url === "/admin/users") {
-        $.ajax({
-            url: url,
-            type: "GET",
-            data: { userRole: "mem" }, // ← 반드시!
-            success: function(data) { $("#adminMainContent").html(data); },
-            error: function() { $("#adminMainContent").html("<p>불러오기 오류!</p>"); }
-        });
-    } else {
-        $.ajax({
-            url: url,
-            type: "GET",
-            success: function(data) { $("#adminMainContent").html(data); },
-            error: function() { $("#adminMainContent").html("<p>불러오기 오류!</p>"); }
-        });
-    }
-});
-</script>
+<script src="/js/notice.js"></script>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
 </body>
 </html>

@@ -3,132 +3,137 @@
 <head>
   <meta charset="UTF-8">
   <title>예약 페이지</title>
-  <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
+   <link rel="stylesheet" th:href="@{/css/common.css}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://code.jquery.com/jquery-latest.js"></script>
-  <style>
-    #calendar { max-width: 300px; margin-bottom: 1rem; }
-    .times-grid { display: flex; flex-wrap: wrap; gap: .5rem; }
-    .times-grid button {
-      padding: .5rem 1rem;
-      border:1px solid #ccc;
-      background:#f5f5f5;
-      cursor:pointer;
-    }
-    .times-grid button.selected {
-      background:#0078d4;
-      color:#fff;
-      border-color:#005a9e;
-    }
-    .times-grid button.disabled {
-      background:#eee;
-      color:#999;
-      border-color:#ddd;
-      cursor:not-allowed;
-    }
-  </style>
+  <link rel="stylesheet" href="/css/reservation.css"/>
+  <link rel="stylesheet" href="/css/book.css"/>
 </head>
 <body>
- <h1 th:text="'예약하기 - ' + ${userName} + '님'">예약하기</h1>
-<p>
-  면접관: 
-  <span th:text="${intrName}">홍길동</span>
-  (ID: <span th:text="${intrId}">hong</span>)
-</p>
 
-<p>
-  예약자: <span th:text="${userName} ?: '이름없음'"></span> 
-  (ID: <span th:text="${userId}"></span>, 연락처: <span th:text="${userTel} ?: '미입력'"></span>)
-</p>
- 
+  <div th:replace="fragments/header :: headerFragment"></div>
+<div class="header-wrapper">
+  <h1 th:text="  ${userName} + '님 '+ '예약 '">예약하기</h1>
 
-  <!-- 1) 달력 -->
-  <div id="calendar"></div>
+  <p>
+    면접관: <span th:text="${intrName}">홍길동</span>
+  </p>
 
-  <!-- 2) 시간 버튼 그리드 -->
-  <div class="times-grid" id="times-grid"></div>
+  <p>
+    예약자: <span th:text="${userName} ?: '이름없음'"></span>
+  </p>
+</div>
 
-  <!-- 3) 확정 버튼 -->
-  <button id="btn-confirm" style="margin-top:1rem;">확인</button>
+<!-- 3단 구성 -->
+<div class="reservation-wrapper">
+  <!-- ① 달력 -->
+  <div class="calendar-panel">
+    <div id="calendar"></div>
+  </div>
 
-  <!-- Thymeleaf JS 인라인 -->
-  <script th:inline="javascript">
-    /* 서버에서 주입된 변수 */
-    var intrId       = /*[[${intrId}]]*/ 'unknown';
-    var reservedSlots = /*[[${reservedSlots}]]*/ {}; 
-    var disabledSlots = /*[[${disabledSlots}]]*/ {};
-    /* reservedSlots 예시: 
-       { '2025-08-01': ['09:00','10:00'], 
-         '2025-08-02': ['11:00'] } 
-    */
+  <!-- ② 시간 버튼 -->
+  <div class="time-panel">
+    <h3 id="selected-date-label">날짜를 선택해주세요</h3>
+    <div id="times-grid" class="times-grid"></div>
+  </div>
 
-    let selectedDate = null,
-        selectedTime = null;
+  <!-- ③ 정보 + 확인 버튼 -->
+  <div class="summary-panel">
+    <div class="summary-box">
+      <p><strong>선택한 날짜</strong> </p>
+      <p><span id="summary-date">-</span></p>
+      <p><strong>선택한 시간</strong> </p>
+      <p><span id="summary-time">-</span></p>
+    </div>
+    <button id="btn-confirm">확인</button>
+  </div>
+</div>
 
-    // 1) 달력 초기화
-    flatpickr("#calendar", {
-      inline: true,
-      dateFormat: "Y-m-d",
-      onChange: function(_, dateStr) {
-        selectedDate = dateStr;
-        renderTimes();
-      }
-    });
+<!-- Script -->
+<script th:inline="javascript">
+  var intrId = /*[[${intrId}]]*/ 'unknown';
+  var reservedSlots = /*[[${reservedSlots}]]*/ {};
+  var disabledSlots = /*[[${disabledSlots}]]*/ {};
 
-    function renderTimes() {
-    	  const grid = $('#times-grid').empty();
+  let selectedDate = null;
+  let selectedTime = null;
 
-    	  const reserved = reservedSlots[selectedDate] || [];
-    	  const disabled = disabledSlots[selectedDate] || [];
-    	  const blocked  = [...reserved, ...disabled]; // 🔥 예약 + 비활성화 모두 막기
+  flatpickr("#calendar", {
+    inline: true,
+    dateFormat: "Y-m-d",
+    onChange: function(_, dateStr) {
+      selectedDate = dateStr;
 
-    	  for (let h = 9; h <= 17; h++) {
-    	    const t = (h < 10 ? '0' : '') + h + ':00';
-
-    	    const isDisabled = blocked.includes(t);
-
-    	    $('<button>')
-    	      .text(t)
-    	      .addClass(isDisabled ? 'disabled' : '')
-    	      .prop('disabled', isDisabled) // ⛔ 클릭 막기
-    	      .on('click', function(){
-    	        if (isDisabled) return;  // 클릭 무시
-    	        $('.times-grid button').removeClass('selected');
-    	        $(this).addClass('selected');
-    	        selectedTime = t;
-    	      })
-    	      .appendTo(grid);
-    	  }
-    	}
-
-
-    // 3) 확정 버튼 클릭 핸들러
-    $('#btn-confirm').on('click', function(){
-      if (!selectedDate || !selectedTime) {
-        return alert('날짜와 시간을 모두 선택해주세요.');
-      }
-
-      const payload = {
-        intrId:       intrId,
-        reservedDate: selectedDate,
-        reservedTime: selectedTime
-      };
-
-      $.ajax({
-        type: 'POST',
-        url: '/reservation/save',
-        contentType: 'application/json',
-        data: JSON.stringify(payload),
-        success: function(resId) {
-          // 예약 ID를 받아 결과 페이지로 이동
-          window.location.href = `/reservation/result?resId=${resId}`;
-        },
-        error: function(xhr) {
-          alert('예약 저장 중 오류: ' + xhr.responseText);
-        }
+      // 날짜 텍스트 출력
+      const label = document.getElementById('selected-date-label');
+      const koreanDate = new Date(dateStr).toLocaleDateString('ko-KR', {
+        year: 'numeric', month: 'long', day: 'numeric', weekday: 'short'
       });
+      label.textContent = `${koreanDate} 시간 선택`;
+
+      // 요약 패널 날짜 표시
+      document.getElementById('summary-date').textContent = koreanDate;
+
+      renderTimes();
+    }
+  });
+
+  function renderTimes() {
+    const grid = $('#times-grid').empty();
+    const reserved = reservedSlots[selectedDate] || [];
+    const disabled = disabledSlots[selectedDate] || [];
+    const blocked = [...reserved, ...disabled];
+
+    for (let h = 9; h <= 18; h++) {
+      const t = (h < 10 ? '0' : '') + h + ':00';
+      const isDisabled = blocked.includes(t);
+
+      $('<button>')
+        .text(t)
+        .addClass(isDisabled ? 'disabled' : '')
+        .prop('disabled', isDisabled)
+        .on('click', function () {
+          if (isDisabled) return;
+
+          $('.times-grid button').removeClass('selected');
+          $(this).addClass('selected');
+          selectedTime = t;
+
+          // 요약 패널 시간 표시
+          document.getElementById('summary-time').textContent = t;
+        })
+        .appendTo(grid);
+    }
+  }
+
+  $('#btn-confirm').on('click', function () {
+    if (!selectedDate || !selectedTime) {
+      return alert('날짜와 시간을 모두 선택해주세요.');
+    }
+
+    const payload = {
+      intrId: intrId,
+      reservedDate: selectedDate,
+      reservedTime: selectedTime
+    };
+
+    $.ajax({
+      type: 'POST',
+      url: '/reservation/save',
+      contentType: 'application/json',
+      data: JSON.stringify(payload),
+      success: function (resId) {
+        window.location.href = `/reservation/result?resId=${resId}`;
+      },
+      error: function (xhr) {
+        alert('예약 저장 중 오류: ' + xhr.responseText);
+      }
     });
-  </script>
+  });
+</script>
+<!-- Footer -->
+  <div th:replace="fragments/footer :: footerFragment"></div>
+
 </body>
 </html>

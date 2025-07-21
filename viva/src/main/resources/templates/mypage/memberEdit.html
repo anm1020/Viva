@@ -1,97 +1,20 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title>회원정보 수정</title>
-  <link rel="stylesheet" th:href="@{/css/main.css}">
-  <link rel="stylesheet" th:href="@{/css/common.css}">
-  
-  <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
-  <script src="https://code.jquery.com/jquery-latest.js"></script>
-  <script th:src="@{/js/check.js}"></script>
-  <style>
-    /* 카드 컨테이너 */
-    .form-frame {
-      max-width: 360px;
-      margin: 2rem auto;
-      padding: 1.5rem;
-      background-color: #ffffff;
-      border-radius: 0.5rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    .form-frame h2 {
-      text-align: center;
-      font-size: 1.25rem;
-      font-weight: 600;
-      margin-bottom: 1.5rem;
-      color: #111827;
-    }
-    .form-frame .form-group {
-      margin-bottom: 1rem;
-    }
-    .form-frame label {
-      display: block;
-      margin-bottom: 0.25rem;
-      font-size: 0.875rem;
-      color: #374151;
-    }
-    .form-frame input,
-    .form-frame select {
-      width: 100%;
-      padding: 0.5rem 0.75rem;
-      font-size: 0.875rem;
-      border: 1px solid #d1d5db;
-      border-radius: 0.375rem;
-      background-color: #f9fafb;
-      box-sizing: border-box;
-    }
-    .inline-group {
-      display: flex;
-      gap: 0.5rem;
-    }
-    .inline-group > * {
-      flex: 1;
-    }
-    .form-frame button {
-      font-size: 0.875rem;
-      border-radius: 0.375rem;
-    }
-    .form-frame button[type="button"] {
-      padding: 0.5rem 0.75rem;
-      background-color: #ffffff;
-      border: 1px solid #d1d5db;
-      color: #374151;
-      cursor: pointer;
-    }
-    .form-frame button[type="button"]:hover {
-      background-color: #f3f4f6;
-    }
-    .form-frame button[type="submit"] {
-      width: 100%;
-      padding: 0.75rem;
-      margin-top: 1rem;
-      background-color: #007bff;
-      color: #ffffff;
-      border: none;
-      cursor: pointer;
-    }
-    .form-frame button[type="submit"]:hover {
-      background-color: #0056b3;
-    }
-    .readonly-field {
-    background: #f2f2f2;
-    color: #888;
-    font-weight: bold;
-  	}
-  </style>
-</head>
-<body>
 <div th:replace="fragments/header :: header"></div>
-
-
+<div th:fragment="editForm">
   <div class="form-frame">
   <h2>회원 정보 수정</h2>
+  <script>
+  // [2] 주소 검색(카카오 우편번호) 버튼 이벤트
+  const addrBtn = document.getElementById('addrBtn');
   
+  addrBtn.addEventListener('click', function () {
+	new daum.Postcode({
+	  oncomplete: function (data) {
+	    document.getElementById('userAdd').value = data.address;
+	    addressCheckResult.textContent = "";
+	  }
+	}).open();
+  });
+  </script>
   <!-- 비밀번호 변경 모달 (초기에는 안 보이게) 액션값 달라서 form 밖에 있어야 함 -->
 	<div id="pwModal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.28); z-index:1000; align-items:center; justify-content:center;">
 	  <div style="background:#fff; padding:2rem 1.5rem; border-radius:12px; width:350px; margin:60px auto;">
@@ -142,18 +65,20 @@
     <!-- 비밀번호 (수정불가 input + 변경 버튼) -->
 	<div class="form-group" style="position: relative;">
 	  <label for="userPass">비밀번호</label>
+	  <div class="inline-group">
 	  <input type="password"
 	         th:field="*{userPass}"
 	         id="userPass"
 	         placeholder="비밀번호"
 	         required readonly class="readonly-field" />
-	         <button type="button"
-          onclick="openPwModal()"
-          style="position:absolute; right:0; top:28px; height:32px; padding:0 16px; border-radius:0.375rem; border:1px solid #d1d5db; background:#f9fafb; color:#333; cursor:pointer;">
-    비밀번호 변경
-  </button>
+	         
+	   <button type="button" onclick="openPwModal()"
+          style="height:32px; flex:0.4; padding:0 16px; border-radius:0.375rem; border:1px solid #d1d5db; background:#f9fafb; color:#333; cursor:pointer;">
+	    비밀번호 변경
+	  </button>
 	  <!-- <input type="button" value="비밀번호 변경" onclick="openPwModal()" style="position: absolute; right: 0; top: 28px;"/> -->
 		<!-- <button type="button" onclick="applyNewPassword()">비밀번호 변경</button> -->
+	 </div>
 	</div>
 	
 	 <!-- 비밀번호 변경 모달 (초기에는 안 보이게) -->
@@ -210,61 +135,64 @@
       <input type="date"
              th:field="*{userBirth}"
              id="userBirth"
-             required readonly class="readonly-field"/>
+             required/>
     </div>
 
     <!-- 성별 -->
     <div class="form-group">
       <label>성별</label>
-      <div class="inline-group">
-        <input type="radio"
+      <div class="inline-group" style="align-items:start">
+        <input style="flex:0.1; margin-left:0;"
+        	   type="radio"
                th:field="*{userGender}"
                id="male"
-               value="남성" disabled class="readonly-field"/>
+               value="남성" disabled class="readonly-field" />
         <label for="male">남성</label>
 
-        <input type="radio"
+        <input style="flex:0.1; margin-left:0;"
+        	   type="radio"
                th:field="*{userGender}"
                id="female"
                value="여성" disabled class="readonly-field"/>
         <label for="female">여성</label>
       </div>
     </div>
-    <span id="genderCheckResult" style="margin-left:10px; font-size:13px;"></span>
+    <span id="genderCheckResult" class="warning"></span>
+    
+    
 
     <!-- 이메일 -->
-    <div class="form-group inline-group">
-      <div style="flex: 2;">
-        <label for="emailId">이메일</label>
-        <div class="inline-group">
-          <input type="text"
-                 th:field="*{emailId}"
-                 id="emailId"
-                 placeholder="example"
-                 required />
-          <span>@</span>
-          <input type="text"
-                 th:field="*{emailDomain}"
-                 id="emailDomain"
-                 readonly
-                 required />
-        </div>
-        <span id="emailCheckResult" style="margin-left:10px; font-size:13px;"></span>
-      </div>
-      <div style="flex: 1; align-self: end;">
-        <select id="emailDomainSelect">
-          <option value="" selected>도메인 선택</option>
-          <option value="naver.com">naver.com</option>
-          <option value="gmail.com">gmail.com</option>
-          <option value="daum.net">daum.net</option>
-          <option value="custom">직접입력</option>
-        </select>
-      </div>
-    </div>
+	<div class="form-group">
+		<div class="inline-group">
+			<div>
+				<label for="emailId">이메일</label>
+				<div class="inline-group">
+					<input type="text" th:field="*{emailId}" 
+						id="emailId" placeholder="example" required=""
+						name="emailId" value=""> 
+					<span style="flex: 0.1;">@</span>
+					<input type="text" th:field="*{emailDomain}"  name="emailDomain" id="emailDomain"
+						readonly="" required="" value="">
+					<div style="flex: 2;">
+						<select
+							id="emailDomainSelect">
+							<option value="" selected="">도메인 선택</option>
+							<option value="naver.com">naver.com</option>
+							<option value="gmail.com">gmail.com</option>
+							<option value="daum.net">daum.net</option>
+							<option value="custom">직접입력</option>
+						</select>
+					</div>
+				</div>
+				</div>
+			</div>
+			<span id="emailCheckResult"	class="warning"></span> 
+		</div>
 
     <!-- 핸드폰번호 -->
-    <div class="form-group inline-group">
+    <div class="form-group">
       <label style="flex: none; align-self: center;" for="phonePrefix">핸드폰번호</label>
+      <div class="inline-group">
       <select th:field="*{phonePrefix}" id="phonePrefix">
         <option value="010">010</option>
         <option value="011">011</option>
@@ -281,26 +209,29 @@
              id="phoneLast"
              maxlength="4"
              placeholder="0000" />
-      <span id="phoneCheckResult"></span>
+     </div>
+      <span id="phoneCheckResult" class="warning"></span>
     </div>
 
     <!-- 주소 검색 -->
-    <div class="form-group inline-group">
-      <label style="flex: none; align-self: center;" for="userAdd">주소</label>
+    <div class="form-group">
+      <label style="flex:2; align-self: center;" for="userAdd">주소</label>
+      <div  class="inline-group">
       <input type="text"
              th:field="*{userAdd}"
              id="userAdd"
              placeholder="주소"
-             readonly />
+             readonly style="flex:2;"/>
       <button type="button" id="addrBtn">주소 검색</button>
-      <span id="addressCheckResult" style="margin-left:10px; font-size:13px;"></span>
+      </div>
+      <span id="addressCheckResult" class="warning"></span>
     </div>
     <div class="form-group">
       <input type="text"
              th:field="*{userAddDetail}"
              id="userAddDetail"
              placeholder="상세주소 입력" />
-       <span id="addressDetailCheckResult" style="margin-left:10px; font-size:13px;"></span>
+       <span id="addressDetailCheckResult" class="warning"></span>
     </div>
 
 	<!-- 면접관인 경우 -->
@@ -313,133 +244,54 @@
 
     <!-- 기술 스택 (체크박스 예시) -->
     <div class="form-group">
-      <label>기술</label>
-      <div class="inline-group">
-	        <label>
-	  		  <input type="checkbox" name="skill" value="Java"
-	         		 th:checked="${#arrays.contains(userSkillArr, 'Java')}" /> Java
-			</label>
-			<label>
-			  <input type="checkbox" name="skill" value="React.js"
-			         th:checked="${#arrays.contains(userSkillArr, 'React.js')}" /> React.js
-			</label>
-			<label>
-			  <input type="checkbox" name="skill" value="Vue.js"
-			         th:checked="${#arrays.contains(userSkillArr, 'Vue.js')}" /> Vue.js
-			</label>
-			<label>
-			  <input type="checkbox" name="skill" value="JPA"
-			         th:checked="${#arrays.contains(userSkillArr, 'JPA')}" /> JPA
-			</label>
-			<label>
-			  <input type="checkbox" name="skill" value="MyBatis"
-			         th:checked="${#arrays.contains(userSkillArr, 'MyBatis')}" /> MyBatis
-			</label>
-			<label>
-			  <input type="checkbox" name="skill" value="Spring Boot"
-			         th:checked="${#arrays.contains(userSkillArr, 'Spring Boot')}" /> Spring Boot
-			</label>
-			<label>
-			  <input type="checkbox" name="skill" value="Oracle"
-			         th:checked="${#arrays.contains(userSkillArr, 'Oracle')}" /> Oracle
-			</label>
-			<label>
-			  <input type="checkbox" name="skill" value="MySQL"
-			         th:checked="${#arrays.contains(userSkillArr, 'MySQL')}" /> MySQL
-			</label>
-      </div>
-    </div>
+	  <label>기술</label>
+	  <div >
+	    <label class="btn-checkbox">
+	      <input  type="checkbox" name="skill" value="Java" 
+	      			th:checked="${#arrays.contains(userSkillArr, 'Java')}"/>
+	      <span>Java</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="React.js"
+	      		 th:checked="${#arrays.contains(userSkillArr, 'React.js')}" />
+	      <span>React.js</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="Vue.js" 
+	      		 th:checked="${#arrays.contains(userSkillArr, 'Vue.js')}" />
+	      <span>Vue.js</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="JPA"
+	      		 th:checked="${#arrays.contains(userSkillArr, 'JPA')}" />
+	      <span>JPA</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="MyBatis" 
+	      		 th:checked="${#arrays.contains(userSkillArr, 'MyBatis')}" />
+	      <span>MyBatis</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="Spring Boot" 
+	      		 th:checked="${#arrays.contains(userSkillArr, 'Spring Boot')}"/>
+	      <span>Spring Boot</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="MySQL" 
+	      		 th:checked="${#arrays.contains(userSkillArr, 'MySQL')}"/>
+	      <span>MySQL</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="Oracle" 
+	      		 th:checked="${#arrays.contains(userSkillArr, 'Oracle')}"/>
+	      <span>Oracle</span>
+	    </label>
+	  </div>
+	</div>
+
 
     <!-- 수정 버튼 -->
     <button type="submit">정보 수정</button>
-    <button type="button" onclick="history.back();">취소</button>
   </form>
+  </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const domainSelect = document.getElementById('emailDomainSelect');
-  const domainInput  = document.getElementById('emailDomain');
-
-  domainSelect.addEventListener('change', function() {
-    const val = this.value;
-    if (val === 'custom') {
-      domainInput.value = '';
-      domainInput.removeAttribute('readonly');
-      domainInput.focus();
-    } else if (val) {
-      domainInput.value = val;
-      domainInput.setAttribute('readonly', 'readonly');
-    } else {
-      domainInput.value = '';
-      domainInput.setAttribute('readonly', 'readonly');
-    }
-  });
-});
-  
-  // ⬇️ 여기부터 주소 검색(카카오 우편번호) 추가!
-  document.getElementById('addrBtn').addEventListener('click', function() {
-    new daum.Postcode({
-      oncomplete: function(data) {
-        document.getElementById('userAdd').value = data.address; // 주소 입력
-      }
-    }).open();
-  });
-  
-</script>
-  
-  
-<!-- 팝업 비번 변경 불일치시 에러메세지 js -->
-<script>
- function openPwModal() {
-  document.getElementById('pwModal').style.display = 'flex';
-}
-function closePwModal() {
-  document.getElementById('pwModal').style.display = 'none';
-  document.getElementById('pwChangeForm').reset();
-}
-function applyNewPassword() {
-	  const currentPw = document.querySelector('#pwChangeForm input[name="currentPass"]').value;
-	  const newPw = document.querySelector('#pwChangeForm input[name="changePass"]').value;
-	  const confirmPw = document.querySelector('#pwChangeForm input[name="confirmChangePass"]').value;
-	  const msgEl = document.getElementById('pwModalMsg');
-
-	  // 메시지 초기화
-	  msgEl.textContent = '';
-
-	  // 새 비번 불일치 체크 (이건 js로 즉시 가능)
-	  if (newPw !== confirmPw) {
-	    msgEl.textContent = '새 비밀번호가 일치하지 않습니다!';
-	    return false;
-	  }
-	  if (!newPw) {
-	    msgEl.textContent = '새 비밀번호를 입력하세요!';
-	    return false;
-	  }
-
-	  // ★ 현재 비밀번호 서버에 ajax로 체크!
-	  $.ajax({
-	    url: '/checkPassword',
-	    type: 'POST',
-	    data: { currentPass: currentPw },
-	    success: function(isCorrect) {
-	      if (!isCorrect) {
-	        msgEl.textContent = '현재 비밀번호가 일치하지 않습니다!';
-	        return;
-	      }
-	      // 모두 통과 → 히든값 복사 & 팝업 닫기
-	      document.getElementById('changePass').value = newPw;
-	      document.getElementById('currentPassHidden').value = currentPw;
-	      closePwModal();
-	      // 성공시 메시지는 정보수정 submit 후 처리
-	    },
-	    error: function() {
-	      msgEl.textContent = '비밀번호 확인 중 오류가 발생했습니다!';
-	    }
-	  });
-
-	  return false;
-	}
-</script>
-</body>
-</html>

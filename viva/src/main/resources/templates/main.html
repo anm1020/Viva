@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>AI 면접 플랫폼</title>
-  <link rel="stylesheet" th:href="@{/css/common.css}">
-  <link rel="stylesheet" th:href="@{/css/main.css}">
+<meta charset="UTF-8">
+<title>AI 면접 플랫폼</title>
+<link rel="stylesheet" th:href="@{/css/common.css}">
+<link rel="stylesheet" th:href="@{/css/main.css}">
+
 </head>
 <body>
-  <!-- Header -->
-  <div th:replace="fragments/header :: headerFragment"></div>
+	<!-- Header -->
+	<div th:replace="fragments/header :: headerFragment"></div>
+
 
   <!-- Hero Section -->
  <section class="hero">
@@ -40,6 +42,7 @@
         <img src="/images/a.jpg" alt="English">
         <div class="overlay">
           <span class="badge">Featured</span>
+
           <h3>취준AI</h3>
           <p>AI를 통해 면접 연습 및 이력서 작성 도움</p>
         </div>
@@ -113,6 +116,7 @@
         </div>
       </div>
     </div>
+
     <div class="swiper-button-next"></div>
     <div class="swiper-button-prev"></div>
     <div class="swiper-pagination"></div>
@@ -144,41 +148,86 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 
-  <!-- Review Section -->
 <section id="review-section">
-  <div class="review-layout">
-    <div class="review-left">
-      <h2>Reviews</h2>
-      <p>사용자들이 남긴 생생한 후기를 만나보세요.</p>
-    </div>
-    <div class="review-right">
-      <div class="carousel-wrapper">
-        <div class="carousel-track">
-          <div class="carousel-slide">
-            <blockquote>"AI 피드백이 너무 정확해서 놀랐어요! 진짜 도움됐어요."<br><cite>- 김지원 (대학생)</cite></blockquote>
-          </div>
-          <div class="carousel-slide">
-            <blockquote>"면접 준비가 더 수월해졌어요. 추천합니다!"<br><cite>- 박철수 (취준생)</cite></blockquote>
-          </div>
-          <div class="carousel-slide">
-            <blockquote>"음성 피드백으로 발음까지 교정돼서 좋았어요."<br><cite>- 이영희 (신입 지원자)</cite></blockquote>
-          </div>
-        </div>
-        <div class="carousel-dots">
-          <span class="dot active"></span>
-          <span class="dot"></span>
-          <span class="dot"></span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+		<div class="review-layout">
+			<div class="review-left">
+				<h2>Reviews</h2>
+				<p>사용자들이 남긴 생생한 후기를 만나보세요.</p>
+			</div>
+			<div class="review-right">
+				<div class="carousel-wrapper">
+					<div class="carousel-track">
+						<!-- 리뷰마다 슬라이드 한 개씩 생성 -->
+						<div class="carousel-slide" th:each="review : ${allReviews}">
+						<blockquote th:utext="'&quot;' + ${review.content} + '&quot;'">리뷰 내용</blockquote>
+							<cite th:text="${review.user.userName}"> 작성자명</cite>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+  </section>
 
-  <!-- Footer -->
-  <div th:replace="fragments/footer :: footerFragment"></div>
 
-  <!-- 슬라이드 동작 Script -->
-<script th:inline="javascript">
+	<!-- 	Review Section -->
+	<!-- 	  <section id="review-section"> -->
+	<!-- 	    <div class="review-layout"> -->
+	<!-- 	      <div class="review-left"> -->
+	<!-- 	        <h2>Reviews</h2> -->
+	<!-- 	        <p>사용자들이 남긴 생생한 후기를 만나보세요.</p> -->
+	<!-- 	      </div> -->
+	<!-- 	      <div class="review-right"> -->
+	<!-- 	        <div class="carousel-wrapper"> -->
+	<!-- 	          <div class="carousel-track"> -->
+	<!-- 	            <div class="carousel-slide"> -->
+	<!-- 	              <blockquote>"AI 피드백이 너무 정확해서 놀랐어요! 진짜 도움됐어요."<br><cite>- 김지원 (대학생)</cite></blockquote> -->
+	<!-- 	            </div> -->
+	<!-- 	            <div class="carousel-slide"> -->
+	<!-- 	              <blockquote>"면접 준비가 더 수월해졌어요. 추천합니다!"<br><cite>- 박철수 (취준생)</cite></blockquote> -->
+	<!-- 	            </div> -->
+	<!-- 	            <div class="carousel-slide"> -->
+	<!-- 	              <blockquote>"음성 피드백으로 발음까지 교정돼서 좋았어요."<br><cite>- 이영희 (신입 지원자)</cite></blockquote> -->
+	<!-- 	            </div> -->
+	<!-- 	          </div> -->
+	<!-- 	          <div class="carousel-dots"> -->
+	<!-- 	            <span class="dot active"></span> -->
+	<!-- 	            <span class="dot"></span> -->
+	<!-- 	            <span class="dot"></span> -->
+	<!-- 	          </div> -->
+	<!-- 	        </div> -->
+	<!-- 	      </div> -->
+	<!-- 	    </div> -->
+	<!-- 	  </section> -->
+	<section id="review-section">
+		<div class="review-layout">
+			<div class="review-left">
+				<h2>Reviews</h2>
+				<p>사용자들이 남긴 생생한 후기를 만나보세요.</p>
+			</div>
+			<div class="review-right">
+				<div class="carousel-wrapper">
+					<div class="carousel-track">
+						<!-- 리뷰마다 슬라이드 한 개씩 생성 -->
+						<div class="carousel-slide" th:each="review : ${allReviews}">
+						<blockquote th:utext="'&quot;' + ${review.content} + '&quot;'">리뷰 내용</blockquote>
+							<cite th:text="${review.user.userName}"> 작성자명</cite>
+						</div>
+					</div>
+					<div class="carousel-dots">
+						<span class="dot" th:each="review, stat : ${allReviews}"
+							th:classappend="${stat.index == 0} ? 'active'"></span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+
+	<!-- Footer -->
+	<div th:replace="fragments/footer :: footerFragment"></div>
+
+	<!-- 슬라이드 동작 Script -->
+	<script th:inline="javascript">
     /*<![CDATA[*/
     const urlParams = new URLSearchParams(window.location.search);
 
@@ -194,43 +243,51 @@ document.addEventListener('DOMContentLoaded', function() {
         alert('관리자 모드입니다');
     }
     /*]]>*/
-</script>
- 
-<!-- <script th:if="${param.loginSuccess}" th:inline="javascript">
-    alert('로그인에 성공했습니다!');
-</script>
-<script th:if="${param.logoutSuccess}" th:inline="javascript">
-    alert('로그아웃 되었습니다.');
-</script>
-<script th:inline="javascript">
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('adminLogin') === 'true') {
-        alert('관리자 모드입니다');
-    }
-</script> -->
-
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const track = document.querySelector(".carousel-track");
-    const slides = document.querySelectorAll(".carousel-slide");
-    const dots = document.querySelectorAll(".carousel-dots .dot");
-
-    let current = 0;
-    const total = slides.length;
-
-    function goToSlide(index) {
-      track.style.transform = `translateX(-${index * 100}%)`;
-      dots.forEach((d, i) => d.classList.toggle("active", i === index));
-    }
-
-    function nextSlide() {
-      current = (current + 1) % total;
-      goToSlide(current);
-    }
-
-    setInterval(nextSlide, 3000);
-  });
   </script>
+
+	<!-- 	<!--   <script> -->
+	<!-- 	// document.addEventListener("DOMContentLoaded", () => { // const track -->
+	<!-- 	= document.querySelector(".carousel-track"); // const slides = -->
+	<!-- 	document.querySelectorAll(".carousel-slide"); // const dots = -->
+	<!-- 	document.querySelectorAll(".carousel-dots .dot"); // let current = 0; -->
+	<!-- 	// const total = slides.length; // function goToSlide(index) { // -->
+	<!-- 	track.style.transform = `translateX(-${index * 100}%)`; // -->
+	<!-- 	dots.forEach((d, i) => d.classList.toggle("active", i === index)); // } -->
+
+	<!-- 	// function nextSlide() { // current = (current + 1) % total; // -->
+	<!-- 	goToSlide(current); // } // setInterval(nextSlide, 3000); // }); -->
+	<!-- 	<!--   </script> -->
+	<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const track = document.querySelector(".carousel-track");
+  const slides = document.querySelectorAll(".carousel-slide");
+  const dots = document.querySelectorAll(".carousel-dots .dot");
+
+  if (slides.length === 0) return; // 슬라이드 없으면 종료
+
+  let current = 0;
+
+  function goToSlide(index) {
+    track.style.transform = `translateX(-${index * 100}%)`;
+    dots.forEach((d, i) => d.classList.toggle("active", i === index));
+  }
+
+  function nextSlide() {
+    current = (current + 1) % slides.length;
+    goToSlide(current);
+  }
+
+  dots.forEach((dot, idx) => {
+    dot.addEventListener("click", () => {
+      current = idx;
+      goToSlide(current);
+    });
+  });
+
+  goToSlide(0);
+  setInterval(nextSlide, 3000);
+});
+</script>
 
 </body>
 </html>

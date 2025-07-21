@@ -19,4 +19,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     
     List<Payment> findByResIdOrderByPayCreateDtDesc(Long resId);
     
+    // 결제 내역 최신순 조회 (필요한 필드명 맞게 수정하세요)
+    List<Payment> findByUserIdOrderByPayCreateDtDesc(String userId);
+    
+    
 }

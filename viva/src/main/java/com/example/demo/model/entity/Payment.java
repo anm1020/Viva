@@ -2,9 +2,10 @@ package com.example.demo.model.entity;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -55,13 +56,15 @@ public class Payment {
 	@Column(name = "user_id")
 	private String userId; // 회원번호 (FK)
 	
+	@JsonFormat(shape = JsonFormat.Shape.STRING)
 	@Enumerated(EnumType.STRING) // 반드시 추가!
 	@Column(name = "pay_type", nullable = false)
-	private PayType payType;
+	private PayType payType;	// 결제수단
 	
 	public enum PayType {
 	    CARD,   // 카드 결제
-	    POINT   // 포인트 결제
+	    POINT,   // 포인트 결제
+	    CHARGE   // 포인트 충전 내역
 	}
 
 	public enum PayStatus {

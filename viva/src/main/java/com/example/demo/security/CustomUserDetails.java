@@ -9,6 +9,11 @@ import java.util.Collections;
 /**
  * Spring Security에서 인증 처리 시 사용하는 사용자 정보 구현체
  * Users 엔티티를 래핑해서 시큐리티가 사용할 수 있게 변환
+ * 
+ * 회원가입, 아이디중복체크, 회원정보 업데이트, 삭제 등
+ * 로그인에 필요한 DB조회(예: findByUserId) 를 제공
+ * 하지만 Spring Security가 직접 CustomUserDetailsService에서 불러쓰는 구조
+ * 즉,  UserService ←(이용)– CustomUserDetailsService ←(호출)– Security
  */
 public class CustomUserDetails implements UserDetails {
 

@@ -1,47 +1,69 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
+
   <script src="https://code.jquery.com/jquery-latest.js"></script>
    <link rel="stylesheet" th:href="@{/css/reservation.css}" />
+   <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
+   <!-- 달력 -->
    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+   
+   <!-- 수정폼 --> 
+   <link rel="stylesheet" th:href="@{/css/memberformEdit.css}">
+   <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+  <!--  <script th:src="@{/js/check2.js}"></script> -->
+  
+  <!-- 예원추가) jaso.css분리. 여기서 임포트 -->
+  <link rel="stylesheet" th:href="@{/css/jaso.css}">
+  
   <meta charset="UTF-8">
-  <title>면접관 마이페이지</title>
+  <title>취준생 마이페이지</title>
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <link rel="stylesheet" th:href="@{/css/common.css}">
+  <link rel="stylesheet" th:href="@{/css/reservation.css}">
+  
   
   <style>
-    body {
-      background: #f7f9fc;
-      font-family: 'Segoe UI', '맑은 고딕', sans-serif;
+    html, body {
+      height: auto;
+      min-height: 100vh;
       margin: 0;
       padding: 0;
+      overflow-y: auto;
     }
+
     .mypage-layout {
-      display: flex;
-      max-width: 1100px;
-      margin: 50px auto 0 auto;
-      min-height: 550px;
-      background: #fff;
-      border-radius: 14px;
-      box-shadow: 0 2px 14px rgba(70,110,180,0.08);
-      overflow: hidden;
-    }
-    /* 사이드바 */
+	  display: flex;
+	  margin: 40px auto;
+	  background: #fff;
+	  border-radius: 16px;
+	  box-shadow: 0 16px 24px rgba(0, 0, 0, 0.08);
+	  overflow: hidden; /* 둥근 모서리 안 넘치게 */
+	  box-sizing: border-box;
+  
+  /* ✅ 배경과 테두리 */
+  /* background: #fff;
+  border-radius: 16px; 
+  box-shadow: 0 16px 24px rgba(0, 0, 0, 0.08); 
+     */
+}
     .sidebar {
-      width: 230px;
+      flex: 0 0 230px;
       background: #eaf1fb;
       padding: 36px 0 0 0;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
     }
+
     .sidebar-menu {
       display: flex;
       flex-direction: column;
       gap: 5px;
       padding-left: 24px;
     }
+
     .sidebar-menu a {
       font-size: 17px;
       color: #314266;
@@ -52,16 +74,20 @@
       font-weight: 500;
       letter-spacing: -0.2px;
     }
+
     .sidebar-menu a.active,
     .sidebar-menu a:hover {
       background: #c3d3ee;
       color: #2951a3;
       font-weight: bold;
     }
+
     .sidebar-bottom {
-      padding-left: 24px;
-      padding-bottom: 38px;
+      /* padding-left: 24px; */
+      margin-top: 38px;
+      margin-bottom: 38px;
     }
+
     .sidebar-bottom a {
       color: #d34040;
       font-weight: bold;
@@ -69,21 +95,45 @@
       font-size: 15px;
       transition: color 0.2s;
     }
+
     .sidebar-bottom a:hover {
       color: #b80000;
+      background: none;
       text-decoration: underline;
     }
-    /* 메인컨텐츠 */
+
     .main-content {
+   	 /* 기존 속성 유지 */
+  flex: 1;
+  width: 100%;
+  min-width: 900px;
+  padding: 46px 44px;
+  background: #f7f9fc;
+  box-sizing: border-box;
+
+  /* ↓ 자식들을 세로 방향(column)으로 쌓되, 가로(수평) 중앙 정렬 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+	  
+    /* 
       flex: 1;
       padding: 46px 44px;
       background: #f7f9fc;
-      min-width: 0;
+      box-sizing: border-box;
+      min-width: 0; */
     }
+
     .info-cards {
       display: flex;
       gap: 36px;
+      justify-content: center;
     }
+
+    .member-info, .stat-info {
+      margin-bottom: 24px;
+    }
+
     .member-info {
       background: #fff;
       border-radius: 9px;
@@ -91,19 +141,16 @@
       padding: 32px 38px 30px 38px;
       min-width: 320px;
       flex: 1;
-      margin-bottom: 24px;
     }
+
     .member-info h2 {
-      margin-top: 0;
-      font-size: 21px;
-      color: #314266;
-      margin-bottom: 16px;
+      margin-top: 0; font-size: 21px; color: #314266; margin-bottom: 16px;
     }
+
     .member-info-list {
-      font-size: 16px;
-      line-height: 2.1;
-      color: #222;
+      font-size: 16px; line-height: 2.1; color: #222;
     }
+
     .stat-info {
       background: #eaf1fb;
       border-radius: 9px;
@@ -113,27 +160,44 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      margin-bottom: 24px;
+      align-items: center;
     }
+
     .stat-info h2 {
-      margin-top: 0;
-      font-size: 20px;
-      color: #2951a3;
-      margin-bottom: 18px;
+      margin-top: 0; font-size: 20px; color: #2951a3; margin-bottom: 18px;
     }
+
     .stat-info .point-value {
-      font-size: 25px;
-      color: #314266;
-      font-weight: bold;
-      margin-bottom: 8px;
+      font-size: 25px; color: #314266; font-weight: bold; margin-bottom: 8px;
     }
+
+	#editContainer,
+#activityContainer,
+#jasoContainer {
+  max-width: 840px;
+  min-width: 840px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+    #editContainer .form-frame {
+    margin:auto;
+      width: 100%;
+      max-width: 360px;
+    }
+
     @media (max-width: 900px) {
       .mypage-layout { flex-direction: column; }
-      .sidebar { width: 100%; flex-direction: row; padding: 0; }
-      .main-content { padding: 24px 10px; }
+      .sidebar {
+        width: 100%;
+        height: auto;
+        flex-direction: row;
+        padding: 0;
+      }
       .info-cards { flex-direction: column; gap: 14px; }
     }
   </style>
+
 <script th:inline="javascript">
   /*<![CDATA[*/
   var reservedSlots = /*[[${reservedSlotsJson}]]*/ {};
@@ -144,27 +208,30 @@
 <body>
 <div th:replace="fragments/header :: header"></div>
 
-
   <div class="mypage-layout">
-    <!-- 사이드바 -->
-    <nav class="sidebar">
+   <!-- 사이드바 -->
+   <nav class="sidebar">
       <div>
         <div class="sidebar-menu">
-          <a href="#" class="active">내 정보</a>
-          <a th:href="@{/memberEdit}">내 정보 수정</a>
-          <a href="#">내 후기 관리</a>
-          <a href="#" id="loadReservations">일정 관리</a>
+
+          <a th:href="@{/mypage}">내 정보</a>
+          <a th:href="@{/memberEdit}" id="memberEdit">내 정보 수정</a>
+          <!-- <a href="#" id="memberEdit">내 정보 수정</a> -->
+          <a th:href="@{/memberActivity}" id="memberActivity">내 활동 관리</a>
+          <!--  <a href="#" id="loadReservations">일정 관리</a> -->
+          <a th:href="@{/memschedule}" id="loadReservations">일정 관리</a>
           <a th:href="@{/mypage/jaso/list}">자소서 관리</a>
           <a th:href="@{/resume/list}">이력서 관리</a> 
-          <a th:href="@{/memReservation}">결제 내역</a>
+          <a href="#" id="loadPaymentList">결제 내역</a> <!-- 결제내역 탭 또는 버튼 -->
           <a th:href="@{/jobsite}">취업 사이트</a>
+          <div class="sidebar-bottom">
+            <!-- 페이지 이동 없이 자바스크립트로만 동작 -->
+            <a href="#" id="withdrawBtn" style="color:#d34040;">회원 탈퇴</a>
+          </div>
+          
         </div>
       </div>
-      <div class="sidebar-bottom">
-      	<!-- 페이지 이동 없이 자바스크립트로만 동작 -->
-        <a href="#" id="withdrawBtn" style="color:#d34040; text-decoration:underline;">회원 탈퇴</a>
-      </div>
-    </nav>
+   </nav>
 
     <!-- 메인 컨텐츠 -->
     <section class="main-content">
@@ -182,16 +249,34 @@
           </div>
         </div>
         
-         <!-- 포인트만 표시하는 활동통계 -->
+        <!-- 포인트만 표시하는 활동통계 -->
         <div class="stat-info">
           <h2>나의 포인트</h2>
-           <div class="point-value" th:text="${point + 'P'}">
-          <!--  <div th:text="${point + 'P'}"></div> -->
-              </div>   
-        </div> 
+           	<div class="point-value" th:text="${point + 'P'}">
+           	<!--  <div th:text="${point + 'P'}"></div> -->
+           	</div>   
+        	<!--환전 버튼 추가 -->
+  			<button id="exchangeBtn" type="button" style="margin-top: 10px; padding: 8px 16px;">환전하기</button>
+			<!-- 예: 환전 모달을 넣을 페이지 -->
+			<div th:replace="mypage/exchangeModal :: exchangeModal"></div>
+        </div>
+
+		<!-- '내 예약 목록' >> 일정관리-->
+		<!-- <div id="schedule"> -->
+		<div id="reservationContainer" style="display:none;"></div>
+		<!-- </div> -->
+
+		<!-- 결제내역 표시 영역 -->
+		<div id="paymentListContainer" style="display:none;"></div>
          
-         <!-- '내 예약 목록'-->
-  <div id="reservationContainer"></div>
+        <!-- 마이페이지 내정보 수정 -->
+        <div id="editContainer" style="display:none; width:100%; justify-content:center;"></div>
+        <!-- 내활동관리 임시-->
+        <div id="activityContainer" style="display:none;"></div>
+        <!-- 자소서 관리 메뉴 컨테이너-->
+        <!-- <div th:replace="~{mypage/jasolist :: jasoList(jasoList=${jasoList})}"></div> -->
+        <div id="jasoContainer" style="display:none;"></div>
+        </div>
     </section>
   </div>
   
@@ -218,12 +303,24 @@
   </div>
 </div>
   
+ <script th:src="@{/js/memformEdit.js}"></script>  
+
+
   <!-- 회원정보 수정 후 메세지 -->
 <script th:if="${editSuccess != null}" th:inline="javascript">
 	 alert('[[${editSuccess}]]');
 </script>
   
   
+<script>
+// 공통 함수
+function hideAllFragments() {
+	  $('#reservationContainer, #editContainer, #activityContainer, #reviewContainer, #jasoContainer, #exchangeBtn,#paymentListContainer').hide();
+	  $('.member-info, .stat-info').hide();
+	}
+
+</script> 
+
 <script>
 $(function(){
   // 1. "회원 탈퇴" 링크 클릭 시 팝업 열기
@@ -285,7 +382,12 @@ $(function(){
 	    // 1) 탭 active 토글
 	    $('.sidebar-menu a').removeClass('active');
 	    $(this).addClass('active');
-
+	    
+	    // 예원 추가	>>	수정폼 fragment 숨기기해야 메뉴 클릭시 호출됨
+		hideAllFragments();  // 추가. 숨기는 코드가 먼저 와야 함. 
+		// $('#editContainer').hide();	//	 hideAll이 있어서 개별적으로 숨김 안 해도 됨
+		$('#reservationContainer').show();    // 이거 꼭 있어야 fragment가 보임!
+	    
 	    // 2) 카드 요소만 숨기기
 	    $('.member-info, .stat-info').hide();
 
@@ -295,35 +397,40 @@ $(function(){
 	        alert('예약 목록 로드 실패: ' + xhr.statusText);
 	        return;
 	      }
+        // 4) reservedSlotsJson 추출
+        const $jsonScript = $('#reservationContainer').find('#reservedSlotsJson');
+        if ($jsonScript.length) {
+          try {
+            window.reservedSlots = JSON.parse($jsonScript.text());
+            console.log("✅ reservedSlots loaded:", window.reservedSlots);
+          } catch (e) {
+            console.error("❌ reservedSlots 파싱 실패:", e);
+            window.reservedSlots = {};
+          }
+        } else {
+          console.warn("⚠️ reservedSlotsJson 태그 없음");
+          window.reservedSlots = {};
+        }
 
-	      // 4) reservedSlotsJson 추출
-	      const $jsonScript = $('#reservationContainer').find('#reservedSlotsJson');
-	      if ($jsonScript.length) {
-	        try {
-	          window.reservedSlots = JSON.parse($jsonScript.text());
-	          console.log("✅ reservedSlots loaded:", window.reservedSlots);
-	        } catch (e) {
-	          console.error("❌ reservedSlots 파싱 실패:", e);
-	          window.reservedSlots = {};
-	        }
-	      } else {
-	        console.warn("⚠️ reservedSlotsJson 태그 없음");
-	        window.reservedSlots = {};
-	      }
+        // 5) 스케줄러 초기화 함수 호출
+        if (typeof window.initReservationSchedule === 'function') {
+          window.initReservationSchedule();
+        } else {
+          console.warn("⚠️ initReservationSchedule 함수가 없음");
+        }
+      });
+    });
 
-	      // 5) 스케줄러 초기화 함수 호출
-	      if (typeof window.initReservationSchedule === 'function') {
-	        window.initReservationSchedule();
-	      } else {
-	        console.warn("⚠️ initReservationSchedule 함수가 없음");
-	      }
-	    });
-	  });
-	});
+    // ✅ 페이지 로드시 ?tab=schedule 이면 자동 클릭
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("tab") === "schedule") {
+      $('#loadReservations').click();
+    }
+  });
 </script>
 
-<!-- 예약변경 -->
-<script>
+	<!-- 예약변경 -->
+	<script>
 // 💡 스케줄러 초기화 함수
 window.initReservationSchedule = function() {
   $(document).on('click', '.action-link.change', function(e){
@@ -401,10 +508,8 @@ window.disableTimeButtons = function(dateStr){
 };
 </script>
 
-
-
-<!-- 환불 -->
-<script>
+	<!-- 환불 -->
+	<script>
 $(document).on('click', '.action-link.cancel', function(e){
 	  e.preventDefault();
 	  const resId = $(this).data('res-id');
@@ -426,10 +531,234 @@ $(document).on('click', '.action-link.cancel', function(e){
 	      alert("취소 실패: " + xhr.responseText);
 	    });
 	});
+
+// 내정보 수정
+$('#memberEdit').on('click', function(e){
+	e.preventDefault();
+  $('.sidebar-menu a').removeClass('active');
+  $(this).addClass('active');
+  hideAllFragments();  // ✅ 추가
+  
+  $('#reservationContainer').hide();	
+  $('.member-info, .stat-info').hide();
+  $('#editContainer').css('display','flex').load('/memberEdit', function(resp, status, xhr){
+    if(status !== 'success') {
+      $('#editContainer').html('<div>불러오기 실패</div>');
+      return;
+    }
+    // ★★★★★ 동적으로 들어온 폼에 이벤트를 다시 연결
+    bindEmailDomainEvents();
+  });
+});
+	
+// 정보 수정 취소 버튼  >>  없앰
+/* $(document).on('click', '#editCancelBtn', function(){
+  hideAllFragments();  // ✅ 추가
+  $('#editContainer').hide();
+  $('.member-info, .stat-info').show();
+}); */
+
+// 내활동관리
+$('#memberActivity').on('click', function(e){
+  e.preventDefault();
+  $('.sidebar-menu a').removeClass('active');
+  $(this).addClass('active');
+  
+  hideAllFragments();  // ✅ 추가
+  
+  $('.member-info, .stat-info, #reservationContainer, #editContainer, #reviewContainer').hide();
+  $('#activityContainer').show().load('/mypage/activity', function(resp, status, xhr){
+    if (status !== 'success') {
+      $('#activityContainer').html('<div>불러오기 실패</div>');
+    }
+  });
+});
+ 
+// 자소서 메뉴 fragment
+$('#loadJaso').on('click', function(e) {
+    e.preventDefault();
+    $('.sidebar-menu a').removeClass('active');
+    $(this).addClass('active');
+
+    hideAllFragments(); // 기존 함수 재활용
+    $('#jasoContainer').show().load('/mypage/jaso/fragment', function(resp, status){
+        if (status !== 'success') {
+            $('#jasoContainer').html('<p>불러오기 실패</p>');
+        }
+    });
+});
+ 
+</script>
+
+<!--결제내역 -->
+<script>
+$(function() {
+	  // 결제내역 탭 또는 버튼 클릭 시 프래그먼트 로드
+	  $('#loadPaymentList').on('click', function(e) {
+	    e.preventDefault();
+
+	    // 탭 활성화 토글 (선택사항)
+	    $('.sidebar-menu a').removeClass('active');
+	    $(this).addClass('active');
+	    hideAllFragments();
+
+	    // 다른 메인 컨텐츠 숨기기 (필요하면)
+	    $('.member-info, .stat-info, #reservationContainer').hide();
+
+	    // 결제내역 컨테이너 보이기
+	    $('#paymentListContainer').show();
+
+	    // AJAX로 결제내역 프래그먼트 로드
+	    $('#paymentListContainer').load('/payment/mypage/paymentList', function(response, status, xhr) {
+	      if (status !== "success") {
+	        alert("결제 내역을 불러오는 중 오류가 발생했습니다: " + xhr.statusText);
+	      }
+	    });
+	  });
+
+	  // 페이지 로드 시 특정 파라미터에 따라 자동 클릭 예시
+	  const params = new URLSearchParams(window.location.search);
+	  if (params.get("tab") === "payment") {
+	    $('#loadPaymentList').click();
+	  }
+	});
+
+</script>
+
+<!-- 환전쓰 -->
+
+<script>
+  $(function() {
+    $("#exchangeBtn").on("click", function() {
+      $("#exchangeModal").show();
+    });
+    $(document).on("click", "#cancelExchange", function() {
+      $("#exchangeModal").hide();
+      $("#exchangeForm")[0].reset();
+    });
+  });
+  
+  $(function() {
+	  $("#exchangeForm").on("submit", function(e) {
+	    e.preventDefault();
+
+	    // 폼 데이터 객체로 수집
+	    const data = {
+	      name: $("input[name='name']").val(),
+	      phone: $("input[name='phone']").val(),
+	      bank: $("select[name='bank']").val(),
+	      account: $("input[name='account']").val(),
+	      amount: parseInt($("input[name='amount']").val(), 10)
+	    };
+
+	    $.ajax({
+	      url: "/point/exchange/request",
+	      type: "POST",
+	      contentType: "application/json",
+	      data: JSON.stringify(data),
+	      success: function(response) {
+	        if(response.success) {
+	          alert(response.message);
+	          $("#exchangeModal").hide();
+	          $("#exchangeForm")[0].reset();
+	          // 포인트 표시 부분 업데이트
+	          // 기존 포인트 읽기
+	          let currentPointStr = $(".point-value").text();  // 예: "12345P"
+	          let currentPoint = parseInt(currentPointStr.replace("P", ""), 10);
+
+	          let newPoint = currentPoint - data.amount;
+	          if (newPoint < 0) newPoint = 0;
+
+	          $(".point-value").text(newPoint + "P");
+	        } else {
+	          alert("실패: " + response.message);
+	        }
+	      },
+	      error: function() {
+	        alert("서버 요청 중 오류가 발생했습니다.");
+	      }
+	    });
+	  });
+	});
 </script>
 
 
+ <script th:inline="javascript">
+$(function() {
+  console.log("iamport loaded:", typeof IMP !== 'undefined');
 
-  
+  if (typeof IMP !== 'undefined') {
+    IMP.init("imp14397622");
+  } else {
+    console.error("IMP 객체가 정의되지 않았습니다! iamport.js가 제대로 로드되었는지 확인하세요.");
+  }
+
+  // 이벤트 위임 바인딩(동적 버튼도 문제없게)
+  $(document).on('click', '.btn-pay.btn-card', function(e) {
+    e.preventDefault();
+    
+    console.log("카드결제 버튼 클릭됨");
+    const resId = $(this).data('resid');
+    console.log("선택된 예약ID:", resId);
+
+    const userId = /*[[${userId}]]*/ 'UNKNOWN';
+    console.log("사용자 ID:", userId);
+
+    const amount = 100; // 결제 금액 (필요에 따라 변경)
+
+    if (typeof IMP === 'undefined') {
+      alert('IMP 객체를 찾을 수 없습니다. iamport.js 로딩 문제');
+      return;
+    }
+
+    IMP.request_pay({
+      channelKey : "channel-key-01764171-b249-4c16-9d18-e9174fa8e611",
+      pay_method: 'card',
+      merchant_uid: 'order_' + new Date().getTime(),
+      name: '면접 예약 결제',
+      amount: amount,
+      buyer_tel: '010-0000-0000'
+    }, function(rsp) {
+      console.log('IAMPORT response:', rsp);
+
+      if (!rsp.success) {
+        alert('결제 실패: ' + rsp.error_msg);
+        return;
+      }
+
+      $.ajax({
+        type: 'POST',
+        url: '/payment/save',
+        contentType: 'application/json',
+        data: JSON.stringify({
+          payResno: rsp.merchant_uid,
+          payAmount: rsp.paid_amount,
+          payStatus: rsp.status,
+          resId: resId,
+          userId: userId,
+          payType: "CARD"
+        }),
+        success: function(data) {
+            if (data==1) {
+              alert('카드결제 완료');
+             // location.href = "result?amount="+rsp.paid_amount
+              location.href = "/mypage?tab=schedule";
+            } else {
+              alert('검증 실패: ' + data.message);
+            }
+          },
+          error: function(xhr, status, err) {
+            console.error('AJAX error', status, err);
+            alert('서버 통신 중 오류가 발생했습니다.');
+        }
+      });
+    });
+  });
+});
+</script>
+
+<!-- Footer -->
+  <div th:replace="fragments/footer :: footerFragment"></div>
+
 </body>
 </html>
