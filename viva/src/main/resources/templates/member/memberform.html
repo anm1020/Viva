@@ -5,7 +5,7 @@
   <title>회원가입</title>
   <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
   <script src="https://code.jquery.com/jquery-latest.js"></script>
-  <script th:src="@{/js/check.js}"></script>
+  <script th:src="@{/js/check2.js}"></script>
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <link rel="stylesheet" th:href="@{/css/common.css}">
   <style>
@@ -180,7 +180,7 @@
                  required />
           <span>@</span>
           <input type="text"
-                 th:field="*{emailDomain}"
+                 th:field="*{emailDomain}" name="emailDomain"
                  id="emailDomain"
                  readonly
                  required />
@@ -275,7 +275,7 @@
   </form>
 </div>
 
-<script>
+<!-- <script>
 //--- 아이디 중복확인 플래그
 let isIdChecked = false;
 
@@ -355,23 +355,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }).open();
   });
- </script>
-  
-  
- <!--  <script>
-  const emailSelect    = document.getElementById('emailSelect');
-  const emailDomainIn  = document.getElementById('emailDomain');
-
-  emailSelect.addEventListener('change', function() {
-    if (this.value === 'custom') {
-      emailDomainIn.value    = '';
-      emailDomainIn.readOnly = false;
-      emailDomainIn.focus();
-    } else {
-      emailDomainIn.value    = this.value;
-      emailDomainIn.readOnly = true;
-    }
-  });
-</script> -->
+ </script> -->
 </body>
 </html>

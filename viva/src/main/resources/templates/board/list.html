@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+
 <meta charset="UTF-8" />
 <title>게시판 스타일</title>
 <link rel="stylesheet" th:href="@{/css/common.css}">
 <link rel="stylesheet" th:href="@{/css/hero.css}">
 <link rel="stylesheet" th:href="@{/css/board.css}">
 
+
 </head>
 <body>
+<div th:replace="fragments/header :: header"></div>
 
 	<!-- Header -->
 	<div th:replace="fragments/header :: headerFragment"></div>

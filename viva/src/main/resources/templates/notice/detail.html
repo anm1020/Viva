@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>공지사항 상세</title>
+    <link rel="stylesheet" th:href="@{/css/notice.css}">
+</head>
+<body>
+<tr class="notice-detail-row">
+  <td colspan="7">
+    <div class="notice-inline-detail">
+    <div class="notice-detail-label" style="font-size:15px; color:#666; margin-bottom:4px;">본문</div>
+      <div class="notice-detail-content" th:text="${notice.content}" style="margin-bottom: 0;"></div>
+      <div class="notice-detail-actions">
+        <button type="button" class="inline-edit-btn" th:data-id="${notice.noticeId}">수정</button>
+		<button type="button" class="inline-del-btn" th:data-id="${notice.noticeId}">삭제</button>
+      </div>
+    </div>
+  </td>
+</tr>
+
+<!-- <div class="notice-table-wrap">
+    <h2 th:text="${notice.title}">제목</h2>
+    <div>
+        작성자: <span th:text="${notice.user.userName}">관리자</span>
+        | 작성일: <span th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
+        | 조회수: <span th:text="${notice.viewCount}">0</span>
+    </div>
+    <div style="margin:24px 0 40px 0;">
+        <pre th:text="${notice.content}" style="background:none; border:none;"></pre>
+    </div>
+    <button type="button" id="notice-list-btn">목록으로</button>
+</div> -->
+</body>
+</html>

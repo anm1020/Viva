@@ -1,0 +1,74 @@
+@charset "UTF-8";
+/* 카드 컨테이너 */
+   .form-frame {
+     max-width: 360px;
+     margin: 2rem auto;
+     padding: 1.5rem;
+     background-color: #ffffff;
+     border-radius: 0.5rem;
+     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+   }
+   .form-frame h2 {
+     text-align: center;
+     font-size: 1.25rem;
+     font-weight: 600;
+     margin-bottom: 1.5rem;
+     color: #111827;
+   }
+   .form-frame .form-group {
+     margin-bottom: 1rem;
+   }
+   .form-frame label {
+     display: block;
+     margin-bottom: 0.25rem;
+     font-size: 0.875rem;
+     color: #374151;
+   }
+   .form-frame input,
+   .form-frame select {
+     width: 100%;
+     padding: 0.5rem 0.75rem;
+     font-size: 0.875rem;
+     border: 1px solid #d1d5db;
+     border-radius: 0.375rem;
+     background-color: #f9fafb;
+     box-sizing: border-box;
+   }
+   .inline-group {
+     display: flex;
+     gap: 0.5rem;
+   }
+   .inline-group > * {
+     flex: 1;
+   }
+   .form-frame button {
+     font-size: 0.875rem;
+     border-radius: 0.375rem;
+   }
+   .form-frame button[type="button"] {
+     padding: 0.5rem 0.75rem;
+     background-color: #ffffff;
+     border: 1px solid #d1d5db;
+     color: #374151;
+     cursor: pointer;
+   }
+   .form-frame button[type="button"]:hover {
+     background-color: #f3f4f6;
+   }
+   .form-frame button[type="submit"] {
+     width: 100%;
+     padding: 0.75rem;
+     margin-top: 1rem;
+     background-color: #007bff;
+     color: #ffffff;
+     border: none;
+     cursor: pointer;
+   }
+   .form-frame button[type="submit"]:hover {
+     background-color: #0056b3;
+   }
+   .readonly-field {
+   background: #f2f2f2;
+   color: #888;
+   font-weight: bold;
+ 	}
