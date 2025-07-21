@@ -77,4 +77,9 @@ public class BoardService {
             boardRepository.save(board);
         });
     }
+    
+    // 예원 추가: 특정 회원의 글 목록 조회
+    public List<Board> getBoardsByUserId(String userId) {
+        return boardRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    }
 }

@@ -12,4 +12,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
 	// 특정 게시글의 댓글 목록 조회 (최신순)
 	List<Comment> findByBoardOrderByCreatedAtDesc(Board board);
+	
+	// 예원 추가
+	List<Comment> findByUser_UserIdOrderByCreatedAtDesc(String userId);
 }

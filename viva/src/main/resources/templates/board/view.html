@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+
 <meta charset="UTF-8" />
 <title>게시글 상세보기</title>
 
@@ -9,6 +10,7 @@
 
 </head>
 <body>
+<div th:replace="~{fragments/header :: header}"></div>
 
 	<!-- Header -->
 	<div th:replace="fragments/header :: headerFragment"></div>
@@ -182,6 +184,18 @@
 
 	<!-- Footer -->
 	<div th:replace="fragments/footer :: footerFragment"></div>
+
+		<div class="btns">
+			<a th:href="@{/board/list}">목록으로</a>
+			<!-- 로그인된 사용자와 작성자가 같은 경우만 보여주기 -->
+			<div class="btns"
+				th:if="${session.user != null and session.user.userId == board.userId}">
+				<a th:href="@{/board/edit/{id}(id=${board.id})}">수정</a> <a
+					th:href="@{/board/delete/{id}(id=${board.id})}"
+					onclick="return confirm('정말 삭제할까요?')">삭제</a>
+			</div>
+		</div>
+	</div>
 
 </body>
 </html>

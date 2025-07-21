@@ -35,6 +35,8 @@ public class AdminController {
         return "admin/dashboard";   // templates/admin/main.html
     }
     
+    
+    
     // 관리자 회원목록 페이지
 //    @GetMapping("/admin/users")
 //    public String userList(@RequestParam("userRole") String userRole, Model model) {

@@ -6,7 +6,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-// 예원 추가 파일
+// 예원 추가 파일ㅜㅜ
 @Entity
 @Table(name = "reviews")
 @Getter @Setter
@@ -30,4 +30,10 @@ public class Review {
 
     @Column(name = "created_dt")
     private LocalDateTime createdDt;
+    
+    // 예원 추가ㅠㅠㅠㅠ
+    // ✅ 연관관계 추가: 면접관
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "intr_id", insertable = false, updatable = false)
+    private Interviewer interviewer;
 } 

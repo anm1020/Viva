@@ -1,35 +1,40 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>공지사항 상세</title>
-    <link rel="stylesheet" th:href="@{/css/notice.css}">
-</head>
-<body>
-<tr class="notice-detail-row">
-  <td colspan="7">
-    <div class="notice-inline-detail">
-    <div class="notice-detail-label" style="font-size:15px; color:#666; margin-bottom:4px;">본문</div>
-      <div class="notice-detail-content" th:text="${notice.content}" style="margin-bottom: 0;"></div>
-      <div class="notice-detail-actions">
-        <button type="button" class="inline-edit-btn" th:data-id="${notice.noticeId}">수정</button>
-		<button type="button" class="inline-del-btn" th:data-id="${notice.noticeId}">삭제</button>
-      </div>
-    </div>
-  </td>
-</tr>
+<!-- notice/detail.html -->
+<div class="notice-detail-wrap" th:fragment="adminContent">
+  <h2>공지사항 상세</h2>
 
-<!-- <div class="notice-table-wrap">
-    <h2 th:text="${notice.title}">제목</h2>
-    <div>
-        작성자: <span th:text="${notice.user.userName}">관리자</span>
-        | 작성일: <span th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
-        | 조회수: <span th:text="${notice.viewCount}">0</span>
+  <form id="noticeEditForm" th:object="${notice}">
+    <input type="hidden" th:field="*{noticeId}" />
+
+    <div class="form-group">
+      <label>제목</label>
+      <input type="text" th:field="*{title}" class="form-control" th:readonly="${!isAdmin}">
     </div>
-    <div style="margin:24px 0 40px 0;">
-        <pre th:text="${notice.content}" style="background:none; border:none;"></pre>
+
+    <div class="form-group">
+      <label>내용</label>
+      <textarea th:field="*{content}" class="form-control" rows="8" th:readonly="${!isAdmin}"></textarea>
     </div>
-    <button type="button" id="notice-list-btn">목록으로</button>
-</div> -->
-</body>
-</html>
+
+    <div class="form-group">
+      <label>상단 고정 여부</label>
+      <select th:field="*{isFixed}" class="form-control" th:disabled="${!isAdmin}">
+        <option value="N" th:selected="${notice.isFixed == 'N'}">일반</option>
+        <option value="Y" th:selected="${notice.isFixed == 'Y'}">상단 고정</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>작성일</label>
+      <span th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
+    </div>
+
+    <div class="form-actions" style="margin-top: 20px;">
+      <th:block th:if="${isAdmin}">
+        <button type="button" id="btnUpdateNotice">수정</button>
+		<!-- <button type="button" id="btnDeleteNotice" data-id="${notice.noticeId}">삭제</button> -->
+		<button type="button" id="btnDeleteNotice" th:data-id="${notice.noticeId}">삭제</button>
+      </th:block>
+      <a href="#" class="btn-notice-list btn btn-secondary">목록</a>
+    </div>
+  </form>
+</div>

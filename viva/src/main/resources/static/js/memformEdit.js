@@ -27,16 +27,19 @@ document.addEventListener('DOMContentLoaded', function() {
   bindEmailDomainEvents();
 
   // [2] 주소 검색(카카오 우편번호) 버튼 이벤트
-  const addrBtn = document.getElementById('addrBtn');
+  
+
+/*  const addrBtn = document.getElementById('addrBtn'); //초기화
   if (addrBtn) {
     addrBtn.addEventListener('click', function() {
+		console.log('addrBtn');
       new daum.Postcode({
         oncomplete: function(data) {
           document.getElementById('userAdd').value = data.address; // 주소 입력
         }
       }).open();
     });
-  }
+  }*/
 });
 
 // [3] AJAX로 동적 삽입(수정폼 등) 이후에는 아래를 추가로 호출해야함

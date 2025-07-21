@@ -20,15 +20,22 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-
+import com.example.demo.model.entity.Board;
+import com.example.demo.model.entity.Comment;
 import com.example.demo.model.entity.Jaso;
 import com.example.demo.security.CustomUserDetails;
+import com.example.demo.service.BoardService;
+import com.example.demo.service.CommentService;
 import com.example.demo.service.JasoService;
 
 import com.example.demo.model.entity.Payment;
 import com.example.demo.model.entity.PointExchange;
+
+import com.example.demo.model.entity.Review;
 import com.example.demo.model.entity.Reviewboard;
+
 import com.example.demo.model.entity.Users;
+import com.example.demo.repository.ReviewRepository;
 import com.example.demo.security.CustomUserDetails;
 import com.example.demo.service.PaymentService;
 import com.example.demo.service.PointExchangeService;
@@ -51,6 +58,9 @@ public class UserController {
 	private final JasoService jasoService;
 	private final PaymentService paymentService;
 	private final PointExchangeService pointExchangeService;
+	private final BoardService boardService;
+	private final CommentService commentService;
+	private final ReviewRepository reviewRepository;
 
 	// application.properties 에서 읽어 오는 impKey
 	@Value("${portone.imp-key}")
@@ -513,4 +523,41 @@ public class UserController {
 	    model.addAttribute("jasoList", jasoList);
 	    return "mypage/jasolist :: jasoList"; // fragment 위치와 이름
 	}
+	
+	@GetMapping("/mypage/activity")
+	public String showMemberActivity(Model model, Principal principal) {
+	    // 1. 로그인한 사용자 ID 가져오기
+	    String userId = principal.getName(); // 세션에서 로그인한 사용자 ID 꺼내기
+	    System.out.println("🔍 로그인된 userId: " + userId);
+
+	    // 2. 사용자 작성 게시글 목록 조회
+	    List<Board> myPosts = boardService.getBoardsByUserId(userId);
+	    System.out.println("📝 가져온 게시글 수: " + myPosts.size());
+
+	    // 3. 내가 쓴 댓글
+	    List<Comment> myComments = commentService.getCommentsByUserId(userId);
+	    model.addAttribute("myComments", myComments);
+	    
+	    // 4. 내가 쓴 면접 리뷰
+	    List<Review> myReviews = reviewRepository.findByUserIdOrderByCreatedDtDesc(userId);
+	    System.out.println("📋 가져온 리뷰 수: " + myReviews.size());
+	    
+	    // 5. 모델에 담기
+	    model.addAttribute("myPosts", myPosts);
+	    model.addAttribute("myComments", myComments);
+	    model.addAttribute("myReviews", myReviews);
+
+	    // 4. 프래그먼트 반환 (마이페이지 본문영역 일부)
+	    return "mypage/memberActivity :: memberActivity";
+	}
+	
+	// 면접관 리뷰 프래그먼트
+	@GetMapping("/intrReview/fragment")
+    public String showIntrReviewFragment(Model model, Principal principal) {
+        String userId = principal.getName(); // 현재 로그인된 면접관 ID
+        List<Review> reviewList = reviewRepository.getReviewsByInterviewerId(userId);
+        model.addAttribute("reviewList", reviewList);
+        return "mypage/intrReview :: intrReviewFragment";
+    }
+	
 }

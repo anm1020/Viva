@@ -48,4 +48,9 @@ public class CommentService {
             throw new IllegalArgumentException("댓글을 찾을 수 없습니다. ID: " + commentId);
         }
     }
+    
+    // 예원 추가. 마이페이지 내 활동관리에 댓글 불러오기
+    public List<Comment> getCommentsByUserId(String userId) {
+        return commentRepository.findByUser_UserIdOrderByCreatedAtDesc(userId);
+    }
 }
