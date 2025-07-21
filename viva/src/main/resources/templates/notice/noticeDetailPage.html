@@ -1,0 +1,25 @@
+<!-- templates/notice/noticeDetailPage.html
+	일반 사용자에게 전체 HTML로 공지 보여주는 페이지 -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>공지 상세</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <link rel="stylesheet" th:href="@{/css/common.css}">
+</head>
+<body>
+  <div th:replace="~{fragments/header :: header}"></div>
+
+  <div class="container" style="padding: 30px;">
+    <h1 style="text-align:center;">공지사항 상세</h1>
+
+    <!-- 공통 본문 -->
+    <div th:replace="~{notice/detailContent :: noticeDetail}"></div>
+
+    <div style="text-align:center; margin-top: 20px;">
+      <a href="/board/list">← 목록으로</a>
+    </div>
+  </div>
+</body>
+</html>

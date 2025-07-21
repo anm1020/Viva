@@ -1,5 +1,7 @@
 package com.example.demo.repository;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,4 +25,6 @@ public interface BoardRepository extends JpaRepository<Board, Integer> {
 	@Query("UPDATE Board b SET b.likeCount = b.likeCount + 1 WHERE b.id = :id")
 	int incrementLikeCount(@Param("id") Integer id);
 
+	// 예원추가. 마이페이지에 내활동관리에서 게시글 불러올거임
+	List<Board> findByUserIdOrderByCreatedAtDesc(String userId);
 }

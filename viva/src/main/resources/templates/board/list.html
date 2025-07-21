@@ -13,50 +13,56 @@
 
 </head>
 <body>
-<div th:replace="fragments/header :: header"></div>
+<div th:replace="~{fragments/header :: header}"></div>
 
-	<h2>게시판 목록</h2>
 
-<form th:action="@{/board/list}" method="get" style="margin-bottom: 10px;">
-  <!-- 기존 검색 파라미터는 hidden으로 넘기기 -->
-  <input type="hidden" name="type" th:value="${type}" />
-  <input type="hidden" name="keyword" th:value="${keyword}" />
+<!-- ─── 공지 + 게시판 통합 테이블 ─────────────────────────────── -->
+  <h2>게시판</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>No</th>
+        <th>제목</th>
+        <th>작성자</th>
+        <th>작성일</th>
+        <th>조회수</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- 1) 공지 3건 -->
+      <tr th:each="n : ${latestNotices}" class="notice-row">
+  <td>📢 공지</td>
+  <td>
+    <a th:href="@{/board/notice/{id}(id=${n.noticeId})}"
+       th:text="${n.title}">공지 제목</a>
+  </td>
+  <td>관리자</td>
+  <td th:text="${#temporals.format(n.createdAt,'yyyy-MM-dd HH:mm')}">
+    2025-07-14 01:07
+  </td>
+  <td th:text="${n.viewCount}">0</td>
+</tr>
 
- <div style="margin-bottom: 10px; font-size: 16px; text-align: right;">
-  <a th:href="@{/board/list(sort='date', type=${type}, keyword=${keyword})}"
-     th:classappend="${sort == 'date'} ? 'active' : ''"
-     style="cursor: pointer; margin-right: 8px;">날짜순</a>
-  ・
-  <a th:href="@{/board/list(sort='views', type=${type}, keyword=${keyword})}"
-     th:classappend="${sort == 'views'} ? 'active' : ''"
-     style="cursor: pointer; margin-left: 8px;">조회수순</a>
-</div>
-</form>
-	<table>
-		<thead>
-			<tr>
-				<th>No</th>
-				<th>작성자</th>
-				<th>제목</th>
-				<th>작성일</th>
-				<th>조회수</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr th:each="board : ${boardPage.content}">
-				<td th:text="${board.id}">1</td>
-				<td th:text="${board.userId}">작성자</td>
-				<td><a th:href="@{/board/view/{id}(id=${board.id})}"
-					th:text="${board.title}">제목</a></td>
-				<td
-					th:text="${#temporals.format(board.createdAt, 'yyyy-MM-dd HH:mm')}">날짜</td>
-				<td th:text="${board.viewCount}">0</td>
-			</tr>
-			<tr th:if="${#lists.isEmpty(boardPage.content)}">
-				<td colspan="5">게시글이 없습니다.</td>
-			</tr>
-		</tbody>
-	</table>
+      <!-- 2) 일반 게시글 -->
+      <tr th:each="board : ${boardPage.content}">
+        <td th:text="${board.id}">14</td>
+        <td>
+          <a th:href="@{/board/view/{id}(id=${board.id})}"
+             th:text="${board.title}">게시글 제목</a>
+        </td>
+        <td th:text="${board.userId}">gugu</td>
+        <td th:text="${#temporals.format(board.createdAt,'yyyy-MM-dd HH:mm')}">
+          2025-07-15 19:57
+        </td>
+        <td th:text="${board.viewCount}">12</td>
+      </tr>
+
+      <!-- 3) 게시글이 하나도 없을 때 -->
+      <tr th:if="${#lists.isEmpty(boardPage.content)}">
+        <td colspan="5">게시글이 없습니다.</td>
+      </tr>
+    </tbody>
+  </table>
 <!--검색바 -->
 <!-- 검색 폼 (테이블 아래) -->
 <form th:action="@{/board/list}" method="get" style="margin-top: 10px;">

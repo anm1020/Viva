@@ -32,22 +32,13 @@
     }
 
     .mypage-layout {
-  /* display: flex;
-  max-width: 1100px;
-  margin: 40px auto;
-  height: auto;
-  min-height: 550px;
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 2px 14px rgba(70,110,180,0.08); */
-  display: flex;
-  max-width: 1100px;
-  margin: 40px auto;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 16px 24px rgba(0, 0, 0, 0.08);
-  overflow: hidden; /* 둥근 모서리 안 넘치게 */
-  box-sizing: border-box;
+	  display: flex;
+	  margin: 40px auto;
+	  background: #fff;
+	  border-radius: 16px;
+	  box-shadow: 0 16px 24px rgba(0, 0, 0, 0.08);
+	  overflow: hidden; /* 둥근 모서리 안 넘치게 */
+	  box-sizing: border-box;
   
   /* ✅ 배경과 테두리 */
   /* background: #fff;
@@ -90,8 +81,9 @@
     }
 
     .sidebar-bottom {
-      padding-left: 24px;
-      padding-bottom: 38px;
+      /* padding-left: 24px; */
+      margin-top: 38px;
+      margin-bottom: 38px;
     }
 
     .sidebar-bottom a {
@@ -104,6 +96,7 @@
 
     .sidebar-bottom a:hover {
       color: #b80000;
+      background: none;
       text-decoration: underline;
     }
 
@@ -111,7 +104,7 @@
    	 /* 기존 속성 유지 */
   flex: 1;
   width: 100%;
-  max-width: 960px;
+  min-width: 900px;
   padding: 46px 44px;
   background: #f7f9fc;
   box-sizing: border-box;
@@ -185,11 +178,6 @@
   margin: 0 auto;
 }
 
-    /* #editContainer {
-      display: flex;
-      justify-content: center;
-    } */
-
     #editContainer .form-frame {
     margin:auto;
       width: 100%;
@@ -234,11 +222,12 @@
           <a href="#">AI 대화 내역</a>
           <a href="#" id="loadPaymentList">결제 내역</a> <!-- 결제내역 탭 또는 버튼 -->
           <a th:href="@{/jobsite}">취업 사이트</a>
+	      <div class="sidebar-bottom">
+	      	<!-- 페이지 이동 없이 자바스크립트로만 동작 -->
+	        <a href="#" id="withdrawBtn" style="color:#d34040;">회원 탈퇴</a>
+	      </div>
+          
         </div>
-      </div>
-      <div class="sidebar-bottom">
-      	<!-- 페이지 이동 없이 자바스크립트로만 동작 -->
-        <a href="#" id="withdrawBtn" style="color:#d34040; text-decoration:underline;">회원 탈퇴</a>
       </div>
    </nav>
 
@@ -270,10 +259,10 @@
 			<div th:replace="mypage/exchangeModal :: exchangeModal"></div>
         </div>
 
-		<!-- '내 예약 목록'-->
-		<div id="schedule">
-			<div id="reservationContainer"></div>
-		</div>
+		<!-- '내 예약 목록' >> 일정관리-->
+		<!-- <div id="schedule"> -->
+		<div id="reservationContainer" style="display:none;"></div>
+		<!-- </div> -->
 
 		<!-- 결제내역 표시 영역 -->
 		<div id="paymentListContainer" style="display:none;"></div>
@@ -324,7 +313,7 @@
 <script>
 // 공통 함수
 function hideAllFragments() {
-	  $('#reservationContainer, #editContainer, #activityContainer, #reviewContainer, #jasoContainer, #exchangeBtn').hide();
+	  $('#reservationContainer, #editContainer, #activityContainer, #reviewContainer, #jasoContainer, #exchangeBtn,#paymentListContainer').hide();
 	  $('.member-info, .stat-info').hide();
 	}
 
@@ -543,10 +532,9 @@ $(document).on('click', '.action-link.cancel', function(e){
 
 // 내정보 수정
 $('#memberEdit').on('click', function(e){
-  e.preventDefault();
+	e.preventDefault();
   $('.sidebar-menu a').removeClass('active');
   $(this).addClass('active');
-  
   hideAllFragments();  // ✅ 추가
   
   $('#reservationContainer').hide();	
@@ -561,12 +549,12 @@ $('#memberEdit').on('click', function(e){
   });
 });
 	
-// 정보 수정 취소 버튼
-$(document).on('click', '#editCancelBtn', function(){
+// 정보 수정 취소 버튼  >>  없앰
+/* $(document).on('click', '#editCancelBtn', function(){
   hideAllFragments();  // ✅ 추가
   $('#editContainer').hide();
   $('.member-info, .stat-info').show();
-});
+}); */
 
 // 내활동관리
 $('#memberActivity').on('click', function(e){
@@ -577,7 +565,7 @@ $('#memberActivity').on('click', function(e){
   hideAllFragments();  // ✅ 추가
   
   $('.member-info, .stat-info, #reservationContainer, #editContainer, #reviewContainer').hide();
-  $('#activityContainer').show().load('/memberActivity', function(resp, status, xhr){
+  $('#activityContainer').show().load('/mypage/activity', function(resp, status, xhr){
     if (status !== 'success') {
       $('#activityContainer').html('<div>불러오기 실패</div>');
     }
@@ -610,6 +598,7 @@ $(function() {
 	    // 탭 활성화 토글 (선택사항)
 	    $('.sidebar-menu a').removeClass('active');
 	    $(this).addClass('active');
+	    hideAllFragments();
 
 	    // 다른 메인 컨텐츠 숨기기 (필요하면)
 	    $('.member-info, .stat-info, #reservationContainer').hide();

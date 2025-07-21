@@ -1,5 +1,8 @@
 package com.example.demo.controller;
 
+import java.security.Principal;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,8 +19,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.demo.model.entity.Board;
+import com.example.demo.model.entity.Notice;
 import com.example.demo.model.entity.Users;
 import com.example.demo.service.BoardService;
+import com.example.demo.service.NoticeService;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +33,9 @@ import lombok.RequiredArgsConstructor;
 public class BoardController {
 
 	private final BoardService boardService;
+	
+	// 게시판에 공지 연결 : 예원추가
+	private final NoticeService noticeService;
 
 	// 🔹 게시글 목록
 	@GetMapping("/list")
@@ -55,10 +63,17 @@ public class BoardController {
 			// 검색어가 있으면 조건 검색 (서비스에서 구현 필요)
 			boardPage = boardService.searchBoards(type, keyword, pageable);
 		}
+		
+		// 2) 최신 공지 3건 조회 : 예원추가
+	    List<Notice> latestNotices = noticeService.getLatestNotices();
+		
 		model.addAttribute("boardPage", boardPage);
 		model.addAttribute("type", type);
 		model.addAttribute("keyword", keyword);
 		model.addAttribute("sort", sort);
+		// 공지 3개 연결 : 예원 추가
+		model.addAttribute("latestNotices", latestNotices);
+		
 		return "board/list";
 	}
 
@@ -132,5 +147,22 @@ public class BoardController {
 	public ResponseEntity<String> likePost(@PathVariable("id") Integer id) {
 	    boardService.incrementLikeCount(id);
 	    return ResponseEntity.ok("success");
+	}
+	
+	// 예원 추가
+	private boolean isAdmin(Principal principal) {
+	    if (principal == null) return false;
+	    // 예: principal.getName()이 admin인 경우 등으로 체크
+	    return principal.getName().equals("admin");
+	}
+	// 예 추가
+	@GetMapping("/notice/{id}")
+	public String userNoticeDetail(@PathVariable("id") Long id, Model model, Principal principal) {
+	    Notice notice = noticeService.findById(id)
+	        .orElseThrow(() -> new IllegalArgumentException("공지 없음"));
+	    noticeService.incrementViewCount(id);
+	    model.addAttribute("notice", notice);
+	    model.addAttribute("isAdmin", isAdmin(principal));
+	    return "notice/noticeDetailPage";
 	}
 }

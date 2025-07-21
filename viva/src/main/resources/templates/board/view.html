@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <title>게시글 상세</title>
+<link rel="stylesheet" th:href="@{/css/main.css}">
+<link rel="stylesheet" th:href="@{/css/common.css}">
+
 <style>
 table {
 	width: 700px;
@@ -33,6 +36,7 @@ th {
 </style>
 </head>
 <body>
+<div th:replace="~{fragments/header :: header}"></div>
 
 	<h2 style="text-align: center;">게시글 상세보기</h2>
 
@@ -138,5 +142,6 @@ th {
 					onclick="return confirm('정말 삭제할까요?')">삭제</a>
 			</div>
 		</div>
+	</div>
 </body>
 </html>

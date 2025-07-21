@@ -74,7 +74,108 @@
     border-radius: 6px;
     font-weight: 600;
     text-decoration: none;
+	/* margin-right: 20px; */
+	/* margin-bottum: 10px; */
 }
 .btn.btn-primary:hover {
     background: #143ab7;
+}
+
+/* 공지사항 작성 폼 스타일 */
+.notice-form-wrap {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 30px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  font-family: 'Pretendard', sans-serif;
+}
+
+.notice-form-wrap h2 {
+  text-align: center;
+  font-size: 24px;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.notice-form-wrap .form-group {
+  margin-bottom: 20px;
+}
+
+.notice-form-wrap label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #222;
+}
+
+.notice-form-wrap input[type="text"],
+.notice-form-wrap textarea,
+.notice-form-wrap select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.notice-form-wrap input:focus,
+.notice-form-wrap textarea:focus,
+.notice-form-wrap select:focus {
+  outline: none;
+  border-color: #2a5bd7;
+}
+
+.notice-form-wrap textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.notice-form-wrap .form-buttons {
+  text-align: right;
+  margin-top: 20px;
+}
+
+.notice-form-wrap .btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.notice-form-wrap .btn-success {
+  background-color: #2a5bd7;
+  color: #fff;
+}
+
+.notice-form-wrap .btn-secondary {
+  background-color: #ccc;
+  color: #333;
+}
+
+.notice-form-wrap .btn:hover {
+  opacity: 0.9;
+}
+
+/* 공지 리스트에 상단 고정인 것 표시 */
+.notice-table .notice-fixed {
+  background: #fffbea;         /* 연노랑 배경 */
+  font-weight: bold;           /* 굵은 글씨 */
+  color: #ad7000;              /* 주황계열 텍스트 */
+}
+.notice-badge {
+  display: inline-block;
+  background: #F39C12;
+  color: #fff;
+  border-radius: 10px;
+  font-size: 12px;
+  padding: 2px 7px;
+  margin-right: 6px;
+  font-weight: bold;
+  vertical-align: middle;
 }

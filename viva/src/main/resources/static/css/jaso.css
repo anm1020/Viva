@@ -12,7 +12,7 @@ html, body {
     .jaso-list-container {
       max-width: 800px;
       margin: 0 auto;
-      padding: 30px;
+      padding: 50px;
       flex: 1 0 auto;
     }
     .jaso-header {

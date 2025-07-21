@@ -51,8 +51,5 @@ public class Notice {
     private LocalDateTime updatedAt;
 
     @Column(length = 1, nullable = false)
-    private String delYn = "N";
-
-    @Column(length = 1, nullable = false)
     private String isFixed = "N";
 }
