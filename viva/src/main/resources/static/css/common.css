@@ -61,11 +61,15 @@ nav a:hover {
 }
 /* 푸터 */
 footer {
+  margin-top: auto; /* 남은 공간을 푸터 위로 밀어냄 */
+  /* 기존 스타일 그대로 추가 */
+}
+footer {
 	background-color: #f9f6f1;
 	color: black;
 	padding: 30px;
 	text-align: center;
 	flex-shrink: 0; /* 축소 방지 */
-	margin-top:70px;
+	margin-top:150px;
 	margin-bottom: 0px;
 }
