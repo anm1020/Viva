@@ -83,7 +83,20 @@
             <p class="intro" th:text="${i.intrIntro != null ? i.intrIntro : '소개 없음'}">한줄소개</p>
             <button class="reserve-btn" th:onclick="'event.stopPropagation(); location.href=\'/reservation/book?intrId=' + ${i.intrId} + '\''">예약하기</button>
           </div>
-        </div>
+          
+          <div th:if="${session.user != null}">
+			  <!-- 면접관인 경우 (role='intr') 안내멘트만 출력 -->
+			  <div th:if="${session.user.userRole == 'intr'}" style="text-align:center; margin:10px 0;">
+			    <span style="color: gray; font-size: 13px;">(면접관은 예약할 수 없습니다)</span>
+			  </div>
+			  
+			  <!-- 면접관이 아닌 경우 예약 버튼 출력 -->
+			  <form th:if="${session.user.userRole != 'intr'}"
+			        th:action="@{/reservation/book}" method="get" style="text-align:center; margin: 10px 0;">
+			    <input type="hidden" name="intrId" th:value="${i.userId}" />
+			    <button type="submit" class="reserve-btn">예약하기</button>
+			  </form>
+			</div>
 
         
         <!-- 빈 박스 (9개 미만일 때) -->
@@ -93,19 +106,11 @@
           </div>
         </div>
 
-      </a>
+          
+<!--       </a> -->
 
-      <form th:if="${session.user != null and session.user.userRole != 'intr'}"
-              th:action="@{/reservation/book}" method="get" style="text-align:center; margin: 10px 0;">
-          <input type="hidden" name="intrId" th:value="${i.userId}" />
-          <button type="submit" class="reserve-btn">예약하기</button>
-        </form>
-        <!-- ✅ 면접관 본인인 경우 안내 문구 -->
-        <div style="text-align: center; margin: 10px 0;"
-             th:if="${session.user != null and session.user.userRole == 'intr'}">
-          <span style="color: gray; font-size: 13px;">(면접관은 예약할 수 없습니다)</span>
-        </div>
-      </form>
+
+
     </div>
   </div>
 </div>

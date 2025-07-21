@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
@@ -124,8 +125,10 @@ public class InterviewerController {
     }
 
     @GetMapping("/interviewer/{intrId}")
-    public String getInterviewerDetail(@PathVariable("intrId") Long intrId, Principal principal, Model model) {
-
+    public String getInterviewerDetail(@PathVariable("intrId") Long intrId, 
+    									Principal principal, 
+    									Model model, 
+    									HttpSession session)throws JsonProcessingException{
         InterviewerDetailDTO detail = interviewerService.getInterviewerDetail(intrId);
         model.addAttribute("interviewer", detail);
         
@@ -148,7 +151,7 @@ public class InterviewerController {
         model.addAttribute("reviews", reviews);
         
         // 이슬이 예약 폼에 필요한 데이터
-     // 예약 및 비활성화 슬롯 Map 조회
+        // 예약 및 비활성화 슬롯 Map 조회
         Map<String, List<String>> reservedSlots = reservationService.getReservedSlotsByIntrId(intrId.toString());
         Map<String, List<String>> disabledSlots = reservationService.getDisabledSlotsByIntrIdGrouped(intrId.toString());
 
