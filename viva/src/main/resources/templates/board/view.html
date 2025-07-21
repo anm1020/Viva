@@ -10,7 +10,6 @@
 
 </head>
 <body>
-<div th:replace="~{fragments/header :: header}"></div>
 
 	<!-- Header -->
 	<div th:replace="fragments/header :: headerFragment"></div>
@@ -186,7 +185,6 @@
 	<div th:replace="fragments/footer :: footerFragment"></div>
 
 		<div class="btns">
-			<a th:href="@{/board/list}">목록으로</a>
 			<!-- 로그인된 사용자와 작성자가 같은 경우만 보여주기 -->
 			<div class="btns"
 				th:if="${session.user != null and session.user.userId == board.userId}">

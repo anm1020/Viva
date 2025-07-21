@@ -156,6 +156,26 @@
 	background: gray;
 	color: white;
 }
+
+/* 포인트 충전하기 버튼 */
+.btn-charge{
+	margin-left: auto; /* 버튼을 오른쪽 끝으로 밀기 */
+	color: black; /* 어두운 글자색 */
+	text-decoration: none;
+	font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  user-select: none;
+  font-size: 14px;
+}
+.btn-charge:hover {
+  background-color: gray;
+  color:white;
+}
+
 /* ─── 테이블 ───────────────────────────────────────────────────────────── */
 .reservation-table {
 	width: 100%;
