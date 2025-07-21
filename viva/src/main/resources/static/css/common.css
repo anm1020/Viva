@@ -1,71 +1,71 @@
 /* 헤더 */
 html, body {
-	margin: 0;
-	padding: 0;
-	box-sizing: border-box;
-	width: 100%;
-	overflow-x: hidden;
-	font-family: 'Georgia';
-	height: 100%;
-	min-height: 100vh;
+   margin: 0;
+   padding: 0;
+   box-sizing: border-box;
+   width: 100%;
+   overflow-x: hidden;
+   font-family: 'Georgia';
+   height: 100%;
+   min-height: 100vh;
 }
 
 body {
-	flex: 1 0 auto; /* 본문이 가능한 영역 차지 */
-	display: flex;
-	flex-direction: column;
-	flex-grow: 1;
-	min-height: 100vh; /* 추가하면 더 안전 */
+   flex: 1 0 auto; /* 본문이 가능한 영역 차지 */
+   display: flex;
+   flex-direction: column;
+   flex-grow: 1;
+   min-height: 100vh; /* 추가하면 더 안전 */
 }
 
 header {
-	background-color: #f9f6f1;
-	border-bottom: 1px solid #ddd;
-	padding: 10px 30px;
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	font-family: 'Georgia';
-	height: 30px;
+   background-color: #f9f6f1;
+   border-bottom: 1px solid #ddd;
+   padding: 10px 30px;
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   font-family: 'Georgia';
+   height: 30px;
 }
 
 .logo {
-	font-weight: bold;
-	font-size: 20px;
-	color: black;
-	text-decoration: none; /* 밑줄 제거 */
+   font-weight: bold;
+   font-size: 20px;
+   color: black;
+   text-decoration: none; /* 밑줄 제거 */
 }
 
 nav a {
-	margin: 0 15px;
-	color: black;
-	text-decoration: none;
-	font-weight: 500;
-	font-family: 'Georgia';
-	display: inline-block; /* transform 적용을 위해 inline-block */
-	transition: transform 0.3s ease, color 0.3s ease;
-	/* 미리 여유 공간 확보 */
-	padding: 2px 5px;
-	white-space: nowrap; /* 한 줄로 무조건 유지 */
-	overflow: visible !important;
-	 transform-origin: center center;
-	
+   margin: 0 15px;
+   color: black;
+   text-decoration: none;
+   font-weight: 500;
+   font-family: 'Georgia';
+   display: inline-block; /* transform 적용을 위해 inline-block */
+   transition: transform 0.3s ease, color 0.3s ease;
+   /* 미리 여유 공간 확보 */
+   padding: 2px 5px;
+   white-space: nowrap; /* 한 줄로 무조건 유지 */
+   overflow: visible !important;
+    transform-origin: center center;
+   
 }
 
 
 nav a:hover {
-	transform: scale(1.2);
-	z-index: 10;
-	font-weight: bold;
-	color: rgb(47, 47, 47);
+   transform: scale(1.2);
+   z-index: 10;
+   font-weight: bold;
+   color: rgb(47, 47, 47);
 }
 /* 푸터 */
 footer {
-	background-color: #f9f6f1;
-	color: black;
-	padding: 30px;
-	text-align: center;
-	flex-shrink: 0; /* 축소 방지 */
-	margin-top:70px;
-	margin-bottom: 0px;
+   background-color: #f9f6f1;
+   color: black;
+   padding: 30px;
+   text-align: center;
+   flex-shrink: 0; /* 축소 방지 */
+   margin-top:70px;
+   margin-bottom: 0px;
 }
