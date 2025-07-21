@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>리뷰 수정</title>
+  <link rel="stylesheet" th:href="@{/css/common.css}">
+  <link rel="stylesheet" th:href="@{/css/review.css}">
+   <link rel="stylesheet" th:href="@{/css/board.css}" />
+</head>
+<body>
+  <!-- Header -->
+  <div th:replace="fragments/header :: headerFragment"></div>
+
+
+<div style="text-align:center; font-family: 'Georgia', serif; font-weight: 700; margin-top: 30px;">
+	<h2>리뷰 수정</h2>
+</div>
+
+  <form th:action="@{/reviewboard/edit}" method="post" th:object="${reviewboard}" class="edit-form-container">
+    <!-- 리뷰 ID 숨김 필드 (수정할 때 식별용) -->
+    <input type="hidden" th:field="*{reviewId}" />
+
+    <label for="title">제목</label>
+    <input type="text" id="title" th:field="*{title}" placeholder="제목을 입력하세요" required />
+
+    <label for="rating">별점</label>
+    <select id="rating" th:field="*{rating}" required>
+      <option value="" disabled>별점을 선택하세요</option>
+      <option th:value="5" th:selected="${reviewboard.rating == 5}">★★★★★ 5점</option>
+      <option th:value="4" th:selected="${reviewboard.rating == 4}">★★★★ 4점</option>
+      <option th:value="3" th:selected="${reviewboard.rating == 3}">★★★ 3점</option>
+      <option th:value="2" th:selected="${reviewboard.rating == 2}">★★ 2점</option>
+      <option th:value="1" th:selected="${reviewboard.rating == 1}">★ 1점</option>
+    </select>
+
+    <label for="content">내용</label>
+    <textarea id="content" th:field="*{content}" placeholder="리뷰 내용을 입력하세요" required></textarea>
+
+    <button type="submit" class="edit-back-link">수정 완료</button>
+  </form>
+
+  <!-- Footer -->
+  <div th:replace="fragments/footer :: footerFragment"></div>
+</body>
+</html>
+

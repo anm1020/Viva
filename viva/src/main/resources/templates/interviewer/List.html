@@ -7,12 +7,23 @@
   <title>면접관 리스트</title> 
   <link rel="stylesheet" th:href="@{/css/common.css}">
   <link rel="stylesheet" th:href="@{/css/interviewer.css}">
+  <link rel="stylesheet" th:href="@{/css/hero.css}">
    
 </head>
 <body>
 
   <!-- Header -->
   <div th:replace="fragments/header :: headerFragment"></div>
+  <section class="hero-banner">
+		<div class="text-area">
+			<h1>Interviewer</h1>
+			<p>Please choose your interviewer</p>
+		</div>
+		<div class="img-area">
+			<!-- 이미지 숨김 처리됨 -->
+		</div>
+	</section>
+	<div class="board-footer">면접관</div>
 
   <div class="container">
     <h1>면접관 목록이다ㅇ</h1>
@@ -66,48 +77,48 @@
 <!--       </div> -->
 <!--     </div> -->
   <!-- ✅ 면접관 카드 리스트  태그바꿔야된다해서 일단바꿈 이슬-->
- <div class="teacher-contents">
-      <div class="list-wrap">
-        <a class="teacher-item" th:each="i, iterStat : ${interviewers}" th:if="${iterStat.index} < 9" th:href="@{'/interviewer/' + ${i.intrId}}">
-          <div class="teacher-inner">
-            <img th:if="${i.intrImage != null and i.intrImage != ''}" th:src="@{${i.intrImage}}" alt="프로필 이미지" />
-            <img th:unless="${i.intrImage != null and i.intrImage != ''}" src="/images/default_profile.jpg" alt="기본 프로필 이미지" />
-            <div class="text-box">
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-                <span class="name" th:text="${i.userName}" style="font-weight: bold; font-size: 1.2em; color: #a05a00; text-decoration: none;">이름</span>
-                <span>
-                  <span class="review-score" style="color: #ffb400; font-size: 1em; margin-right: 2px;">★</span>
-                  <span th:text="${i.avgScore != null ? #numbers.formatDecimal(i.avgScore, 1, 1) : '0.0'}" style="font-size: 1em;"></span>
-                </span>
-              </div>
-              <div class="desc" th:text="${i.intrIntro}" style="margin: 8px 0 4px 0; color: #333;">한줄소개</div>
-              <div class="job-tags" style="margin-top: 4px;">
-                <span th:each="cate, iterStat : ${#strings.arraySplit(i.intrCate, ',')}">
-                  <span class="job-tag" th:text="${cate}" style="display:inline-block;background:#f0f0f0;border-radius:8px;padding:2px 10px;margin-right:5px;font-size:13px;"></span>
-                </span>
-              </div>
+<div class="teacher-contents">
+  <div class="list-wrap">
+    <div class="teacher-item" th:each="i : ${interviewers}">
+      <a th:href="@{'/interviewer/' + ${i.intrId}}">
+        <div class="teacher-inner">
+          <img th:if="${i.intrImage != null and i.intrImage != ''}" th:src="@{${i.intrImage}}" alt="프로필 이미지" />
+          <img th:unless="${i.intrImage != null and i.intrImage != ''}" th:src="@{/images/default_profile.jpg}" alt="기본 프로필 이미지" />
+          <div class="text-box">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+              <span class="name" th:text="${i.userName}" style="font-weight: bold; font-size: 1.2em; color: #a05a00; text-decoration: none;">이름</span>
+              <span>
+                <span class="review-score" style="color: #ffb400; font-size: 1em; margin-right: 2px;">★</span>
+                <span th:text="${i.avgScore != null ? #numbers.formatDecimal(i.avgScore, 1, 1) : '0.0'}" style="font-size: 1em;"></span>
+              </span>
+            </div>
+            <div class="desc" th:text="${i.intrIntro}" style="margin: 8px 0 4px 0; color: #333;">한줄소개</div>
+            <div class="job-tags" style="margin-top: 4px;">
+              <span th:each="cate : ${#strings.arraySplit(i.intrCate, ',')}">
+                <span class="job-tag" th:text="${cate}" style="display:inline-block; background:#f0f0f0; border-radius:8px; padding:2px 10px; margin-right:5px; font-size:13px;"></span>
+              </span>
             </div>
           </div>
+        </div>
+      </a>
 
-         <!-- 이슬 카드 안쪽에 예약 버튼: 회원만 보이게 -->
-<div style="text-align: center; margin: 10px 0;"
-     th:if="${session.user != null and session.user.userRole != 'intr'}">
-  <form th:action="@{/reservation/book}" method="get">
-    <input type="hidden" name="intrId" th:value="${i.userId}" />
-    <button type="submit" class="reserve-btn">예약하기</button>
-  </form>
-</div>
-
+      <form th:if="${session.user != null and session.user.userRole != 'intr'}"
+      th:action="@{/reservation/book}" method="get" style="text-align:center; margin: 10px 0;">
+  <input type="hidden" name="intrId" th:value="${i.userId}" />
+  <button type="submit" class="reserve-btn">예약하기</button>
+</form>
 <!-- ✅ 면접관 본인인 경우 안내 문구 -->
 <div style="text-align: center; margin: 10px 0;"
      th:if="${session.user != null and session.user.userRole == 'intr'}">
   <span style="color: gray; font-size: 13px;">(면접관은 예약할 수 없습니다)</span>
 </div>
-            </form>
-          </div>
-        </a>
-      </div>
+      </form>
+
+    
     </div>
+  </div>
+</div>
+
 
     <!-- 페이징 UI -->
     <div class="paging">

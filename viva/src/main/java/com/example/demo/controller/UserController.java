@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -26,12 +27,14 @@ import com.example.demo.service.JasoService;
 
 import com.example.demo.model.entity.Payment;
 import com.example.demo.model.entity.PointExchange;
+import com.example.demo.model.entity.Reviewboard;
 import com.example.demo.model.entity.Users;
 import com.example.demo.security.CustomUserDetails;
 import com.example.demo.service.PaymentService;
 import com.example.demo.service.PointExchangeService;
 
 import com.example.demo.service.PointService;
+import com.example.demo.service.ReviewboardService;
 //import com.example.demo.model.entity.User.UserRole;
 import com.example.demo.service.UserService;
 
@@ -48,6 +51,12 @@ public class UserController {
 	private final JasoService jasoService;
 	private final PaymentService paymentService;
 	private final PointExchangeService pointExchangeService;
+
+	// application.properties 에서 읽어 오는 impKey
+	@Value("${portone.imp-key}")
+	private String impKey;
+    private final ReviewboardService reviewboardService;
+
 
 	
 	@Autowired
@@ -248,7 +257,16 @@ public class UserController {
 				// (참고) 네이버 등은 구조가 다를 수 있으니 확인 필요
 			}
 		}
-
+		
+		// 로그인한 사용자의 리뷰만 조회
+		String loginUserId = null; // 추가
+		  List<Reviewboard> myReviews = loginUserId != null ? reviewboardService.findByUserId(loginUserId) : List.of();
+		   
+		// 전체 리뷰 목록 가져오기
+		   List<Reviewboard> allReviews = reviewboardService.findAll();
+		   System.out.println("allReviews size = " + allReviews.size());
+		model.addAttribute("allReviews", allReviews);
+		model.addAttribute("myReviews", myReviews);
 		model.addAttribute("displayName", displayName);
 		model.addAttribute("role", role);
 

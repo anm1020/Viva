@@ -17,11 +17,12 @@
 			<nav>
 				<a th:href="@{/about}">About</a> 
 				<a th:href="@{/ai/aichat}">AI</a> 
-				<a th:href="@{/interviewer}">면접관</a> 
-				<a th:href="@{/board/list}">게시판</a>
+				<a th:href="@{/interviewer}">Interviewr</a> 
+				<a th:href="@{/board/list}">Board</a>
+				<a th:href="@{/reviewboard/list}">Review</a>
 
 				<!-- 관리자 모드 -->
-				<span th:if="${session.role == 'admin'}"> 환영합니다, <span
+				<span th:if="${session.role == 'admin'}"> Welcome, <span
 					th:text="${session.displayName}"
 					style="font-weight: bold; color: #cc0000;"></span> 님! <a
 					th:href="@{/admin/dashboard}"
@@ -31,15 +32,15 @@
 				<!-- 면접관/취준생 -->
 				<span th:if="${session.displayName != null}"> 
 					<a th:if="${session.role == 'intr'}" th:href="@{/mypage}"> 
-						<span th:text="'환영합니다, ' + ${session.displayName} + '님!'"></span>
+						<span th:text="'Welcome, ' + ${session.displayName} + '님!'"></span>
 					</a> 
 					<a th:if="${session.role == 'mem'}" th:href="@{/mypage}"> 
-						<span th:text="'환영합니다, ' + ${session.displayName} + '님!'"></span>
+						<span th:text="'Welcome, ' + ${session.displayName} + '님!'"></span>
 					</a> 
-					<a th:href="@{/logout}" style="margin-left: 10px;">로그아웃</a>
+					<a th:href="@{/logout}" style="margin-left: 10px;">Logout</a>
 				</span> 
 				<span th:unless="${session.displayName != null}"> 
-					<a th:href="@{/loginmain}">로그인</a>
+					<a th:href="@{/loginmain}">Longin</a>
 				</span>
 
 				<span style="margin-left: 25px; color: #666; font-size: 0.92em;">
