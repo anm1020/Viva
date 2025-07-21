@@ -14,54 +14,69 @@
   <!-- Header -->
   <div th:replace="fragments/header :: headerFragment"></div>
 
-  <div class="container">
+  <div class="interviewer-layout">
+    <div class="container">
     <h1>면접관 목록</h1>
 
     <!-- ✅ 직무 필터 -->
-    <div class="category-filter">
-      <label class="filter-label">직무·직업</label>
-      <div class="tag-container">
-        <span class="tag"
-              th:each="cate : ${T(com.example.demo.model.entity.CategoryType).values()}"
-              th:text="${cate.label}"
-              th:attr="data-value=${cate}"
-              onclick="toggleTag(this)">
-        </span>
+    <div class="category-section">
+      <div class="category-filter">
+        <label class="filter-label">직무·직업</label>
+        <div class="tag-container">
+          <span class="tag"
+                th:each="cate : ${T(com.example.demo.model.entity.CategoryType).values()}"
+                th:text="${cate}"
+                th:attr="data-value=${cate}"
+                onclick="toggleTag(this)">
+          </span>
+        </div>
       </div>
-
-      <form method="get" th:action="@{/interviewer}">
-        <input type="hidden" name="intrCate" id="intrCateHidden">
-        <button type="submit" class="search-btn">검색</button>
-      </form>
+      
+      <div class="search-section">
+        <form method="get" th:action="@{/interviewer}">
+          <input type="hidden" name="intrCate" id="intrCateHidden">
+          <button type="submit" class="search-btn">검색</button>
+        </form>
+      </div>
     </div>
 
     <hr>
 
     <!-- ✅ 면접관 카드 리스트 -->
-    <div class="teacher-contents">
-      <div class="list-wrap">
-        <a class="teacher-item" th:each="i, iterStat : ${interviewers}" th:if="${iterStat.index} < 9" th:href="@{'/interviewer/' + ${i.intrId}}">
-          <div class="teacher-inner">
-            <img th:if="${i.intrImage != null and i.intrImage != ''}" th:src="@{${i.intrImage}}" alt="프로필 이미지" />
-            <img th:unless="${i.intrImage != null and i.intrImage != ''}" src="/images/default_profile.jpg" alt="기본 프로필 이미지" />
-            <div class="text-box">
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-                <span class="name" th:text="${i.userName}" style="font-weight: bold; font-size: 1.2em; color: #a05a00; text-decoration: none;">이름</span>
-                <span>
-                  <span class="review-score" style="color: #ffb400; font-size: 1em; margin-right: 2px;">★</span>
-                  <span th:text="${i.avgScore != null ? #numbers.formatDecimal(i.avgScore, 1, 1) : '0.0'}" style="font-size: 1em;"></span>
-                </span>
-              </div>
-              <div class="desc" th:text="${i.intrIntro}" style="margin: 8px 0 4px 0; color: #333;">한줄소개</div>
-              <div class="job-tags" style="margin-top: 4px;">
-                <span th:each="cate, iterStat : ${#strings.arraySplit(i.intrCate, ',')}">
-                  <span class="job-tag" th:text="${cate}" style="display:inline-block;background:#f0f0f0;border-radius:8px;padding:2px 10px;margin-right:5px;font-size:13px;"></span>
-                </span>
-              </div>
+    <div class="interviewer-grid">
+        <!-- 면접관 카드 (최대 9개) -->
+        <div class="interviewer-card" th:each="i, iterStat : ${interviewers}" th:if="${iterStat.index} < 9" th:onclick="'location.href=\'/interviewer/' + ${i.intrId} + '\''">
+          <img th:if="${i.intrImage != null and i.intrImage != ''}" th:src="${i.intrImage}" alt="프로필 이미지" class="card-bg" />
+          <img th:unless="${i.intrImage != null and i.intrImage != ''}" src="/images/default_profile.jpg" alt="기본 프로필 이미지" class="card-bg" />
+
+          <!-- 기존 하단 고정 영역: 그대로 유지 -->
+          <div class="card-bottom">
+            <h3 class="name" th:text="${i.userName}">이름</h3>
+            <div class="categories">
+              <span th:each="cate, iterStat : ${#strings.arraySplit(i.intrCate, ',')}" th:if="${iterStat.index < 3}" th:with="categoryType=${T(com.example.demo.model.entity.CategoryType).valueOf(cate.trim())}" th:text="${categoryType}" class="category-tag"></span>
             </div>
           </div>
-        </a>
-      </div>
+
+          <!-- 슬라이드 오버레이 -->
+          <div class="card-hover">
+            <!-- 복제된 이름 + 카테고리 (슬라이드되게 위쪽에 표시) -->
+            <div class="slide-info">
+              <h3 class="name" th:text="${i.userName}">이름</h3>
+              <div class="categories">
+                <span th:each="cate, iterStat : ${#strings.arraySplit(i.intrCate, ',')}" th:if="${iterStat.index < 3}" th:with="categoryType=${T(com.example.demo.model.entity.CategoryType).valueOf(cate.trim())}" th:text="${categoryType}" class="category-tag"></span>
+              </div>
+            </div>
+            <p class="intro" th:text="${i.intrIntro != null ? i.intrIntro : '소개 없음'}">한줄소개</p>
+            <button class="reserve-btn" th:onclick="'event.stopPropagation(); location.href=\'/reservation/book?intrId=' + ${i.intrId} + '\''">예약하기</button>
+          </div>
+        </div>
+        
+        <!-- 빈 박스 (9개 미만일 때) -->
+        <div class="empty-box" th:each="i : ${#numbers.sequence(1, 9 - #lists.size(interviewers))}" th:if="${#lists.size(interviewers) < 9}">
+          <div class="empty-content">
+            <span>면접관 없음</span>
+          </div>
+        </div>
     </div>
 
     <!-- 페이징 UI -->
@@ -76,11 +91,14 @@
       <button>&gt;&gt;</button>
     </div>
 
-
-    <div style="text-align: right; margin-top: 30px;" th:if="${role == 'intr'}">
-      <a href="/interviewer/form">
-        <button type="button" class="write-btn">➕ 프로필 카드 만들기</button>
-      </a>
+    <!-- 하단 액션 영역 -->
+    <div class="bottom-actions">
+      <div></div> <!-- 빈 공간 -->
+      <div th:if="${role == 'intr'}">
+        <a href="/interviewer/form">
+          <button type="button" class="write-btn">➕ 프로필 카드 만들기</button>
+        </a>
+      </div>
     </div>
   </div>
 

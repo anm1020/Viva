@@ -1,84 +1,82 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
   <title>면접관 상세</title>
   <link rel="stylesheet" th:href="@{/css/interviewer.css}">
+  <link rel="stylesheet" th:href="@{/css/common.css}">
 </head>
 <body>
+ <!-- Header -->
+  <div th:replace="fragments/header :: headerFragment"></div>
 
-<div class="detail-container">
-  <div class="interviewer-profile">
-    <img th:src="@{${interviewer.intrImage}}" alt="프로필 이미지" class="profile-img" />
-    <div class="info-box">
-      <p><strong>이름:</strong> <span th:text="${interviewer.userName}"></span></p>
-      <p><strong>경력:</strong> <span th:text="${interviewer.userCareer}"></span></p>
-      <p><strong>직무:</strong> <span th:text="${interviewer.intrCate}"></span></p>
-      <p><strong>보유 스킬:</strong> <span th:text="${interviewer.userSkill}"></span></p>
-      <p><strong>상담 가격:</strong> <span th:text="${interviewer.intrPrice}">0</span> 원</p>
-    </div>
-  </div>
-
-  <!-- ✅ 자기소개 영역 -->
-  <div class="detail-content-section">
-    <h3>자기소개</h3>
-    <div class="detail-content-box">
-      <p th:text="${interviewer.intrContent}">
-        상담 방식, 강점, 이력 등을 작성해주세요.
-      </p>
+<div class="profile-layered">
+  <div class="profile-container">
+    <div class="profile-top">
+      <div class="profile-photo">
+        <img th:src="@{${interviewer.intrImage}}" alt="프로필 사진" style="width:100%;height:100%;object-fit:cover;"/>
+      </div>
+      <div class="profile-info">
+        <div class="profile-actions">
+          <a class="reserve-btn"
+             th:href="@{'/reservation/book?intrId=' + ${interviewer.intrId}}">
+            예약하기
+          </a>
+          
+          <!-- 면접관 본인만 보이는 수정/삭제 버튼 -->
+          <div class="owner-actions" th:if="${role == 'intr' and #authentication.name == interviewer.userId}">
+            <a class="edit-btn"
+               th:href="@{'/interviewer/edit/' + ${interviewer.intrId}}">
+              수정
+            </a>
+            <button class="delete-btn" 
+                    th:onclick="'deleteInterviewer(' + ${interviewer.intrId} + ')'">
+              삭제
+            </button>
+          </div>
+        </div>
+        
+        <div><span class="profile-label">이름 :</span> <span th:text="${interviewer.userName}">이름</span></div>
+        <div><span class="profile-label">경력 :</span> <span th:text="${interviewer.userCareer}">경력</span></div>
+        <div><span class="profile-label">직무 :</span> <span th:text="${interviewer.intrCate}">직무</span></div>
+        <div><span class="profile-label">보유 스킬 :</span> <span th:text="${interviewer.userSkill}">스킬</span></div>
+      </div>
     </div>
   </div>
 
   <!-- ✅ 후기 섹션 -->
   <hr>
   <div class="review-section">
-    <h3>후기</h3>
+    <div class="review-header">
+      <span>리뷰 작성</span>
+    </div>
     <!-- 리뷰 등록 폼 -->
-    <form th:action="@{'/interviewer/' + ${interviewer.intrId} + '/review'}" method="post" style="margin-bottom: 30px;">
-      <label>별점:
-        <select name="score" required>
-          <option value="5">5.0</option>
-          <option value="4.5">4.5</option>
-          <option value="4">4.0</option>
-          <option value="3.5">3.5</option>
-          <option value="3">3.0</option>
-          <option value="2.5">2.5</option>
-          <option value="2">2.0</option>
-          <option value="1.5">1.5</option>
-          <option value="1">1.0</option>
-        </select>
-      </label>
-      <label>내용:
-        <input type="text" name="content" maxlength="300" required style="width: 300px;">
-      </label>
-      <button type="submit">등록</button>
+    <form th:action="@{'/interviewer/' + ${interviewer.intrId} + '/review'}" method="post" class="review-form">
+      <div class="star-rating">
+        <span class="star" data-value="1">★</span>
+        <span class="star" data-value="2">★</span>
+        <span class="star" data-value="3">★</span>
+        <span class="star" data-value="4">★</span>
+        <span class="star" data-value="5">★</span>
+        <input type="hidden" name="score" id="starScore" value="5" required>
+      </div>
+      <input type="text" name="content" maxlength="300" required placeholder="리뷰를 입력하세요" class="review-input">
+      <button type="submit" class="review-submit-btn">등록</button>
     </form>
-    <!-- 리뷰 목록 -->
-    <div th:each="r : ${reviews}">
-      <div class="review-card">
-        <p><strong th:text="${r.userId}">작성자</strong> | <span th:text="${#temporals.format(r.createdDt, 'yyyy-MM-dd HH:mm')}">날짜</span></p>
-        <p th:text="${r.content}">후기 내용</p>
-        <p>⭐ <span th:text="${r.score}">5.0</span></p>
-        <!-- 본인 리뷰에만 수정/삭제 버튼 노출 (예시: principal.name == r.userId) -->
-        <div th:if="${#authentication != null and #authentication.name == r.userId}">
-          <!-- 수정 폼 (간단하게 inline form) -->
-          <form th:action="@{'/interviewer/' + ${interviewer.intrId} + '/review/' + ${r.reviewNo} + '/edit'}" method="post" style="display:inline;">
-            <select name="score" required>
-              <option th:selected="${r.score == 5}" value="5">5.0</option>
-              <option th:selected="${r.score == 4.5}" value="4.5">4.5</option>
-              <option th:selected="${r.score == 4}" value="4">4.0</option>
-              <option th:selected="${r.score == 3.5}" value="3.5">3.5</option>
-              <option th:selected="${r.score == 3}" value="3">3.0</option>
-              <option th:selected="${r.score == 2.5}" value="2.5">2.5</option>
-              <option th:selected="${r.score == 2}" value="2">2.0</option>
-              <option th:selected="${r.score == 1.5}" value="1.5">1.5</option>
-              <option th:selected="${r.score == 1}" value="1">1.0</option>
-            </select>
-            <input type="text" name="content" th:value="${r.content}" maxlength="300" required style="width: 200px;">
-            <button type="submit">수정</button>
-          </form>
-          <!-- 삭제 버튼 -->
-          <form th:action="@{'/interviewer/' + ${interviewer.intrId} + '/review/' + ${r.reviewNo} + '/delete'}" method="post" style="display:inline;">
+    <div class="review-list">
+      <div class="review-item" th:each="r : ${reviews}">
+        <div class="review-id" th:text="${r.userId}">아이디</div>
+        <div class="review-score">
+          <span th:each="i : ${#numbers.sequence(1, 5)}">
+            <span th:if="${i <= r.score}" class="star filled">★</span>
+            <span th:if="${i > r.score}" class="star">★</span>
+          </span>
+        </div>
+        <div class="review-content" th:text="${r.content}">리뷰 내용</div>
+        <div class="review-actions">
+          <!-- 삭제: 본인 또는 관리자 -->
+          <form th:if="${#authentication != null and (#authentication.name == r.userId or role == 'admin')}"
+                th:action="@{'/interviewer/' + ${interviewer.intrId} + '/review/' + ${r.reviewNo} + '/delete'}" method="post" style="display:inline;">
             <button type="submit" onclick="return confirm('정말 삭제하시겠습니까?')">삭제</button>
           </form>
         </div>
@@ -86,6 +84,151 @@
     </div>
   </div>
 </div>
-
 </body>
+<style>
+.star-rating {
+  font-size: 2rem;
+  color: #ddd;
+  cursor: pointer;
+  display: flex;
+  gap: 4px;
+}
+.star-rating .star.selected,
+.star-rating .star.hovered {
+  color: #FFD600;
+  text-shadow: 0 0 2px #FFA000;
+}
+.review-score {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 2px;
+}
+.review-score .star {
+  font-size: 1.3rem;
+  color: #ddd;
+}
+.review-score .star.filled {
+  color: #FFD600;
+  text-shadow: 0 0 2px #FFA000;
+}
+
+/* 프로필 액션 버튼 스타일 */
+.profile-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.profile-actions .reserve-btn {
+  background: #007bff;
+  color: white;
+  text-decoration: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.profile-actions .reserve-btn:hover {
+  background: #0056b3;
+}
+
+.owner-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.owner-actions .edit-btn {
+  background: #28a745;
+  color: white;
+  text-decoration: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.owner-actions .edit-btn:hover {
+  background: #218838;
+}
+
+.owner-actions .delete-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.owner-actions .delete-btn:hover {
+  background: #c82333;
+}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // 별점 기능
+  const stars = document.querySelectorAll('.star-rating .star');
+  const scoreInput = document.getElementById('starScore');
+  let selected = parseInt(scoreInput.value) || 5;
+
+  function updateStars(rating) {
+    stars.forEach((star, idx) => {
+      if (idx < rating) {
+        star.classList.add('selected');
+      } else {
+        star.classList.remove('selected');
+      }
+    });
+  }
+
+  stars.forEach((star, idx) => {
+    star.addEventListener('mouseenter', function() {
+      updateStars(idx + 1);
+      stars.forEach((s, i) => s.classList.toggle('hovered', i <= idx));
+    });
+    star.addEventListener('mouseleave', function() {
+      updateStars(selected);
+      stars.forEach(s => s.classList.remove('hovered'));
+    });
+    star.addEventListener('click', function() {
+      selected = idx + 1;
+      scoreInput.value = selected;
+      updateStars(selected);
+    });
+  });
+
+  updateStars(selected);
+
+  // 기존 리뷰 수정 토글/취소 JS는 삭제됨
+});
+
+// 면접관 프로필 삭제 함수
+function deleteInterviewer(intrId) {
+  if (confirm('정말로 프로필 카드를 삭제하시겠습니까?')) {
+    fetch('/interviewer/delete/' + intrId, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        alert('프로필 카드가 삭제되었습니다.');
+        location.href = '/interviewer'; // 면접관 리스트로 이동
+      } else {
+        alert('삭제 중 오류가 발생했습니다.');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('삭제 중 오류가 발생했습니다.');
+    });
+  }
+}
+</script>
+<!-- Footer -->
+  <div th:replace="fragments/footer :: footerFragment"></div>
 </html>

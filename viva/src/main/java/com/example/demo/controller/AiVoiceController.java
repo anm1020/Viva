@@ -3,10 +3,12 @@ package com.example.demo.controller;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,11 +37,104 @@ public class AiVoiceController {
     @PostMapping("/ai/voice/save")
     @ResponseBody
     public String saveVoice(@RequestBody AiVoiceDTO dto, HttpSession session) {
-        String userId = (String) session.getAttribute("loginId");
+        String userId = (String) session.getAttribute("userId");
         if (userId == null) return "로그인 필요";
 
         aiVoiceService.saveVoiceFeedback(userId, dto);
         return "ok";
+    }
+
+    // 피드백 저장 (새로운 엔드포인트)
+    @PostMapping("/ai/voice/save-feedback")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> saveFeedback(@RequestBody Map<String, Object> feedbackData, HttpSession session) {
+        String userId = (String) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "로그인 필요"));
+        }
+
+        try {
+            AiVoiceDTO dto = new AiVoiceDTO();
+            dto.setUserId(userId);
+            dto.setSessionId((String) feedbackData.get("sessionId"));
+            dto.setTranscript((String) feedbackData.get("transcript"));
+            dto.setSummary((String) feedbackData.get("summary"));
+            dto.setSpeechSpeed((String) feedbackData.get("speechSpeed"));
+            dto.setPronunciation((String) feedbackData.get("pronunciation"));
+            dto.setStrengths((String) feedbackData.get("strengths"));
+            dto.setWeaknesses((String) feedbackData.get("weaknesses"));
+            dto.setExampleSentence((String) feedbackData.get("example"));
+            
+            // details와 suggestions는 JSON으로 변환
+            if (feedbackData.get("details") != null) {
+                dto.setDetails((List<AiVoiceDTO.FeedbackItem>) feedbackData.get("details"));
+            }
+            if (feedbackData.get("suggestions") != null) {
+                dto.setSuggestions((List<String>) feedbackData.get("suggestions"));
+            }
+
+            aiVoiceService.saveVoiceFeedback(userId, dto);
+            return ResponseEntity.ok(Map.of("message", "피드백이 성공적으로 저장되었습니다."));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "저장 중 오류가 발생했습니다: " + e.getMessage()));
+        }
+    }
+
+    // 저장된 피드백 목록 조회 (JSON)
+    @GetMapping("/ai/voice/feedback-list")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> getFeedbackList(HttpSession session) {
+        String userId = (String) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(401).body(List.of());
+        }
+
+        try {
+            List<AiVoice> feedbacks = aiVoiceService.getVoiceFeedbackList(userId);
+            List<Map<String, Object>> result = feedbacks.stream()
+                .map(feedback -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", feedback.getId());
+                    map.put("sessionId", feedback.getSessionId());
+                    map.put("summary", feedback.getSummary());
+                    map.put("createdAt", feedback.getCreatedAt().toString());
+                    return map;
+                })
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(List.of());
+        }
+    }
+
+    // 저장된 피드백 단건 상세 조회 (JSON)
+    @GetMapping("/ai/voice/feedback-detail/{id}")
+    @ResponseBody
+    public ResponseEntity<?> getVoiceFeedbackDetail(@PathVariable("id") Long id, HttpSession session) {
+        String userId = (String) session.getAttribute("userId");
+        if (userId == null) return ResponseEntity.status(401).body(Map.of("error", "로그인 필요"));
+        AiVoice feedback = aiVoiceRepository.findById(id).orElse(null);
+        if (feedback == null || !feedback.getUserId().equals(userId)) {
+            return ResponseEntity.status(404).body(Map.of("error", "피드백 없음"));
+        }
+        return ResponseEntity.ok(feedback);
+    }
+
+    // 피드백 삭제 API
+    @DeleteMapping("/ai/voice/feedback/{id}")
+    @ResponseBody
+    public ResponseEntity<?> deleteVoiceFeedback(@PathVariable("id") Long id, HttpSession session) {
+        String userId = (String) session.getAttribute("userId");
+        if (userId == null) return ResponseEntity.status(401).body(Map.of("error", "로그인 필요"));
+        AiVoice feedback = aiVoiceRepository.findById(id).orElse(null);
+        if (feedback == null || !feedback.getUserId().equals(userId)) {
+            return ResponseEntity.status(404).body(Map.of("error", "피드백 없음"));
+        }
+        aiVoiceRepository.deleteById(id);
+        return ResponseEntity.ok(Map.of("message", "삭제 완료"));
     }
 
     // 음성 파일 텍스트 변환
@@ -139,7 +234,7 @@ public class AiVoiceController {
             @RequestParam("transcript") String transcript,
             @RequestParam("feedback") String feedback,
             HttpSession session) {
-        String userId = (String) session.getAttribute("loginId");
+        String userId = (String) session.getAttribute("userId");
         if (userId == null) {
             return ResponseEntity.status(401).body(Map.of("error", "로그인 필요"));
         }
@@ -152,7 +247,7 @@ public class AiVoiceController {
     @GetMapping("/ai/voice/chat")
     public String voiceChatPage(@RequestParam(value = "conversationId", required = false) String conversationId,
                                HttpSession session, Model model) {
-        String userId = (String) session.getAttribute("loginId");
+        String userId = (String) session.getAttribute("userId");
         if (userId == null) return "redirect:/login";
 
         // 새 면접 시작
@@ -189,7 +284,7 @@ public class AiVoiceController {
     public ResponseEntity<Map<String, String>> saveChatMessage(@RequestParam("conversationId") String conversationId,
                                                               @RequestParam("transcript") String transcript,
                                                               HttpSession session) {
-        String userId = (String) session.getAttribute("loginId");
+        String userId = (String) session.getAttribute("userId");
         if (userId == null) {
             return ResponseEntity.status(401).body(Map.of("error", "로그인 필요"));
         }
@@ -212,6 +307,17 @@ public class AiVoiceController {
             "message", "저장 완료",
             "nextQuestion", nextQuestion
         ));
+    }
+
+    @PostMapping("/ai/voice/session/new")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> createNewVoiceSession(HttpSession session, @RequestParam(value = "title", defaultValue = "음성면접") String title) {
+        String userId = (String) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "로그인 필요"));
+        }
+        String sessionId = aiVoiceService.createNewVoiceSession(userId, title);
+        return ResponseEntity.ok(Map.of("sessionId", sessionId));
     }
 
 }

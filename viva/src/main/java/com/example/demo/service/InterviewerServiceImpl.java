@@ -46,4 +46,8 @@ public class InterviewerServiceImpl implements InterviewerService {
             .orElseThrow(() -> new NoSuchElementException("면접관이 없습니다"));
     }
 
+    @Override
+    public void deleteById(Long id) {
+        interviewerRepository.deleteById(id);
+    }
 }

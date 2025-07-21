@@ -24,18 +24,27 @@ public class BoardService {
 		return boardRepository.findAll();
 	}
 
-	// 게시글 상세 조회 (id 기준)
+	// 게시글 상세 조회 (id 기준) - 댓글 포함
+	@Transactional(readOnly = true)
 	public Board getBoardById(Integer id) {
-		Optional<Board> board = boardRepository.findById(id);
-		return board.orElse(null); // 없으면 null 반환
+		Optional<Board> boardOpt = boardRepository.findById(id);
+		if (boardOpt.isPresent()) {
+			Board board = boardOpt.get();
+			// 댓글을 즉시 로딩 (LAZY 로딩 방지)
+			board.getComments().size();
+			return board;
+		}
+		return null;
 	}
 
 	// 게시글 저장 (등록/수정)
+	@Transactional
 	public void saveBoard(Board board) {
 		boardRepository.save(board);
 	}
 
 	// 게시글 삭제
+	@Transactional
 	public void deleteBoard(Integer id) {
 		boardRepository.deleteById(id);
 	}

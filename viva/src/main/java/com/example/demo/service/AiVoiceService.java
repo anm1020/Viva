@@ -20,10 +20,13 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.demo.model.dto.AiVoiceDTO;
 import com.example.demo.model.entity.AiVoice;
 import com.example.demo.repository.AiVoiceRepository;
+import com.example.demo.repository.AiVoSessionRepository;
+import com.example.demo.model.entity.AiVoSession;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +34,9 @@ public class AiVoiceService {
 
     private final AiVoiceRepository aiVoiceRepository;
     private final ObjectMapper objectMapper;
+
+    @Autowired
+    private AiVoSessionRepository aiVoSessionRepository;
 
     @Value("${openai.api.key}")
     private String openAiApiKey;
@@ -209,5 +215,18 @@ public class AiVoiceService {
             return "음성면접 - " + firstQuestion.getTranscript().substring(0, Math.min(20, firstQuestion.getTranscript().length())) + "...";
         }
         return "음성면접";
+    }
+
+    // 음성 면접 세션 생성
+    public String createNewVoiceSession(String userId, String title) {
+        String sessionId = "voice-" + java.util.UUID.randomUUID().toString().replace("-", "");
+        AiVoSession session = AiVoSession.builder()
+            .sessionId(sessionId)
+            .userId(userId)
+            .title(title)
+            .sessionType("voice")
+            .build();
+        aiVoSessionRepository.save(session);
+        return sessionId;
     }
 } 

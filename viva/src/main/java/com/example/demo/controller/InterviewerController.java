@@ -8,10 +8,13 @@ import java.util.Optional;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.http.ResponseEntity;
 
 import com.example.demo.model.dto.InterviewerDTO;
 import com.example.demo.model.dto.InterviewerDetailDTO;
@@ -34,7 +37,8 @@ public class InterviewerController {
     
     // 리스트 페이지 
     @GetMapping("/interviewer")
-    public String showIntrList(@RequestParam(value = "intrCate", required = false) String intrCate, Model model) {
+    public String showIntrList(@RequestParam(value = "intrCate", required = false) String intrCate, 
+                              Principal principal, Model model) {
         List<InterviewerDTO> interviewers;
         if (intrCate != null && !intrCate.isEmpty()) {
             // 여러 카테고리(콤마구분) 검색 지원
@@ -52,7 +56,22 @@ public class InterviewerController {
         if (interviewers == null) {
             interviewers = java.util.Collections.emptyList();
         }
+        
+        // 현재 로그인한 사용자의 역할 확인
+        String userRole = null;
+        if (principal != null) {
+            try {
+                Users user = userService.findByUserId(principal.getName()).orElse(null);
+                if (user != null) {
+                    userRole = user.getUserRole();
+                }
+            } catch (Exception e) {
+                // 사용자 정보를 가져올 수 없는 경우 무시
+            }
+        }
+        
         model.addAttribute("interviewers", interviewers);
+        model.addAttribute("role", userRole);
         return "interviewer/List";
     }
     
@@ -99,13 +118,94 @@ public class InterviewerController {
     }
 
     @GetMapping("/interviewer/{intrId}")
-    public String getInterviewerDetail(@PathVariable("intrId") Long intrId, Model model) {
+    public String getInterviewerDetail(@PathVariable("intrId") Long intrId, Principal principal, Model model) {
         InterviewerDetailDTO detail = interviewerService.getInterviewerDetail(intrId);
         model.addAttribute("interviewer", detail);
+        
+        // 현재 로그인한 사용자의 역할 확인
+        String userRole = null;
+        if (principal != null) {
+            try {
+                Users user = userService.findByUserId(principal.getName()).orElse(null);
+                if (user != null) {
+                    userRole = user.getUserRole();
+                }
+            } catch (Exception e) {
+                // 사용자 정보를 가져올 수 없는 경우 무시
+            }
+        }
+        model.addAttribute("role", userRole);
+        
         // 리뷰 리스트 추가
         List<Review> reviews = reviewRepository.findByIntrIdOrderByCreatedDtDesc(intrId.intValue());
         model.addAttribute("reviews", reviews);
         return "interviewer/detail";
+    }
+
+    // 면접관 수정 폼 페이지
+    @GetMapping("/interviewer/edit/{intrId}")
+    public String showEditForm(@PathVariable("intrId") Long intrId, Principal principal, Model model) {
+        String userId = principal.getName();
+        
+        // 면접관 본인만 수정 가능
+        InterviewerDetailDTO detail = interviewerService.getInterviewerDetail(intrId);
+        if (!userId.equals(detail.getUserId())) {
+            return "redirect:/interviewer?error=not_authorized";
+        }
+        
+        model.addAttribute("interviewer", detail);
+        return "interviewer/edit";
+    }
+
+    // 면접관 수정 처리
+    @PostMapping("/interviewer/update/{intrId}")
+    public String updateInterviewer(@PathVariable("intrId") Long intrId,
+                                   @RequestParam(name = "intrIntro", required = false) String intrIntro,
+                                   @RequestParam(name = "intrImage", required = false) String intrImage,
+                                   @RequestParam(name = "intrPrice", required = false) Integer intrPrice,
+                                   @RequestParam(name = "intrCate", required = false) String intrCate,
+                                   @RequestParam(name = "intrContent", required = false) String intrContent,
+                                   Principal principal) {
+        String userId = principal.getName();
+        
+        // 면접관 본인만 수정 가능
+        InterviewerDetailDTO detail = interviewerService.getInterviewerDetail(intrId);
+        if (!userId.equals(detail.getUserId())) {
+            return "redirect:/interviewer?error=not_authorized";
+        }
+        
+        Optional<Interviewer> interviewerOpt = interviewerService.findById(intrId);
+        if (interviewerOpt.isPresent()) {
+            Interviewer interviewer = interviewerOpt.get();
+            interviewer.setIntrIntro(intrIntro);
+            interviewer.setIntrImage(intrImage);
+            interviewer.setIntrPrice(intrPrice);
+            interviewer.setIntrCate(intrCate);
+            interviewer.setIntrContent(intrContent);
+            interviewerService.save(interviewer);
+        }
+        
+        return "redirect:/interviewer";
+    }
+
+    // 면접관 삭제 처리
+    @DeleteMapping("/interviewer/delete/{intrId}")
+    @ResponseBody
+    public ResponseEntity<String> deleteInterviewer(@PathVariable("intrId") Long intrId, Principal principal) {
+        String userId = principal.getName();
+        
+        // 면접관 본인만 삭제 가능
+        InterviewerDetailDTO detail = interviewerService.getInterviewerDetail(intrId);
+        if (!userId.equals(detail.getUserId())) {
+            return ResponseEntity.status(403).body("권한이 없습니다.");
+        }
+        
+        try {
+            interviewerService.deleteById(intrId);
+            return ResponseEntity.ok("삭제되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("삭제 중 오류가 발생했습니다.");
+        }
     }
 
     // 리뷰 등록 

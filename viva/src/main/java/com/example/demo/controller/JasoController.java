@@ -138,7 +138,7 @@ public class JasoController {
         Map<String, String> sectionMap = new LinkedHashMap<>();
         sectionMap.put("성장과정", jaso.getGrowth());
         sectionMap.put("성격의 장단점", jaso.getPersonality());
-        sectionMap.put("학창시절 및 동아리활동", jaso.getSchool());
+        sectionMap.put("직무역량", jaso.getSchool());
         sectionMap.put("지원동기", jaso.getMotivation());
         sectionMap.put("입사 후 포부", jaso.getFuture());
         sectionMap.put("기타 특별한 경험", jaso.getExperience());
@@ -167,7 +167,7 @@ public class JasoController {
             StringBuilder promptBuilder = new StringBuilder();
             promptBuilder.append("【성장과정】\n").append(jaso.getGrowth() != null ? jaso.getGrowth() : "").append("\n\n");
             promptBuilder.append("【성격의 장단점】\n").append(jaso.getPersonality() != null ? jaso.getPersonality() : "").append("\n\n");
-            promptBuilder.append("【학창시절 및 동아리활동】\n").append(jaso.getSchool() != null ? jaso.getSchool() : "").append("\n\n");
+            promptBuilder.append("【직무역량】\n").append(jaso.getSchool() != null ? jaso.getSchool() : "").append("\n\n");
             promptBuilder.append("【지원동기】\n").append(jaso.getMotivation() != null ? jaso.getMotivation() : "").append("\n\n");
             promptBuilder.append("【입사 후 포부】\n").append(jaso.getFuture() != null ? jaso.getFuture() : "").append("\n\n");
             promptBuilder.append("【기타 특별한 경험】\n").append(jaso.getExperience() != null ? jaso.getExperience() : "");
@@ -219,7 +219,7 @@ public class JasoController {
                 case "성격의 장단점":
                     jaso.setPersonality(value);
                     break;
-                case "학창시절 및 동아리활동":
+                case "직무역량":
                     jaso.setSchool(value);
                     break;
                 case "지원동기":

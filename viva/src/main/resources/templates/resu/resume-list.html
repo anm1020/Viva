@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>이력서 목록</title>
+  <link rel="stylesheet" th:href="@{/css/resume.css}">
+</head>
+<body>
+  <h1>나의 이력서 목록</h1>
+
+  <div>
+    <a href="/resume/write">이력서 작성하기</a>
+  </div>
+
+  <table border="1" style="width:100%; margin-top:20px;">
+    <thead>
+      <tr>
+        <th>번호</th>
+        <th>지원분야</th>
+        <th>작성일</th>
+        <th>수정일</th>
+        <th>보기</th>
+        <th>수정</th>
+        <th>삭제</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:each="resume : ${resumes}">
+        <td th:text="${resume.reId}">1</td>
+        <td th:text="${resume.rePosition}">지원분야</td>
+        <span th:text="${resume.reCreatedAt}">2025-07-21 10:00</span>
+        <span th:text="${resume.reUpdatedAt}">2025-07-21 10:00</span>
+        <td><a th:href="@{'/resume/view/' + ${resume.reId}}">보기</a></td>
+        <td><a th:href="@{'/resume/edit/' + ${resume.reId}}">수정</a></td>
+        <td>
+          <form th:action="@{'/resume/delete/' + ${resume.reId}}" method="post" th:object="${resume}">
+            <button type="submit" onclick="return confirm('정말 삭제하시겠습니까?')">삭제</button>
+          </form>
+        </td>
+      </tr>
+      <tr th:if="${#lists.isEmpty(resumes)}">
+        <td colspan="7">등록된 이력서가 없습니다.</td>
+      </tr>
+    </tbody>
+  </table>
+</body>
+</html>

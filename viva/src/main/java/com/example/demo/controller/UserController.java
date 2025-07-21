@@ -21,6 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.demo.model.entity.Users;
 import com.example.demo.security.CustomUserDetails;
+import com.example.demo.service.InterviewerService;
 import com.example.demo.service.PointService;
 //import com.example.demo.model.entity.User.UserRole;
 import com.example.demo.service.UserService;
@@ -35,7 +36,7 @@ public class UserController {
 
 	private final UserService service;
 	private final PointService pointService;
-	
+	private final InterviewerService interviewerService;
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
@@ -186,6 +187,8 @@ public class UserController {
 
 		// 1. 인증 객체 가져오기
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		
+		
 
 		String displayName = null;
 		String role = null;
@@ -216,6 +219,7 @@ public class UserController {
 
 		model.addAttribute("displayName", displayName);
 		model.addAttribute("role", role);
+		model.addAttribute("interviewerList", interviewerService.getInterviewerList());
 
 		return "main"; // main.html (Thymeleaf)
 	}

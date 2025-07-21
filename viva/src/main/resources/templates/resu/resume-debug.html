@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>이력서 데이터 디버깅</title>
+</head>
+<body>
+    <h1>이력서 데이터 디버깅</h1>
+    
+    <h2>학력 데이터</h2>
+    <p><strong>reEducationPeriod:</strong> <span th:text="${resume.reEducationPeriod}">null</span></p>
+    <p><strong>reEducationSchool:</strong> <span th:text="${resume.reEducationSchool}">null</span></p>
+    <p><strong>reEducationDetail:</strong> <span th:text="${resume.reEducationDetail}">null</span></p>
+    <p><strong>reEducation (기존):</strong> <span th:text="${resume.reEducation}">null</span></p>
+    
+    <h2>교육 데이터</h2>
+    <p><strong>reTrainingPeriod:</strong> <span th:text="${resume.reTrainingPeriod}">null</span></p>
+    <p><strong>reTrainingInstitution:</strong> <span th:text="${resume.reTrainingInstitution}">null</span></p>
+    <p><strong>reTrainingCourse:</strong> <span th:text="${resume.reTrainingCourse}">null</span></p>
+    <p><strong>reTraining (기존):</strong> <span th:text="${resume.reTraining}">null</span></p>
+    
+    <h2>주요경력 데이터</h2>
+    <p><strong>reExperiencePeriod:</strong> <span th:text="${resume.reExperiencePeriod}">null</span></p>
+    <p><strong>reExperienceCompany:</strong> <span th:text="${resume.reExperienceCompany}">null</span></p>
+    <p><strong>reExperiencePosition:</strong> <span th:text="${resume.reExperiencePosition}">null</span></p>
+    <p><strong>reExperience (기존):</strong> <span th:text="${resume.reExperience}">null</span></p>
+    
+    <h2>자격증 데이터</h2>
+    <p><strong>reCertificationsPeriod:</strong> <span th:text="${resume.reCertificationsPeriod}">null</span></p>
+    <p><strong>reCertificationsInstitution:</strong> <span th:text="${resume.reCertificationsInstitution}">null</span></p>
+    <p><strong>reCertificationsName:</strong> <span th:text="${resume.reCertificationsName}">null</span></p>
+    <p><strong>reCertifications (기존):</strong> <span th:text="${resume.reCertifications}">null</span></p>
+    
+    <h2>어학능력 데이터</h2>
+    <p><strong>reLanguagesPeriod:</strong> <span th:text="${resume.reLanguagesPeriod}">null</span></p>
+    <p><strong>reLanguagesLanguage:</strong> <span th:text="${resume.reLanguagesLanguage}">null</span></p>
+    <p><strong>reLanguagesLevel:</strong> <span th:text="${resume.reLanguagesLevel}">null</span></p>
+    <p><strong>reLanguages (기존):</strong> <span th:text="${resume.reLanguages}">null</span></p>
+    
+    <h2>프로젝트 데이터</h2>
+    <p><strong>reProjectsPeriod:</strong> <span th:text="${resume.reProjectsPeriod}">null</span></p>
+    <p><strong>reProjectsTitle:</strong> <span th:text="${resume.reProjectsTitle}">null</span></p>
+    <p><strong>reProjectsLink:</strong> <span th:text="${resume.reProjectsLink}">null</span></p>
+    <p><strong>reProjectsContent:</strong> <span th:text="${resume.reProjectsContent}">null</span></p>
+    <p><strong>reProjects (기존):</strong> <span th:text="${resume.reProjects}">null</span></p>
+    
+    <br>
+    <a th:href="@{'/resume/view/' + ${resume.reId}}">이력서 보기로 돌아가기</a>
+</body>
+</html> 
