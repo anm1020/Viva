@@ -67,39 +67,6 @@ public class InterviewRoomService {
 	    return interviewRoomConvertToDTO(savedRoom);
 	}
 	
-//    // 방 생성
-//	@Transactional
-//    public InterviewRoomDTO createRoom(InterviewRoomDTO dto) {
-//    	Users host = usersRepo.findById(dto.getHostId())
-//    			.orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다: " + dto.getHostId()));
-//    	
-//    	InterviewRoom room = InterviewRoom.builder()
-//                .intrRoomTitle(dto.getIntrRoomTitle())
-//                .host(host)
-//                .statusCd(dto.getStatusCd())
-//                .build();
-//
-//        return interviewRoomConvertToDTO(intrRoomRepo.save(room));
-//    }
-//
-//    // 채팅방 생성
-//	@Transactional
-//    public TextRoomDTO createTextRoom(TextRoomDTO dto) {
-//		System.out.println("채팅방 생성 호출 성공");
-//        InterviewRoom room = intrRoomRepo.findById(dto.getIntrRoomId())
-//            .orElseThrow(() -> new IllegalArgumentException("면접방이 존재하지 않습니다."));
-//        Users host = usersRepo.findById(dto.getHostId())
-//            .orElseThrow(() -> new IllegalArgumentException("사용자가 존재하지 않습니다."));
-//
-//        TextRoom textRoom = TextRoom.builder()
-//            .intrRoomId(room)
-//            .host(host)
-//            .textRoomTitle(dto.getTextRoomTitle())
-//            .statusCd(dto.getStatusCd())
-//            .build();
-//
-//        return textRoomConvertToDto(textRoomRepo.save(textRoom));
-//    }
 	
 	// entity객체 -> DTO 객체로 변환 함수
     // interviewRoom
