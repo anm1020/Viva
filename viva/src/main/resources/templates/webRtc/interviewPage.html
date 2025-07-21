@@ -7,6 +7,7 @@
 <style>
 /* main-view, new-view, list-view는 각각 숨김처리 */
 html, body {
+  height: 100%; 
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -130,30 +131,151 @@ main {
 }
 
 /*** 비디오 영역 css ***/
-/* 🔷 전체 wrapper: 비디오 + 채팅 수평 배치 */
 .video-chat-wrapper {
   display: flex;
-  gap: 20px;
-  height: 100%;
+  gap: 0;
+  width: 100vw;
+  height: calc(100vh - 110px); /* 상단 헤더 등 빼고 꽉 채우기 */
+  overflow: auto;
+  background: #181818;
 }
 
-/* 🔷 비디오 그리드 영역 */
-.video-grid {
+
+/* 메인 비디오 영역 */
+.main-video-area {
   flex: 3;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  justify-content: flex-start;
+  align-items: center;
+  overflow: visible; 
+  min-width: 0;
+  width: 100%;
+}
+
+/* ★ 메인비디오+썸네일 하나로 보이게 감싸기 */
+.main-video-bundle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #222;
+  border-radius: 22px;
+  box-shadow: 0 4px 28px rgba(0,0,0,0.14);
+  overflow: visible;
+  margin-top: 5px;
+}
+
+/* 메인 비디오+썸네일 컨테이너 */
+.main-video-container {
+  width: 100%;          /* 전체 폭 채우기 */
+  max-width: 1080px;    /* 최대 너비는 원하는 만큼 */
+  height: 440px;        /* 비율은 필요에 따라 */
+  position: relative;
+  background: #222;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  padding: 0; 
+}
+
+/* 메인 비디오 */
+#mainVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #111;
+  padding: 0px;
+}
+
+/* 썸네일 바 (메인비디오 상단에 라운드로 붙이기) */
+.video-thumbnails {
+  width: 100%;   /* 부모와 동일하게! */
+  max-width: 1080px;   /* 위의 main-video-container와 맞추기 (또는 100%만 써도 됨) */
+  margin: 0 auto;      /* 가운데 정렬 */
+  min-height: 60px;
+  background: #222;
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  border-top-left-radius: 22px;
+  border-top-right-radius: 22px;
+  border-bottom: 2px solid #202020;
+  padding: 5px 0 5px 0;
+  z-index: 2;
+}
+
+
+.video-thumbnails video {
+  width: 110px;
+  height: 75px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid transparent;
+  cursor: pointer;
+  pointer-events: auto; /* 비디오만 클릭 허용 */
+  background: #222;
+}
+.video-thumbnails video.active {
+  border-color: #2298ff;
+}
+
+/* 오른쪽 패널: 항상 상단부터 */
+.right-panel {
+  flex: 0 0 340px;   /* 고정 폭 */
+  height: 100%;      /* 부모(.video-chat-wrapper)와 동일하게! */
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-left: 1px solid #dde1ed;
+  border-radius: 0 16px 16px 0;
+  box-shadow: 0 0 12px rgba(0,0,0,0.07);
+  margin: 0;
+  min-height: 0;     /* 이게 flex overflow 방지에 중요함 */
+}
+/*
+.participant-panel {
+  flex: 0 0 auto;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  padding: 10px;
+  background-color: #fff;
+} 
+*/
+.chat-panel {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ddd;
+  border-radius: 0;
+  padding: 10px;
+  background: #fff;
+  min-height: 200px;
+}
+
+/* 오른쪽 전체 패널 (참가자 + 채팅) */
+.right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid #ccc;
+  padding: 10px;
+  background: #f9f9f9;
 }
 
 /* 🔷 채팅창 영역 */
 .chat-panel {
   flex: 1;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: #fff;
   display: flex;
   flex-direction: column;
-  height: 600px; /* 원하는 높이 설정 */
+  border: 1px solid #ddd;
+  background: #fff;
+  padding: 10px;
 }
 
 /* 채팅창 내부 구성 */
@@ -167,14 +289,16 @@ main {
 
 .chat-messages {
   flex: 1;
-  padding: 10px;
   overflow-y: auto;
-  font-size: 0.9rem;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  padding: 8px;
+  background: #fafafa;
 }
 
 .chat-input-area {
   display: flex;
-  border-top: 1px solid #ccc;
+  gap: 10px;
 }
 
 .chat-input-area input {
@@ -209,9 +333,10 @@ main {
 	display: none;
 }
 
+/*
 .remote-grid {
 	display: grid;
-	grid-template-columns: repeat(2, 1fr); /* 2열 고정 */
+	grid-template-columns: repeat(2, 1fr); // 2줄고정
 	gap: 10px;
 }
 
@@ -225,7 +350,7 @@ main {
 .remote-box video {
   background-color: black;
   width: 100%;
-  height: 240px; /* 또는 auto, fixed 등 */
+  height: 240px; // 또는 auto, fixed 등
   object-fit: cover;
 }
 
@@ -259,22 +384,14 @@ main {
 
 .remote-box video {
   width: 100%;
-  max-width: 480px;       /* 👈 원하는 너비 제한 */
+  max-width: 480px;       // 👈 원하는 너비 제한 
   height: auto;
-  aspect-ratio: 4 / 3;     /* 또는 16 / 9 등 비율 고정 */
-  object-fit: cover;       /* contain or cover */
+  aspect-ratio: 4 / 3;     // 또는 16 / 9 등 비율 고정 
+  object-fit: cover;       // contain or cover 
 }
-
+*/
 /* 상단 사용자 목록 바 */
-.top-bar {
-  display: flex;
-  gap: 10px;
-  padding: 10px 20px;
-  background-color: #1e1e1e;
-  color: white;
-  overflow-x: auto;
-}
-
+/*
 .participant {
   background-color: #ffffff;
   padding: 6px 12px;
@@ -285,31 +402,30 @@ main {
 .participant.current {
   border: 2px solid #4fa7ff;
 }
-
+*/
 /* ------------------------------ */
+
 .participant-panel {
-  width: 300px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: #f9f9f9;
-  font-family: sans-serif;
+  flex: 0 0 auto;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  padding: 10px;
+  background-color: #fff;
 }
 
 .panel-header {
-  padding: 10px;
   font-weight: bold;
-  background: #e1e1e1;
-  border-bottom: 1px solid #ccc;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  margin-bottom: 5px;
 }
 
 .panel-body {
-  max-height: 300px;
+  max-height: 150px;
   overflow-y: auto;
-  padding: 8px;
+  padding: 8px; 
 }
+
 
 .participant {
   display: flex;
@@ -344,9 +460,98 @@ main {
   font-size: 0.9rem;
   color: gray;
 }
+
 /* ---------------------------- */
 
+/* 하단 컨트롤 바 */
+.control-bar {
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  background: #181818;  /* 검은배경 */
+  border-bottom-left-radius: 22px;
+  border-bottom-right-radius: 22px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.11);
+  padding: 10px 0 14px 0;
+  position: relative;
+}
 
+.control-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #e0e0e0;
+  font-weight: 500;
+  font-size: 0.8rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+  min-width: 60px;
+  padding: 8px 12px;
+  border-radius: 12px;
+}
+.control-btn:hover {
+  background: #23242b;
+  color: #49a0fa;
+}
+.control-btn .icon {
+  font-size: 1.55rem;
+  margin-bottom: 2px;
+}
+.control-btn.end {
+  color: #f34555;
+  font-weight: bold;
+}
+.control-btn.end:hover {
+  background: #2c191a;
+  color: #ff7575;
+}
+
+/* -------------------*/
+/* 비디오화면 */
+/*
+.video-thumbnails {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  overflow-x: auto;
+  background: #111;
+  justify-content: center;
+}
+.video-thumbnails video {
+  width: 120px;
+  height: 80px;
+  object-fit: cover;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border 0.2s;
+}
+.video-thumbnails video.active {
+  border-color: #2298ff;
+}
+.main-video-container {
+  width: 100%;
+  height: 420px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #222;
+  margin-bottom: 12px;
+}
+#mainVideo {
+  width: 640px;
+  height: 100%;
+  background: #000;
+  border-radius: 12px;
+  object-fit: contain;
+}
+*/
 </style>
 <!-- 외부 라이브러리 -->
 <script
@@ -407,53 +612,81 @@ main {
 
 	<!-- [4] 통화방 화면 -->
 	<div id="videoroom-view" class="view">
-
-		<!-- 🔵 상단 참가자 바 -->
-		<div class="top-bar">
-			<div class="participant">user</div>
-			<div class="participant current">나</div>
-			<div class="participant">user</div>
-		</div>
-		
-		<div class="video-chat-wrapper">
-		    <!-- 🔵 비디오 그리드 -->
-		    <div class="video-grid">
-		    	<!-- 내 화면 포함 -->
-				<div class="remote-grid" id="remoteContainer">
-					<!-- 비디오 출력 영역 -->
-				</div>
-			</div>
 			
-			<!-- 🔵 채팅창 -->
-		    <div class="chat-panel">
-		      <div class="chat-title">채팅창</div>
-		      <div class="chat-messages" id="chatMessages"></div>
-		      <div class="chat-input-area">
-		        <input type="text" id="chatInput" placeholder="내용 입력" />
-		        <button id="sendChatBtn">전송</button>
-		      </div>
-		  	</div>
+		<div class="video-chat-wrapper">
+			<div class="main-video-area">
+			  <div class="main-video-bundle">
+				<!-- 상단 썸네일 바 -->
+				<div class="video-thumbnails" id="videoThumbnails"></div>
+				<!-- 중앙 메인 비디오 -->
+				<div class="main-video-container">
+				  <video id="mainVideo" autoplay playsinline muted></video>
+				</div>
+				<div class="control-bar">
+				    <div class="control-btn" id="mute-toggle">
+				      <span class="icon">🎤</span>
+				      <span class="label">마이크</span>
+				    </div>
+				    <div class="control-btn" id="startCamBtn">
+				      <span class="icon">📷</span>
+				      <span class="label">카메라</span>
+				    </div>
+				    <div class="control-btn" id="recordToggleBtn">
+				      <span class="icon">🎥</span>
+				      <span class="label">녹화</span>
+				    </div> 
+				    <div class="control-btn" id="audioRecordToggleBtn">
+				      <span class="icon">🎙️</span>
+				      <span class="label">음성녹음</span>
+				    </div>
+				    <div class="control-btn end" id="exitBtn">
+				      <span class="icon">🚪</span>
+				      <span class="label">종료</span>
+				    </div>
+				  </div>
+				
+				
+<!-- 			    	마이크 음소거 토글 버튼 -->
+<!-- 					<button id="mute-toggle" class="mic-toggle-btn">🎤 마이크 끄기</button> -->
+<!-- 			    	<button id="startCamBtn">📷 캠 시작</button> -->
+			    	
+<!-- 			    	  🔴 녹화/녹음 토글 버튼 -->
+<!-- 					<button id="recordToggleBtn">🎥 녹화 시작</button> -->
+<!-- 					<button id="audioRecordToggleBtn">🎙️ 녹음 시작</button> -->
+<!-- 			    	<button id="exitBtn">종료</button> -->
+<!-- 			    </div> -->
+			  </div>
+			</div>
+<!-- 		    🔵 비디오 그리드 -->
+<!-- 		    <div class="video-grid"> -->
+<!-- 		    	내 화면 포함 -->
+<!-- 				<div class="remote-grid" id="remoteContainer" hidden> -->
+<!-- 					비디오 출력 영역 -->
+<!-- 				</div> -->
+<!-- 			</div> -->
+			<div class="right-panel">
+				<!-- 참가자 패널 -->
+				<div id="participantPanel" class="participant-panel">
+				  <div class="panel-header">
+				    <span>참가자(<span id="participantCount">0</span>)</span>
+				    <button onclick="refreshParticipantList()">🔄</button>
+				  </div>
+				  <div class="panel-body" id="participantList"></div>
+				</div>
+
+				<!-- 🔵 채팅창 -->
+			    <div class="chat-panel">
+			      <div class="chat-title">채팅창</div>
+			      <div class="chat-messages" id="chatMessages"></div>
+			      <div class="chat-input-area">
+			        <input type="text" id="chatInput" placeholder="내용 입력" />
+			        <button id="sendChatBtn">전송</button>
+			      </div>
+			  	</div>
+			
+			</div>
 		</div>
-		
-		<!-- 참가자 패널 -->
-		<div id="participantPanel" class="participant-panel">
-		  <div class="panel-header">
-		    <span>참가자(<span id="participantCount">0</span>)</span>
-		    <button onclick="refreshParticipantList()">🔄</button>
-		  </div>
-		  <div class="panel-body" id="participantList"></div>
-		</div>
-		
-	    <div style="margin-top: 20px;">
-	    	<!-- 마이크 음소거 토글 버튼 -->
-			<button id="mute-toggle" class="mic-toggle-btn">🎤 마이크 끄기</button>
-	    	<button id="startCamBtn">📷 캠 시작</button>
-	    	<button id="exitBtn">종료</button>
-	    	<button onclick="startFullRecording()">🎥 녹화 시작</button>
-			<button onclick="stopFullRecording()">🛑 녹화 중지</button>
-	    	<button onclick="startAudioRecording()">🎥 녹음 시작</button>
-			<button onclick="stopAudioRecording()">🛑 녹음 중지</button>
-	    </div>
+
 	</div>
 
 <script>
@@ -899,7 +1132,6 @@ function createJanusSession() {
         },
 
         onlocalstream: function (stream) {		// 내 출력화면
-        	
         	console.log("onlocalstream 진입");
         		
         	const remoteId = 'local'; // 고정 ID
@@ -908,6 +1140,7 @@ function createJanusSession() {
         	const muteBtnId = `mute-btn-${remoteId}`;
         	const volumeSliderId = `volume-slider-${remoteId}`;
         	
+        	addVideoThumbnail(stream, remoteId, displayName || '나');
         	// 내 화면 영역
         	if (!document.getElementById(boxElId)) {
         	    const localBox = `
@@ -1236,12 +1469,15 @@ function newRemoteFeed(id, display) {
 
     onremotestream: function (stream) {
     	
+    	
     	const remoteId = id;
     	const videoElId = `remotevideo-${remoteId}`;
     	const boxElId = `remote-box-${remoteId}`;
     	const muteBtnId = `mute-btn-${remoteId}`;
     	const volumeSliderId = `volume-slider-${remoteId}`;
     	
+    	addVideoThumbnail(stream, remoteId, display);
+
     	// DOM 이미 있는 경우 종료
     	if (document.getElementById(boxElId)) return;
       
@@ -1367,6 +1603,7 @@ function removeRemoteFeed(id) {
   const targetFeed = feeds.find(f => f && String(f.rfid) === idStr);
   if (!targetFeed) {
     console.warn(`⚠️ 이미 제거된 remote feed: ${idStr}`);
+    removeVideoThumbnail(idStr);			// 썸네일은 혹시 남아 있을 수 있으니 아래 줄은 남겨둠
     return;
   }
   
@@ -1382,6 +1619,10 @@ function removeRemoteFeed(id) {
 
   // 비디오 DOM 제거
   document.getElementById(`remote-box-${idStr}`)?.remove();
+  
+  // 썸네일 비디오 동적 제거
+  console.log(`removeRemoteFeed called with id=${idStr}`);
+  removeVideoThumbnail(idStr);
   
   // 오디오 컨텍스트 제거
   if (audioContexts[id]) {
@@ -1453,6 +1694,10 @@ function cleanupAllFeeds() {
   $('#remoteContainer').empty();
   $('#local-box').remove();
   
+  // 영상 썸네일 제거
+  document.getElementById('videoThumbnails').innerHTML = '';
+  document.getElementById('mainVideo').srcObject = null;
+  
   // Audio context 정리
   Object.values(audioContexts).forEach(state => state.ctx.close());
   Object.keys(audioContexts).forEach(k => delete audioContexts[k]);
@@ -1475,6 +1720,46 @@ function cleanupAllFeeds() {
   
 }
 
+// 상단 썸네일 동적 추가
+function addVideoThumbnail(stream, id, displayName) {
+	id = String(id);
+	
+	if (document.getElementById(`thumb-${id}`)) return;  // 이미 썸네일 있으면 패스
+	
+	const video = document.createElement('video');
+	video.id = `thumb-${id}`;
+	video.autoplay = true;
+	video.playsInline = true;
+	video.muted = true;
+	video.title = displayName;
+	video.srcObject = stream;
+
+	// 클릭시 메인화면 교체
+	video.addEventListener('click', function() {
+	    const mainVideo = document.getElementById('mainVideo');
+	    mainVideo.srcObject = stream;
+	    document.querySelectorAll('.video-thumbnails video').forEach(v => v.classList.remove('active'));
+	    video.classList.add('active');
+	});
+
+	document.getElementById('videoThumbnails').appendChild(video);
+
+	// 최초 추가라면 mainVideo도 자동 연결 (본인 입장/첫 참가자)
+	const mainVideo = document.getElementById('mainVideo');
+	if (!mainVideo.srcObject) {
+	    mainVideo.srcObject = stream;
+	    video.classList.add('active');
+	}
+}
+
+// 상단 비디오 썸네일 동적 제거
+function removeVideoThumbnail(id) {
+	id = String(id);
+	console.log(`removeVideoThumbnail called for thumb-${id}`);
+	document.getElementById(`thumb-${id}`)?.remove();
+}
+
+
 // 종료버튼 클릭시
 document.getElementById("exitBtn").addEventListener("click", function () {
 	navigate('list'); // navigate는 세션정리 없이 화면 전환만
@@ -1496,7 +1781,8 @@ function toggleMute() {
 	  }
 
 	const button = document.getElementById("mute-toggle");
-
+	const icon = btn.querySelector('.icon');
+	const label = btn.querySelector('.label');
 	
 	const muted = sfutest.isAudioMuted();
 	if (isMicMuted) {
@@ -1549,18 +1835,6 @@ function connectChat(roomId) {
 
 	  appendChatMessage(msg.sender, msg.message);
 
-      
-//       if (msg.type === 'audio-mute-status') {
-//     	    // 참가자 배열 갱신
-//     	  participants = participants.map(p => {
-//     	      if (p.display === msg.sender) {
-//     	      	return { ...p, audioMuted: msg.muted };
-//     	      }
-//     	   	  return p;
-//     	  });
-//     	  renderParticipants();
-//       }
-      
     });
 	sendMessage(displayName + "님이 입장하셨습니다.");
   });
@@ -1861,8 +2135,8 @@ async function startAudioRecording() {
 
     mediaRecorder2.onstop = () => {
       const blob = new Blob(recordedChunks2, { type: 'audio/webm' });
+      uploadAudio(blob);
       console.log("녹음 여기까진 되나");
-//       uploadAudio(blob);
     };
 
     mediaRecorder2.start();
@@ -1895,6 +2169,35 @@ function uploadAudio(blob) {
 	.then(msg => alert("✅ 서버 업로드 완료\n" + msg))
 	.catch(err => console.error("❌ 업로드 실패", err));
 }
+
+// 녹음 및 녹화 버튼 토글
+let isRecording = false;
+let isAudioRecording = false;
+
+document.getElementById("recordToggleBtn").addEventListener("click", () => {
+  if (!isRecording) {
+    startFullRecording();
+    isRecording = true;
+    document.getElementById("recordToggleBtn").textContent = "🛑 녹화 중지";
+  } else {
+    stopFullRecording();
+    isRecording = false;
+    document.getElementById("recordToggleBtn").textContent = "🎥 녹화 시작";
+  }
+});
+
+document.getElementById("audioRecordToggleBtn").addEventListener("click", () => {
+  if (!isAudioRecording) {
+    startAudioRecording();
+    isAudioRecording = true;
+    document.getElementById("audioRecordToggleBtn").textContent = "🛑 녹음 중지";
+  } else {
+    stopAudioRecording();
+    isAudioRecording = false;
+    document.getElementById("audioRecordToggleBtn").textContent = "🎙️ 녹음 시작";
+  }
+});
+
 
 // remote feed 퇴장시 제거
 function removeRemoteStreamFromAudioList(feedId) {
