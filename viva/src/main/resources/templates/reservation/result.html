@@ -80,7 +80,7 @@
         data: { userId, resId, amount },
         success: function(response) {
           alert("포인트 결제 완료!");
-          location.href = "/reservation/mylist";
+          location.href = "/mypage?tab=schedule";
         },
         error: function(xhr) {
           alert("결제 실패: " + xhr.responseText);

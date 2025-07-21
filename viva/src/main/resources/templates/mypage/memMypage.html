@@ -661,7 +661,15 @@ $(function() {
 	          alert(response.message);
 	          $("#exchangeModal").hide();
 	          $("#exchangeForm")[0].reset();
-	          // 필요시 포인트 잔액 갱신 코드 추가
+	          // 포인트 표시 부분 업데이트
+	          // 기존 포인트 읽기
+	          let currentPointStr = $(".point-value").text();  // 예: "12345P"
+	          let currentPoint = parseInt(currentPointStr.replace("P", ""), 10);
+
+	          let newPoint = currentPoint - data.amount;
+	          if (newPoint < 0) newPoint = 0;
+
+	          $(".point-value").text(newPoint + "P");
 	        } else {
 	          alert("실패: " + response.message);
 	        }

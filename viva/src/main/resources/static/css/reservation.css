@@ -156,26 +156,6 @@
 	background: gray;
 	color: white;
 }
-
-/* 포인트 충전하기 버튼 */
-.btn-charge{
-	margin-left: auto; /* 버튼을 오른쪽 끝으로 밀기 */
-	color: black; /* 어두운 글자색 */
-	text-decoration: none;
-	font-weight: 600;
-  padding: 8px 16px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  user-select: none;
-  font-size: 14px;
-}
-.btn-charge:hover {
-  background-color: gray;
-  color:white;
-}
-
 /* ─── 테이블 ───────────────────────────────────────────────────────────── */
 .reservation-table {
 	width: 100%;
@@ -273,6 +253,40 @@
 
 .btn-pay:hover {
 	opacity: .85;
+}
+
+/* 포인트 충전하기 버튼 */
+.btn-charge{
+	margin-left: auto; /* 버튼을 오른쪽 끝으로 밀기 */
+	color: black; /* 어두운 글자색 */
+	text-decoration: none;
+	font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  user-select: none;
+  font-size: 14px;
+}
+.btn-charge:hover {
+  background-color: gray;
+  color:white;
+}
+/* 방생성버튼*/
+.creation{
+	background: #e0e4eb; /* 연한 회색 배경 */
+	color: #333; /* 어두운 글자색 */
+	font-size: 13px;
+	padding: 6px 12px;
+	border: none; /* 테두리 없음 */
+	border-radius: 6px;
+	cursor: pointer;
+	transition: background 0.2s, color 0.2s;
+}
+.creation:hover {
+	background: #cfd5e0; /* 살짝 진한 회색으로 강조 */
+	color: #000;
 }
 
 /* ─── 변경/취소 버튼 ───────────────────────────────────────────────────── */
