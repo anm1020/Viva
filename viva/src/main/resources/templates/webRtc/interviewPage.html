@@ -598,11 +598,22 @@ main {
 	</section>
 	<div class="board-footer">화상면접</div>
 	<!-- [2] 방 생성 화면 -->
-	<div id="new-view" class="view">
+	<div id="new-view" class="view active">
 		<h2>면접 방 생성</h2>
 		<script>
 			console.log("[[${userId}]]");
 		</script>
+		<button class="creation">생성</button>
+		<div id="createRoomModal" class="modal" style="display:none;">
+		  <div class="modal-content">
+		    <span class="close">&times;</span>
+		    <h2>면접 방 생성</h2>
+		    <label>방 제목: <input type="text" id="modalRoomTitle" /></label><br>
+		    <label>비밀번호: <input type="password" id="modalRoomPw" /></label><br>
+		    <label>최대 인원: <input type="number" id="modalParticipantCount" min="2" max="6" value="2" /></label><br>
+		    <button id="submitCreateRoom">방 생성</button>
+		  </div>
+		</div>
 		<form id="createRoomForm">
 			<label for="intrRoomTitle">방 제목:</label> 
 			<input type="text" id="intrRoomTitle" name="intrRoomTitle" required />
@@ -617,10 +628,60 @@ main {
 			<button type="submit">방생성</button>
 		</form>
 		<button onclick="location.href = '/main'">← 뒤로가기</button>
+		<br>
+		
+		
 	</div>
+	<script>
+		$(document).off("click", ".creation").on("click", ".creation", function () {
+		    $("#createRoomModal").show();
+		    // 필요하면 이 tr의 예약번호 등도 data-* 속성으로 모달에 저장
+		});
+	
+		// 모달 닫기
+		$(document).off("click", ".modal .close").on("click", ".modal .close", function () {
+		    $("#createRoomModal").hide();
+		});
+		
+		$(document).off("click", "#submitCreateRoom").on("click", "#submitCreateRoom", function () {
+		    const title = $("#modalRoomTitle").val();
+		    const roomPw = $("#modalRoomPw").val();
+		    const participantCount = $("#modalParticipantCount").val();
+		    // 필요하다면 예약번호/회원ID도 함께
+
+		    // 유효성 검사(예시)
+		    if (!title) return alert("방 제목을 입력하세요.");
+		    if (participantCount < 2) return alert("최소 2명 이상이어야 합니다.");
+
+		    fetch("/api/meeting/roomcreate", {
+		        method: "POST",
+		        headers: { "Content-Type": "application/json" },
+		        body: JSON.stringify({
+		            intrRoomTitle: title,
+		            roomPw: roomPw,
+		            participantCount: participantCount
+		            // hostId 등 필요정보 추가
+		        })
+		    })
+		    .then(res => res.json())
+		    .then(data => {
+		        alert("방 생성 완료!");
+		        // Janus 방 생성 함수 호출 (비동기 콜백 참고)
+		        return createRoomsOnJanus(data.intrRoomId, data.hostId);
+		    })
+		    .then(() => {
+		        $("#createRoomModal").hide();
+		        $("#contentArea").load("/reservation/intrmypage"); // SPA 갱신
+		    })
+		    .catch(err => {
+		        alert("생성 실패! " + err);
+		    });
+		});
+	</script>
+
 
 	<!-- [3] 방 목록 화면 -->
-	<div id="list-view" class="view active">
+	<div id="list-view" class="view">
 		<h2>면접 방 목록</h2>
 		<input type="hidden" id="user_id" name="user_id" th:value="${userId}">
 		<div id="roomList" class="room-list"></div>
