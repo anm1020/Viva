@@ -22,50 +22,7 @@ html, body {
 }
 
 /* ================================== */
-main {
-	background-color: #ffffff;
-	min-height: 400px;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	padding: 40px 0;
-}
 
-.content-box {
-	border: 1px solid #d0d0d0;
-	border-radius: 6px;
-	padding: 30px 50px;
-	text-align: center;
-}
-
-.content-box h2 {
-	margin-bottom: 30px;
-	font-size: 1.4rem;
-}
-
-.button-group {
-	display: flex;
-	gap: 20px;
-	justify-content: center;
-}
-
-.nav-button {
-	width: 120px;
-	height: 100px;
-	background-color: #e0e0e0;
-	border: none;
-	border-radius: 6px;
-	font-size: 1rem;
-	font-weight: bold;
-	cursor: pointer;
-	transition: background-color 0.2s;
-}
-
-.nav-button:hover {
-	background-color: #d6d6d6;
-}
-
-/* ================================== */
 .room-list {
 	display: flex;
 	flex-wrap: wrap;
@@ -130,6 +87,13 @@ main {
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+#videoroom-view {
+  height: 100vh;      /* 전체 화면 */
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+}
+
 /*** 비디오 영역 css ***/
 .video-chat-wrapper {
   display: flex;
@@ -151,6 +115,7 @@ main {
   overflow: visible; 
   min-width: 0;
   width: 100%;
+  height: 100%; 
 }
 
 /* ★ 메인비디오+썸네일 하나로 보이게 감싸기 */
@@ -230,7 +195,6 @@ main {
   flex-direction: column;
   background: #fff;
   border-left: 1px solid #dde1ed;
-  border-radius: 0 16px 16px 0;
   box-shadow: 0 0 12px rgba(0,0,0,0.07);
   margin: 0;
   min-height: 0;     /* 이게 flex overflow 방지에 중요함 */
@@ -552,6 +516,36 @@ main {
   object-fit: contain;
 }
 */
+
+.profile-popup {
+  position: absolute;
+  min-width: 220px;
+  background: #232428;
+  color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.33);
+  padding: 16px 20px;
+  z-index: 1002;
+  animation: fadeIn 0.12s;
+}
+@keyframes fadeIn { from { opacity:0; transform: scale(0.98); } to { opacity:1; } }
+
+.profile-header {
+  display: flex; align-items: center; margin-bottom: 16px;
+}
+.profile-header .avatar {
+  width: 44px; height: 44px; border-radius: 50%; background: #666; font-size: 1.5rem;
+  display: flex; align-items: center; justify-content: center; font-weight: bold;
+  margin-right: 12px;
+}
+.profile-header .profile-nick { font-weight: bold; font-size: 1.1rem; }
+
+.profile-volume { display: flex; align-items: center; gap: 10px; }
+.profile-volume .icon { font-size: 1.2rem; }
+.profile-volume .volume-value { font-size: 0.98rem; margin-left: 4px; }
+
+
+
 </style>
 <!-- 외부 라이브러리 -->
 <script
@@ -902,9 +896,10 @@ function renderParticipants() {
 
 	participants.forEach(p => {
 	    const avatarChar = p.display ? p.display.charAt(0).toUpperCase() : '?';
-
 	    const participantEl = document.createElement('div');
 	    participantEl.className = 'participant';
+	    participantEl.setAttribute('data-remote-id', p.remoteId);  // <- 반드시 필요!
+
 	    participantEl.innerHTML = `
 	      <div class="avatar">${avatarChar}</div>
 	      <div class="display-name">${p.display}</div>
@@ -1760,57 +1755,6 @@ function removeVideoThumbnail(id) {
 }
 
 
-// 종료버튼 클릭시
-document.getElementById("exitBtn").addEventListener("click", function () {
-	navigate('list'); // navigate는 세션정리 없이 화면 전환만
-});
-
-// 캠 시작 버튼 클릭
-document.getElementById("startCamBtn").addEventListener("click", function () {
-	restartPublisherWithRealCam();
-});
-
-//마이크 토글 버튼 클릭 핸들러
-document.getElementById("mute-toggle").addEventListener("click", toggleMute);
-
-// 내 마이크 음소거
-function toggleMute() {
-	if (!sfutest) {
-	    console.warn("❗ sfutest 핸들이 아직 연결되지 않음");
-	    return;
-	  }
-
-	const button = document.getElementById("mute-toggle");
-	const icon = btn.querySelector('.icon');
-	const label = btn.querySelector('.label');
-	
-	const muted = sfutest.isAudioMuted();
-	if (isMicMuted) {
-	    sfutest.unmuteAudio(); // 마이크 켜기
-	    button.textContent = "🎤 마이크 끄기";
-	    isMicMuted = false;
-	    updateMyAudioMuted(false); // 🔊 내 마이크 상태 업데이트
-	    console.log("🔊 마이크 활성화됨");
-	} else {
-	    sfutest.muteAudio(); // 마이크 끄기
-	    button.textContent = "🔇 마이크 켜기";
-	    isMicMuted = true;
-	    updateMyAudioMuted(true); // 🔊 내 마이크 상태 업데이트
-	    console.log("🔇 마이크 음소거됨");
-	}
-}
-
-// audioMuted 값 업데이트
-function updateMyAudioMuted(muted) {
-	participants = participants.map(p => {
-	    if (p.display === displayName) {
-	      return { ...p, audioMuted: muted };
-		}
-	    return p;
-	});
-	renderParticipants(); // UI 갱신
-}
-
 
 // websocket 연결 및 구독
 let stompClient = null;
@@ -1967,9 +1911,105 @@ function notifyAudioMuteStatus(isMuted) {
 	};
 	sendMessagePayload(payload);
 }
-</script>
 
-<script>
+//종료버튼 클릭시
+document.getElementById("exitBtn").addEventListener("click", function () {
+	navigate('list'); // navigate는 세션정리 없이 화면 전환만
+});
+
+// 캠 시작 버튼 클릭
+document.getElementById("startCamBtn").addEventListener("click", function () {
+	restartPublisherWithRealCam();
+});
+
+//마이크 토글 버튼 클릭 핸들러
+document.getElementById("mute-toggle").addEventListener("click", toggleMute);
+
+//녹음 및 녹화 버튼 토글
+let isRecording = false;
+let isAudioRecording = false;
+
+// 녹화 버튼 토글
+document.getElementById("recordToggleBtn").addEventListener("click", () => {
+	const btn = document.getElementById("recordToggleBtn");
+	const icon = btn.querySelector('.icon');
+	const label = btn.querySelector('.label');
+	
+	if (!isRecording) {
+	    startFullRecording();
+	    isRecording = true;
+	    icon.textContent = "🛑";
+	    label.textContent = "녹화 중지";
+    } else {
+	    stopFullRecording();
+	    isRecording = false;
+	    icon.textContent = "🎥";
+	    label.textContent = "녹화";
+    }
+});
+
+// 녹음 버튼 토글
+document.getElementById("audioRecordToggleBtn").addEventListener("click", () => {
+	const button = document.getElementById("audioRecordToggleBtn");
+	const icon = button.querySelector('.icon');
+	const label = button.querySelector('.label');
+	  
+	if (!isAudioRecording) {
+	    startAudioRecording();
+	    isAudioRecording = true;
+	    icon.textContent = "🛑";
+	    label.textContent = "녹음 중지";
+	} else {
+	    stopAudioRecording();
+	    isAudioRecording = false;
+	    icon.textContent = "🎙️";
+	    label.textContent = "음성녹음";
+	}
+});
+
+// 내 마이크 음소거
+function toggleMute() {
+	if (!sfutest) {
+	    console.warn("❗ sfutest 핸들이 아직 연결되지 않음");
+	    return;
+	  }
+
+	const btn = document.getElementById("mute-toggle");
+	const icon = btn.querySelector('.icon');
+	const label = btn.querySelector('.label');
+	
+	const muted = sfutest.isAudioMuted();
+	if (isMicMuted) {
+	    sfutest.unmuteAudio(); // 마이크 켜기
+	    icon.textContent = "🎤";
+        label.textContent = "마이크";
+	    isMicMuted = false;
+	    updateMyAudioMuted(false); // 🔊 내 마이크 상태 업데이트
+	    console.log("🔊 마이크 활성화됨");
+	} else {
+	    sfutest.muteAudio(); // 마이크 끄기
+	    icon.textContent = "🔇";
+        label.textContent = "음소거";
+	    isMicMuted = true;
+	    updateMyAudioMuted(true); // 🔊 내 마이크 상태 업데이트
+	    console.log("🔇 마이크 음소거됨");
+	}
+}
+
+// audioMuted 값 업데이트
+function updateMyAudioMuted(muted) {
+	participants = participants.map(p => {
+	    if (p.display === displayName) {
+	      return { ...p, audioMuted: muted };
+		}
+	    return p;
+	});
+	renderParticipants(); // UI 갱신
+}
+
+
+
+
 //녹화?
 let mediaRecorder;
 let recordedChunks = [];
@@ -2170,34 +2210,95 @@ function uploadAudio(blob) {
 	.catch(err => console.error("❌ 업로드 실패", err));
 }
 
-// 녹음 및 녹화 버튼 토글
-let isRecording = false;
-let isAudioRecording = false;
 
-document.getElementById("recordToggleBtn").addEventListener("click", () => {
-  if (!isRecording) {
-    startFullRecording();
-    isRecording = true;
-    document.getElementById("recordToggleBtn").textContent = "🛑 녹화 중지";
-  } else {
-    stopFullRecording();
-    isRecording = false;
-    document.getElementById("recordToggleBtn").textContent = "🎥 녹화 시작";
+
+// 볼륨 슬라이더
+// 닉네임 클릭 시 볼륨 슬라이더 토글
+document.getElementById('participantList').addEventListener('click', function(e){
+  const target = e.target;
+  if (target.classList.contains('display-name')) {
+    const participantDiv = target.closest('.participant');
+    const remoteId = participantDiv.getAttribute('data-remote-id');
+    showProfilePopup(participantDiv, remoteId, e);
   }
 });
 
-document.getElementById("audioRecordToggleBtn").addEventListener("click", () => {
-  if (!isAudioRecording) {
-    startAudioRecording();
-    isAudioRecording = true;
-    document.getElementById("audioRecordToggleBtn").textContent = "🛑 녹음 중지";
-  } else {
-    stopAudioRecording();
-    isAudioRecording = false;
-    document.getElementById("audioRecordToggleBtn").textContent = "🎙️ 녹음 시작";
-  }
-});
+function showProfilePopup(participantDiv, remoteId, event) {
+	// 기존 팝업 제거
+	const prevPopup = document.getElementById('profilePopup');
+	if (prevPopup) prevPopup.remove();
 
+	// (위치 계산: 클릭 위치나 participantDiv 위치)
+	const rect = participantDiv.getBoundingClientRect();
+	const top = rect.bottom + window.scrollY + 5;
+	const left = rect.left + window.scrollX - 20;
+
+	// 참가자 정보
+	const nick = participantDiv.querySelector('.display-name').textContent;
+	const avatar = participantDiv.querySelector('.avatar').textContent;
+
+	// 팝업 생성
+	const popup = document.createElement('div');
+	popup.className = 'profile-popup';
+	popup.id = 'profilePopup';
+	popup.style.top = `${top}px`;
+	popup.style.left = `${left}px`;
+
+	popup.innerHTML = `
+
+	    <div class="profile-volume">
+	        <span class="icon">🔊</span>
+	        <input type="range" min="0" max="2" step="0.01" value="${getRemoteVolume(remoteId)}" class="volume-slider" style="width:110px">
+	        <span class="volume-value">${getRemoteVolume(remoteId).toFixed(2)}</span>
+	    </div>
+	`;
+
+	document.body.appendChild(popup);
+
+	// 슬라이더 이벤트
+	const slider = popup.querySelector('.volume-slider');
+	const valueSpan = popup.querySelector('.volume-value');
+    const icon = popup.querySelector('.icon');
+	slider.addEventListener('input', function(){
+		const volume = parseFloat(this.value);
+		setRemoteVolume(remoteId, volume);
+	    valueSpan.textContent = this.value;
+	    // 🔊🔇 아이콘 토글
+	    icon.textContent = volume === 0 ? '🔇' : '🔊';
+	    console.log('setRemoteVolume:', remoteId, this.value, audioContexts[remoteId]?.gainNode?.gain.value);
+	});
+	
+	// 아이콘 클릭시 볼륨 0<->1 토글
+    icon.addEventListener('click', function(){
+        if (parseFloat(slider.value) === 0) {
+            slider.value = 1.0;
+        } else {
+            slider.value = 0;
+        }
+        slider.dispatchEvent(new Event('input'));
+    });
+
+	// 바깥 클릭 시 닫힘
+	setTimeout(() => {
+	    document.addEventListener('mousedown', hideProfilePopup, { once: true });
+	}, 50);
+
+	function hideProfilePopup(e){
+	    if (!popup.contains(e.target)){
+	    	popup.remove();
+	    	document.removeEventListener('mousedown', hideProfilePopup);
+	    }
+    }
+}
+
+//실제 볼륨 제어 함수 예시
+function getRemoteVolume(remoteId) {
+  // audioContexts[remoteId].gainNode.gain.value 등 실제 오디오 상태와 연동!
+  return audioContexts[remoteId]?.gainNode?.gain.value || 1.0;
+}
+function setRemoteVolume(remoteId, value) {
+  if (audioContexts[remoteId]) audioContexts[remoteId].gainNode.gain.value = value;
+}
 
 // remote feed 퇴장시 제거
 function removeRemoteStreamFromAudioList(feedId) {
