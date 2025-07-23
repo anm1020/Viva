@@ -2,6 +2,7 @@
 <!-- 공지 상세 본문 공통 프래그먼트
 	→ 관리자(프래그먼트) / 일반사용자(전체 페이지) 둘 다에서 th:replace로 불러옴 -->
 <div th:fragment="noticeDetail">
+<link rel="stylesheet" th:href="@{/css/board.css}">
   <h2 th:text="${notice.title}" style="text-align:center;">공지 제목</h2>
 
   <table style="width:700px; margin: 30px auto; border-collapse: collapse;">
@@ -10,7 +11,7 @@
       <td th:text="${notice.user.userId}">관리자</td>
     </tr>
     <tr>
-      <th>조회수</th>
+      <th>조회수ㅇㅇㅇ</th>
       <td th:text="${notice.viewCount}">0</td>
     </tr>
     <tr>

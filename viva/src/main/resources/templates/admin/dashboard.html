@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <title>관리자 대시보드</title>
     <link rel="stylesheet" th:href="@{/css/main.css}">
-    <link rel="stylesheet" th:href="@{/css/common.css}">
+<!--     <link rel="stylesheet" th:href="@{/css/common.css}"> -->
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
     <link rel="stylesheet" th:href="@{/css/users.css}">
     <link rel="stylesheet" th:href="@{/css/notice.css}">
+    <link rel="stylesheet" th:href="@{/css/board.css}">
 </head>
 <body>
 <!-- 공통 헤더 -->
@@ -20,9 +21,8 @@
         <nav>
             <a href="#" class="sidebar-link" data-url="/notice/noticeList">공지관리</a>
             <a href="#" class="sidebar-link" data-url="/admin/users">회원관리</a>
-            <a href="#" class="sidebar-link" data-url="/admin/posts">게시물관리</a>
-            <a href="#" class="sidebar-link" data-url="/admin/points">포인트관리</a>
-            <a href="#" class="sidebar-link" data-url="/admin/interviewers">면접관 관리</a>
+            <a href="#" class="sidebar-link" data-url="/admin/boardList">게시글관리</a>
+            <a href="#" class="sidebar-link" data-url="/admin/points1">포인트관리</a>
         </nav>
     </aside>
 
@@ -41,7 +41,9 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="/js/users.js"></script>
 <script src="/js/notice.js"></script>
+<script src="/js/points1.js"></script>
+<script src="/js/adminBoardlist.js"></script>
 
-<div th:replace="~{fragments/footer :: footer}"></div>
+<!-- <div th:replace="~{fragments/footer :: footer}"></div> -->
 </body>
 </html>

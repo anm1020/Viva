@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>포인트 환전 관리</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+  <style>
+    .admin-table { width:100%; border-collapse:collapse; }
+    .admin-table th, .admin-table td { padding:8px; border:1px solid #ddd; text-align:center; }
+    .admin-table th { background:#f5f5f5; }
+
+    .btn-approve, .btn-reject {
+      padding:4px 8px;
+      margin:0 2px;
+      border:none;
+      border-radius:4px;
+      cursor:pointer;
+    }
+    .btn-approve { background:#c8e6c9; }
+    .btn-reject  { background:#ffcdd2; }
+
+    .status-pending {
+      display:inline-block; margin-left:8px; padding:4px 8px;
+      background:#eee; color:#555; border-radius:4px; font-weight:bold;
+    }
+    .status-approved {
+      display:inline-block; margin-left:8px; padding:4px 8px;
+      background:#a5d6a7; color:#1b5e20; border-radius:4px; font-weight:bold;
+    }
+    .status-rejected {
+      display:inline-block; margin-left:8px; padding:4px 8px;
+      background:#ef9a9a; color:#b71c1c; border-radius:4px; font-weight:bold;
+    }
+
+    /* 페이징 스타일 */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      margin: 24px 0 0 0;
+      font-size: 1.08rem;
+    }
+    .pagination a {
+      display: inline-block;
+      min-width: 30px;
+      padding: 6px 10px;
+      margin: 0 2px;
+      border-radius: 6px;
+      border: 1.2px solid #ddd;
+      text-decoration: none;
+      color: #333;
+      background: #f7f7f7;
+      text-align: center;
+      transition: all 0.16s;
+      font-weight: 500;
+    }
+    .pagination a.active, .pagination a:disabled {
+      background: #333;
+      color: #fff;
+      border: 1.5px solid #222;
+      cursor: default;
+      pointer-events: none;
+    }
+    .pagination a[disabled] {
+      pointer-events: none;
+      color: #ccc;
+      border: 1.2px solid #eee;
+      background: #f5f5f5;
+    }
+  </style>
+</head>
+<body>
+  <!-- AJAX 로드 시 이 프래그먼트(adminContent)만 잘라서 삽입됩니다 -->
+  <div id="adminContent" th:fragment="adminContent">
+    <h2>포인트 환전 관리</h2>
+    <p>언제든 “승인” 또는 “거절” 버튼을 눌러 상태를 변경할 수 있습니다.</p>
+
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>번호</th>
+          <th>유저ID</th>
+          <th>이름</th>
+          <th>연락처</th>
+          <th>은행</th>
+          <th>계좌번호</th>
+          <th>포인트</th>
+          <th>신청시간</th>
+          <th>상태</th>
+          <th>처리</th>
+        </tr>
+      </thead>
+      <tbody id="pointsBody">
+        <tr th:each="ex : ${requestsPage.content}" th:id="'row-' + ${ex.id}">
+          <td th:text="${ex.id}">1</td>
+          <td th:text="${ex.userId}">mem01</td>
+          <td th:text="${ex.name}">홍길동</td>
+          <td th:text="${ex.phone}">010-1234-5678</td>
+          <td th:text="${ex.bank}">국민은행</td>
+          <td th:text="${ex.account}">123-456-7890</td>
+          <td th:text="${ex.amount} + 'P'">1000P</td>
+          <td th:text="${#temporals.format(ex.requestedAt,'yyyy-MM-dd HH:mm')}">
+            2025-07-23 03:03
+          </td>
+          <!-- 상태 컬럼 -->
+          <td class="status-cell">
+            <span th:if="${ex.status=='PENDING'}" class="status-pending">대기중</span>
+            <span th:if="${ex.status=='APPROVED'}" class="status-approved">승인</span>
+            <span th:if="${ex.status=='REJECTED'}" class="status-rejected">거절</span>
+          </td>
+          <!-- 처리(버튼) 컬럼 -->
+          <td class="action-cell">
+            <button type="button" class="btn-approve" th:data-id="${ex.id}">승인</button>
+            <button type="button" class="btn-reject"  th:data-id="${ex.id}">거절</button>
+          </td>
+        </tr>
+        <!-- 데이터가 하나도 없을 때 -->
+        <tr th:if="${requestsPage.totalElements == 0}">
+          <td colspan="10" style="text-align:center;">처리할 요청이 없습니다.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 페이지 네비게이션(ul, li 없이 a 태그만) -->
+    <div class="pagination">
+      <!-- ◀ 이전 -->
+      <a href="#" class="page-btn"
+         th:if="${requestsPage.hasPrevious()}"
+         th:data-page="${requestsPage.number - 1}">&lt;</a>
+      <!-- 페이지 번호 -->
+      <span th:each="i : ${#numbers.sequence(0, requestsPage.totalPages-1)}">
+        <a href="#" class="page-btn"
+           th:data-page="${i}"
+           th:text="${i+1}"
+           th:classappend="${i} == ${requestsPage.number} ? ' active' : ''"></a>
+      </span>
+      <!-- ▶ 다음 -->
+      <a href="#" class="page-btn"
+         th:if="${requestsPage.hasNext()}"
+         th:data-page="${requestsPage.number + 1}">&gt;</a>
+    </div>
+  </div>
+</body>
+</html>

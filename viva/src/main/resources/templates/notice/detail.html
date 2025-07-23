@@ -1,40 +1,99 @@
 <!-- notice/detail.html -->
-<div class="notice-detail-wrap" th:fragment="adminContent">
-  <h2>공지사항 상세</h2>
-
-  <form id="noticeEditForm" th:object="${notice}">
-    <input type="hidden" th:field="*{noticeId}" />
-
-    <div class="form-group">
-      <label>제목</label>
-      <input type="text" th:field="*{title}" class="form-control" th:readonly="${!isAdmin}">
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>공지 상세</title>
+  <link rel="stylesheet" th:href="@{/css/board.css}">
+  <link rel="stylesheet" th:href="@{/css/notice.css}">
+  <style>
+    /* form-group (board/notice 스타일 일치용) */
+    .form-group {
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .form-group label {
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 1.15rem;
+      color: #222;
+    }
+    .form-group input[type="text"],
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 15px 20px;
+      border-radius: 8px;
+      border: 1px solid #bbb;
+      background-color: #fafafa;
+      font-size: 1.3rem;
+      font-family: 'Georgia', serif;
+      color: #333;
+      margin-top: 2px;
+    }
+    .form-group textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    
+    
+  </style>
+</head>
+<body>
+<div class="detail-container" th:fragment="adminContent">
+  <!-- [관리자용] 수정 폼 -->
+  <form th:if="${isAdmin}" id="noticeEditForm" th:object="${notice}">
+   <input type="hidden" th:field="*{noticeId}"> <!-- ★ 꼭 필요! -->
+    <div class="title-row">
+      <h2>공지 상세</h2>
+      <div class="meta-info">
+        <span th:if="${notice.isFixed == 'Y'}" style="color:#a6794e; font-weight:700;">[상단고정]</span>
+        <span th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
+      </div>
     </div>
 
     <div class="form-group">
-      <label>내용</label>
-      <textarea th:field="*{content}" class="form-control" rows="8" th:readonly="${!isAdmin}"></textarea>
+      <label for="title">제목</label>
+      <input type="text" id="title" th:field="*{title}">
     </div>
-
     <div class="form-group">
-      <label>상단 고정 여부</label>
-      <select th:field="*{isFixed}" class="form-control" th:disabled="${!isAdmin}">
-        <option value="N" th:selected="${notice.isFixed == 'N'}">일반</option>
-        <option value="Y" th:selected="${notice.isFixed == 'Y'}">상단 고정</option>
+      <label for="content">내용</label>
+      <textarea id="content" th:field="*{content}" rows="8"></textarea>
+    </div>
+    <div class="form-group">
+      <label for="isFixed">상단 고정 여부</label>
+      <select id="isFixed" th:field="*{isFixed}">
+        <option value="N">일반</option>
+        <option value="Y">상단 고정</option>
       </select>
     </div>
+    <div class="form-actions">
+	  <div class="left-btns">
+	    <button type="button" id="btnUpdateNotice" th:data-id="${notice.noticeId}">수정</button>
+	    <button type="button" id="btnDeleteNotice" th:data-id="${notice.noticeId}">삭제</button>
+	  </div>
+	  <div class="right-btns">
+	    <a href="#" class="edit-back-link btn-notice-list">목록</a>
+	  </div>
+	</div>
 
-    <div class="form-group">
-      <label>작성일</label>
-      <span th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
+  <!-- [일반 사용자용] 상세 뷰 -->
+  <div th:if="${!isAdmin}">
+    <div class="title-row">
+      <h2 th:text="${notice.title}">공지 제목</h2>
+      <div class="meta-info">
+        <span th:if="${notice.isFixed == 'Y'}" style="color:#a6794e; font-weight:700;">[상단고정]</span>
+        <span th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
+      </div>
     </div>
-
-    <div class="form-actions" style="margin-top: 20px;">
-      <th:block th:if="${isAdmin}">
-        <button type="button" id="btnUpdateNotice">수정</button>
-		<!-- <button type="button" id="btnDeleteNotice" data-id="${notice.noticeId}">삭제</button> -->
-		<button type="button" id="btnDeleteNotice" th:data-id="${notice.noticeId}">삭제</button>
-      </th:block>
-      <a href="#" class="btn-notice-list btn btn-secondary">목록</a>
+    <div class="detail-content" th:text="${notice.content}">공지 내용</div>
+    <div class="btn-group">
+      <a href="#" class="btn-notice-list">목록</a>
     </div>
-  </form>
+  </div>
 </div>
+</body>
+</html>
