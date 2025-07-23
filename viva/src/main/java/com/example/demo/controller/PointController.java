@@ -70,7 +70,13 @@ public class PointController {
 		Payment payment = new Payment();
 		payment.setPayResno((String) payload.get("payResno")); // 결제 고유 번호
 		payment.setPayAmount(BigDecimal.valueOf(amount)); // 결제 금액
-		payment.setResId(Long.parseLong(payload.get("resId").toString())); // 예약번호: 0이면 포인트 충전 전용
+		//payment.setResId(Long.parseLong(payload.get("resId").toString())); // 예약번호: 0이면 포인트 충전 전용
+		Object resIdObj = payload.get("resId");
+		if (resIdObj == null || resIdObj.toString().equals("0")) {
+		    payment.setResId(null);  // 예약번호 없으면 null로 설정
+		} else {
+		    payment.setResId(Long.parseLong(resIdObj.toString()));
+		}
 		payment.setPayType(Payment.PayType.CHARGE); // ★ 필수! 포인트 충전 타입 지정
 		payment.setPayStatus(Payment.PayStatus.paid); // 결제 완료 상태 지정
 		payment.setUserId(user.getUserId()); // 회원 ID도 꼭 넣어주세요!
