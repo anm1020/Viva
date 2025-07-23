@@ -15,11 +15,13 @@
   <!-- Hero Section -->
  <section class="hero">
   <div class="hero-content">
-    <h1>YOU CAN DO IT!<br>잘 준비보셈</h1>
-    <p>
-     여기서 취업준비 하면서  <strong>개인스킬</strong><br>
-     올리고! 취업해보셈!
-    </p>
+   <h1>YOU CAN DO IT!<br>AI 면접으로 준비 완료!</h1>
+<p>
+  지금 바로 <strong>AI 면접</strong> 연습하고,<br>
+  <strong>실시간 화상 모의면접</strong>까지 경험해보세요!<br>
+  면접 걱정은 이제 끝!
+</p>
+
     <a href="/ai/aivoice" class="cta-button">AI 모의 면접</a>
   </div>
 
@@ -34,8 +36,10 @@
 
 <section class="features-section">
   <div class="features-wrapper">
-    <h2 class="features-title">Our Best Mentors</h2>
-    <p class="features-desc">Our focus is on equipping you with the tools and knowledge you need to drive tangible results in your endeavors.</p>
+    <h2 class="features-title">Your Job Prep, Smarter & Stronger</h2>
+<p class="features-desc">
+  AI 모의면접부터 화상 채팅, 멘토 탐색, 커뮤니티까지!취업 준비의 모든 것을 이곳에서 경험해보세요.
+</p>
     <div class="feature-grid">
       <!-- ✅ 카드 1 -->
       <a href="/ai/aichat" class="feature-box">
@@ -85,8 +89,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
 <section class="interviewer-slider-section">
   <h2 class="slider-title">Our Best Mentors</h2>
-  <p class="slider-desc">Our focus is on equipping you with the tools and knowledge you need to drive tangible results in your endeavors.</p>
-  <div class="swiper interviewer-swiper">
+  <p class="features-desc">
+다양한 분야의 실무 전문가들과 함께 실전 면접을 연습하고 커리어 방향을 설정해보세요.
+</p><div class="swiper interviewer-swiper">
     <div class="swiper-wrapper">
       <div class="swiper-slide" th:each="i : ${interviewerList}">
         <div class="interviewer-card" th:onclick="'location.href=\'/interviewer/' + ${i.intrId} + '\''">
