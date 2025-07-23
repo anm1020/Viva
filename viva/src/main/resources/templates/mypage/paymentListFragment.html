@@ -16,7 +16,7 @@
 			</thead>
 			<tbody>
 				<!-- 예약번호가 0이 아닌 결제 내역만 -->
-				<tr th:each="payment : ${payments}" th:if="${payment.resId != 0}">
+				<tr th:each="payment : ${payments}" th:if="${payment.resId != null}">
 					<td th:text="${payment.payId}">1</td>
 					<td th:text="${payment.resId}">100</td>
 					<td
@@ -48,7 +48,7 @@
 			</thead>
 			<tbody>
 				<!-- 예약번호가 0인 충전 내역만 -->
-				<tr th:each="payment : ${payments}" th:if="${payment.resId == 0}">
+				<tr th:each="payment : ${payments}" th:if="${payment.resId == null}">
 					<td th:text="${payment.payId}">1</td>
 					<td
 						th:text="${#dates.format(payment.payCreateDt, 'yyyy-MM-dd HH:mm')}">2025-07-13

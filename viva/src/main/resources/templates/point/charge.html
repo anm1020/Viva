@@ -15,7 +15,7 @@
 	<div class="charge-wrapper">
 		<h2 th:text="'안녕하세요, ' + ${userName} + '님 '"></h2>
 		<p class="point-amount">
-			현재 보유 포인트: <strong>29,400원</strong>
+			현재 보유 포인트: <strong th:text="${point} + '원'">0원</strong>
 		</p>
 		<p class="charge-guide">충전 금액을 선택해주세요</p>
 		<div class="charge-btn-container">
@@ -64,7 +64,7 @@
 																		userId : userId,
 																		payResno : rsp.merchant_uid,
 																		payAmount : rsp.paid_amount,
-																		resId : 0, // 예약ID 없음을 의미, 충전 기록용
+																		resId : null, // 예약ID 없음을 의미, 충전 기록용
 																		payType : "CARD" // 충전은 카드로 결제했으므로 CARD
 																	}),
 															success : function(
