@@ -50,6 +50,8 @@ public class InterviewRoomService {
 	        .intrRoomTitle(dto.getIntrRoomTitle())
 	        .host(host)
 	        .statusCd(dto.getStatusCd())
+	        .roomPw(dto.getRoomPw())                        
+	        .participantCount(dto.getParticipantCount())
 	        .build();
 
 	    InterviewRoom savedRoom = intrRoomRepo.save(room);
@@ -79,6 +81,8 @@ public class InterviewRoomService {
 	            .startedDt(entity.getStartedDt())
 	            .endedDt(entity.getEndedDt())
 	            .statusCd(entity.getStatusCd())
+	            .roomPw(entity.getRoomPw())                        
+	            .participantCount(entity.getParticipantCount())
 	            .build();
 	}
 	
