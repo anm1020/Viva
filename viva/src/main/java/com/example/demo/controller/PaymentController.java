@@ -83,6 +83,7 @@ public class PaymentController {
 	    if(payment.getPayType() == null) {
 	        payment.setPayType(Payment.PayType.CARD);
 	    }
+	    
 	    if(payment.getPayStatus() == null) {
 	        payment.setPayStatus(Payment.PayStatus.paid);
 	    }
