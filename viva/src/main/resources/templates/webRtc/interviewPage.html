@@ -576,6 +576,7 @@ main {
 <!-- 내부 라이브러리 -->
 <script th:src="@{/js/webRtc/janus.js}"></script>
 <link rel="stylesheet" th:href="@{/css/common.css}">
+<link rel="stylesheet" th:href="@{/css/hero.css}" />
 <link rel="stylesheet"
 	th:href="@{https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css}" />
 <link rel="stylesheet"
@@ -586,7 +587,16 @@ main {
 <body>
 <!-- header -->
 <div th:replace="fragments/header :: headerFragment"></div>
-
+ <section class="hero-banner">
+		<div class="text-area">
+			<h1>Interview</h1>
+			<p>Prepare for an interview through a video interview</p>
+		</div>
+		<div class="img-area">
+			<!-- 이미지 숨김 처리됨 -->
+		</div>
+	</section>
+	<div class="board-footer">화상면접</div>
 	<!-- [2] 방 생성 화면 -->
 	<div id="new-view" class="view">
 		<h2>면접 방 생성</h2>
