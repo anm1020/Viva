@@ -570,6 +570,7 @@ html, body {
 <!-- 내부 라이브러리 -->
 <script th:src="@{/js/webRtc/janus.js}"></script>
 <link rel="stylesheet" th:href="@{/css/common.css}">
+<link rel="stylesheet" th:href="@{/css/hero.css}" />
 <link rel="stylesheet"
 	th:href="@{https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css}" />
 <link rel="stylesheet"
@@ -580,28 +581,105 @@ html, body {
 <body>
 <!-- header -->
 <div th:replace="fragments/header :: headerFragment"></div>
-
+ <section class="hero-banner">
+		<div class="text-area">
+			<h1>Interview</h1>
+			<p>Prepare for an interview through a video interview</p>
+		</div>
+		<div class="img-area">
+			<!-- 이미지 숨김 처리됨 -->
+		</div>
+	</section>
+	<div class="board-footer">화상면접</div>
 	<!-- [2] 방 생성 화면 -->
-	<div id="new-view" class="view">
+	<div id="new-view" class="view active">
 		<h2>면접 방 생성</h2>
 		<script>
 			console.log("[[${userId}]]");
 		</script>
+		<button class="creation">생성</button>
+		<div id="createRoomModal" class="modal" style="display:none;">
+		  <div class="modal-content">
+		    <span class="close">&times;</span>
+		    <h2>면접 방 생성</h2>
+		    <label>방 제목: <input type="text" id="modalRoomTitle" /></label><br>
+		    <label>비밀번호: <input type="password" id="modalRoomPw" /></label><br>
+		    <label>최대 인원: <input type="number" id="modalParticipantCount" min="2" max="6" value="2" /></label><br>
+		    <button id="submitCreateRoom">방 생성</button>
+		  </div>
+		</div>
 		<form id="createRoomForm">
 			<label for="intrRoomTitle">방 제목:</label> 
 			<input type="text" id="intrRoomTitle" name="intrRoomTitle" required />
+			
+			<label for="roomPw">비밀번호:</label>
+		    <input type="password" id="roomPw" name="roomPw" placeholder="(선택) 비밀번호 입력" />
+		
+		    <label for="participantCount">최대 참가 인원:</label>
+		    <input type="number" id="participantCount" name="participantCount" min="2" max="6" value="2" required />
+					
 			<input type="hidden" id="host_id" name="host_id" th:value="${userId}">
 			<button type="submit">방생성</button>
 		</form>
-		<button onclick="navigate('main')">← 뒤로가기</button>
+		<button onclick="location.href = '/main'">← 뒤로가기</button>
+		<br>
+		
+		
 	</div>
+	<script>
+		$(document).off("click", ".creation").on("click", ".creation", function () {
+		    $("#createRoomModal").show();
+		    // 필요하면 이 tr의 예약번호 등도 data-* 속성으로 모달에 저장
+		});
+	
+		// 모달 닫기
+		$(document).off("click", ".modal .close").on("click", ".modal .close", function () {
+		    $("#createRoomModal").hide();
+		});
+		
+		$(document).off("click", "#submitCreateRoom").on("click", "#submitCreateRoom", function () {
+		    const title = $("#modalRoomTitle").val();
+		    const roomPw = $("#modalRoomPw").val();
+		    const participantCount = $("#modalParticipantCount").val();
+		    // 필요하다면 예약번호/회원ID도 함께
+
+		    // 유효성 검사(예시)
+		    if (!title) return alert("방 제목을 입력하세요.");
+		    if (participantCount < 2) return alert("최소 2명 이상이어야 합니다.");
+
+		    fetch("/api/meeting/roomcreate", {
+		        method: "POST",
+		        headers: { "Content-Type": "application/json" },
+		        body: JSON.stringify({
+		            intrRoomTitle: title,
+		            roomPw: roomPw,
+		            participantCount: participantCount
+		            // hostId 등 필요정보 추가
+		        })
+		    })
+		    .then(res => res.json())
+		    .then(data => {
+		        alert("방 생성 완료!");
+		        // Janus 방 생성 함수 호출 (비동기 콜백 참고)
+		        return createRoomsOnJanus(data.intrRoomId, data.hostId);
+		    })
+		    .then(() => {
+		        $("#createRoomModal").hide();
+		        $("#contentArea").load("/reservation/intrmypage"); // SPA 갱신
+		    })
+		    .catch(err => {
+		        alert("생성 실패! " + err);
+		    });
+		});
+	</script>
+
 
 	<!-- [3] 방 목록 화면 -->
-	<div id="list-view" class="view active">
+	<div id="list-view" class="view">
 		<h2>면접 방 목록</h2>
 		<input type="hidden" id="user_id" name="user_id" th:value="${userId}">
 		<div id="roomList" class="room-list"></div>
-		<button onclick="navigate('main')">← 뒤로가기</button>
+		<button onclick="location.href = '/main'">← 뒤로가기</button>
 	</div>
 
 	<!-- [4] 통화방 화면 -->
@@ -640,15 +718,6 @@ html, body {
 				  </div>
 				
 				
-<!-- 			    	마이크 음소거 토글 버튼 -->
-<!-- 					<button id="mute-toggle" class="mic-toggle-btn">🎤 마이크 끄기</button> -->
-<!-- 			    	<button id="startCamBtn">📷 캠 시작</button> -->
-			    	
-<!-- 			    	  🔴 녹화/녹음 토글 버튼 -->
-<!-- 					<button id="recordToggleBtn">🎥 녹화 시작</button> -->
-<!-- 					<button id="audioRecordToggleBtn">🎙️ 녹음 시작</button> -->
-<!-- 			    	<button id="exitBtn">종료</button> -->
-<!-- 			    </div> -->
 			  </div>
 			</div>
 <!-- 		    🔵 비디오 그리드 -->
@@ -727,6 +796,8 @@ function navigate(view) {
   	document.getElementById(view + '-view').classList.add('active');
   
   	// 뷰 별 진입 처리
+  	if (view == 'new')
+  	
   	if (view === 'list') loadRoomList();
   	
   	if (view === 'videoroom'){
@@ -743,13 +814,18 @@ if (createForm) {
     e.preventDefault();
     const title = document.getElementById("intrRoomTitle").value;
 	const host_id = document.getElementById("host_id").value;
+	const roomPw = document.getElementById("roomPw").value;                
+	const participantCount = document.getElementById("participantCount").value;
+
 	console.log("hostId : " + host_id);
     fetch("/api/meeting/roomcreate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 
     	  intrRoomTitle: title,
-    	  hostId: host_id
+    	  roomPw: roomPw,
+    	  hostId: host_id,
+    	  participantCount: participantCount
       })
     })
     .then(res => res.json())

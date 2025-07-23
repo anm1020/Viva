@@ -48,6 +48,14 @@ public class InterviewRoom {
 	@Column(name = "status_cd", length = 20)
 	private String statusCd;
 
+	// 방 비밀번호
+    @Column(name = "room_pw", length = 100)
+    private String roomPw;
+
+    // 참여 인원
+    @Column(name = "participant_count")
+    private Integer participantCount;
+	
 	// insert 수행시 createDt값 자동으로 저장
 	@PrePersist
     public void prePersist() {
