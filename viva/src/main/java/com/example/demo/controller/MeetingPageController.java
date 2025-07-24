@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,6 +17,9 @@ public class MeetingPageController {
 	@Autowired
 	private UsersRepository usersRepository;
 	
+	@Value("${custom.ws-url}")
+	private String wsUrl;
+	
 	@GetMapping("/interviewPage") // 또는 "/meeting/main" 등
 	public String interviewSPA(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
 		String userId = userDetails.getUsername(); // 또는 getUserId() 등 커스텀 정의에 따라
@@ -27,7 +31,8 @@ public class MeetingPageController {
 
 		model.addAttribute("userId", userId);
 		model.addAttribute("userRole", user.getUserRole());
-		return "webRtc/interviewPage"; // templates/webRtc/interview.html
+		model.addAttribute("wsUrl", wsUrl);
+		return "webRtc/interviewPage";
 	}
 
 	@GetMapping("/demoTest")
