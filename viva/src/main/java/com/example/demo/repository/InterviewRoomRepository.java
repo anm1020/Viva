@@ -13,6 +13,9 @@ public interface InterviewRoomRepository extends JpaRepository<InterviewRoom, In
 
 	// 기본 CRUD는 JpaRepository에서 제공됨
 
+	// 내림차순 검색
+	List<InterviewRoom> findAllByOrderByIntrRoomIdDesc();
+	
 	// 예시: 상태별로 조회
 	List<InterviewRoom> findByStatusCd(String statusCd);
 

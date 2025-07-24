@@ -53,7 +53,7 @@ html, body {
   padding: 1.6rem 1.2rem;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
   transition: transform .13s;
   cursor: pointer;
   align-items: flex-start;
@@ -97,10 +97,10 @@ html, body {
 }
 
 .room-icon {
-	position: absolute;
-	bottom: 16px;
-	right: 16px;
-	font-size: 1.2rem;
+	position: relative;
+	top: 0px;
+	left: 230px;
+	font-size: 1.5rem;
 }
 
 .room-list a {
@@ -573,6 +573,14 @@ html, body {
 
 
 /* 방생성버튼(현진) */
+.room-btn-row {
+  display: flex;
+  justify-content: center;
+  gap: 18px;           /* 버튼 사이 여백 */
+  margin-top: 20px;    /* 위쪽 여백 */
+  width: 100%;
+}
+
 .creation{
 	background: #e0e4eb; /* 연한 회색 배경 */
 	color: #333; /* 어두운 글자색 */
@@ -724,40 +732,41 @@ html, body {
 
 </head>
 <body>
-<!-- header -->
-<div th:replace="fragments/header :: headerFragment"></div>
-<section class="hero-banner">
-	<div class="text-area">
-		<h1>Interview</h1>
-		<p>Prepare for an interview through a video interview</p>
-	</div>
-	<div class="img-area"></div>
-</section>
-
 <!-- 방 목록 화면 -->
 <div id="list-view" class="view active">
-	<div class="roomList-container">
-	
-	<h2>면접 방 목록</h2>
-	<input type="hidden" id="user_id" name="user_id" th:value="${userId}">
-	<div id="roomList" class="room-list"></div>
-	<button class="moveMain" onclick="location.href = '/main'">메인화면으로 이동</button>
-	<button class="creation" th:if="${userRole == 'intr'}">방생성</button>
-
-	<div id="createRoomModal" class="modal" style="display:none;">
-		<div class="modal-content">
-		    <h2>면접 방 생성</h2>
-		    <label for="intrRoomTitle">방 제목:</label> 
-		    <input type="text" id="intrRoomTitle" name="intrRoomTitle" /></label><br>
-		    <label for="roomPw">비밀번호:</label>
-		    <input type="password" id="roomPw" name="roomPw" /></label><br>
-		    <label for="participantCount">최대 참가 인원:</label>
-		    <input type="number" id="participantCount" name="participantCount" min="2" max="6" value="2" /></label><br>
-		    <input type="hidden" id="host_id" name="host_id" th:value=${userId}>
-		    <button id="btn-createRoom" class="btn-createRoom">방 생성</button>
-		    <button id="btn-close" class="btn-close">취소</button>
+	<!-- header -->
+	<div th:replace="fragments/header :: headerFragment"></div>
+	<section class="hero-banner">
+		<div class="text-area">
+			<h1>Interview</h1>
+			<p>Prepare for an interview through a video interview</p>
 		</div>
-	</div>
+		<div class="img-area"></div>
+	</section>
+	<div class="board-footer">화상 면접방</div>
+	<div class="roomList-container">
+		<input type="hidden" id="user_id" name="user_id" th:value="${userId}">
+		<div id="roomList" class="room-list"></div>
+		
+		<div class="room-btn-row">
+			<button class="moveMain" onclick="location.href = '/main'">메인화면으로 이동</button>
+			<button class="creation" th:if="${userRole == 'intr'}">방생성</button>
+		</div>
+	
+		<div id="createRoomModal" class="modal" style="display:none;">
+			<div class="modal-content">
+			    <h2>면접 방 생성</h2>
+			    <label for="intrRoomTitle">방 제목:</label> 
+			    <input type="text" id="intrRoomTitle" name="intrRoomTitle" /></label><br>
+			    <label for="roomPw">비밀번호:</label>
+			    <input type="password" id="roomPw" name="roomPw" /></label><br>
+			    <label for="participantCount">최대 참가 인원:</label>
+			    <input type="number" id="participantCount" name="participantCount" min="2" max="6" value="2" /></label><br>
+			    <input type="hidden" id="host_id" name="host_id" th:value=${userId}>
+			    <button id="btn-createRoom" class="btn-createRoom">방 생성</button>
+			    <button id="btn-close" class="btn-close">취소</button>
+			</div>
+		</div>
 	</div>
 </div>
 
@@ -1033,12 +1042,12 @@ function loadRoomList() {
           <div>
             <span class="room-status-dot ${statusClass}"></span>
             <span>${room.intrRoomId}</span>
+	        <span class="room-icon">${room.roomPw ? '🔒' : '🔓'}</span>
           </div>
           <div class="room-title">${room.intrRoomTitle}</div>
           <div class="room-info">${room.hostId}님의 방</div>
           <div class="room-info">현재 참가 인원 : 0 / ${room.participantCount}</div>
           <div class="room-info">생성: ${formatDate(room.createdDt)}</div>
-          <div class="room-icon">${room.roomPw ? '🔒' : '🔓'}</div>
         `;
         div.addEventListener("click", () => {
 	        if (room.roomPw) {
