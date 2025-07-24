@@ -136,11 +136,13 @@
 .summary-box {
 	font-size: 14px;
 	line-height: 1.6;
+	justify-content: space-between; /* 위-아래 분산 */
 }
 
 /* 확인 버튼 */
 #btn-confirm {
-	margin-top: 20px;
+	  align-self: center;
+	margin-top: 310px;
 	padding: 10px 20px;
 	font-size: 16px;
 	background-color: #f0f0f0;

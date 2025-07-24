@@ -139,6 +139,8 @@
 
     $('#btn-open-popup').on('click', function () {
       $('#reservation-box').slideDown();
+      $(this).hide(); // ✅ 이 줄 추가! 버튼 숨김
+      
 
       flatpickr("#calendar", {
         inline: true,
