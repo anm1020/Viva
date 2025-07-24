@@ -118,7 +118,8 @@
 		var displayName = null;
 		
 		function createRoomsOnJanus(roomId, hostId, participantCount) {
-		        Janus.init({
+			return new Promise((resolve, reject) => {
+				Janus.init({
 		            debug: "all",
 		            callback: function () {
 		                janus = new Janus({
@@ -137,26 +138,41 @@
 		                                        data: true
 		                                    }
 		                                });
+		                                
+		                                videohandle.onmessage = function (msg, jsep) {
+		                                	console.log("Janus server:", server);
+		                                	console.log("Janus onmessage 수신:", msg); // 모든 메시지 찍기
+		                                    if (msg["videoroom"] === "created") {
+		                                        console.log("✅ Janus room 생성됨!", msg);
+		                                        // 생성 끝나면 세션 닫기!
+		                                        janus.destroy();
+		                                        resolve();
+		                                    } else if (msg["error"]) {
+		                                        janus.destroy();
+		                                        reject(new Error("Janus 방 생성 실패: " + msg["error"]));
+		                                    }
+		                                };
+		                                
 		                                // 실제 생성 결과를 받으려면 onmessage 핸들 추가도 가능
-		                                alert("videoroom 생성 성공");
+// 		                                alert("videoroom 생성 성공");
 // 		                                resolve();
-			                            console.log("📹 Video room created");
+// 			                            console.log("📹 Video room created");
 			        	            },
 			        	            error: function (err) {
 			        	              console.error("Video plugin attach error", err);
+			        	              janus.destroy(); reject(err);
 			        	            }
 		        	           });
 		        	        },
 		        	        error: function (err) {
 		        	          console.error("Janus session error", err);
 		        	        },
-		        	        destroyed: function () {
-		        	          console.log("Janus session destroyed");
-		        	        }
+		        	        
 		      	      });
 		      	    }
 		      	  });
-		      }
+			});
+		}
 		
 		
 	</script>
