@@ -624,6 +624,9 @@ $(function() {
 	});
 
 </script>
+<script th:if="${error == 'point_insufficient'}" th:inline="javascript">
+  alert('포인트가 부족합니다. 포인트를 충전해주세요.');
+</script>
 
 <!-- 환전쓰 -->
 
