@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import java.math.BigDecimal;
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -119,6 +120,8 @@ public class PointController {
 		    boolean success = service.use(user.getUserId(), amount);
 		    if (!success) {
 		      //  return ResponseEntity.badRequest().body("포인트 부족");
+		    	return "redirect:/mypage?tab=schedule&error=point_insufficient";
+		    	
 		    } 
 
 		    // 3. 예약 상태 변경 (confirmed)
@@ -149,4 +152,42 @@ public class PointController {
 		  //  return ResponseEntity.ok("포인트 결제 완료 + 면접관 포인트 지급 완료");
 		    return "redirect:/mypage?tab=schedule";
 }
+	//예약결과페이지용 포인트결제@PostMapping("/use/ajax")
+	@ResponseBody
+	public ResponseEntity<?> usePointAjax(@RequestParam("userId") String userId,
+	                                      @RequestParam("amount") int amount,
+	                                      @RequestParam("resId") Long resId,
+	                                      HttpSession session) {
+	    Users user = (Users) session.getAttribute("user");
+	    if (user == null) {
+	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+	    }
+
+	    boolean success = service.use(user.getUserId(), amount);
+	    if (!success) {
+	        return ResponseEntity.badRequest().body("포인트가 부족합니다.");
+	    }
+
+	    resservice.markReservationAsPaid(resId);
+
+	    Reservation reservation = resservice.findById(resId);
+	    if (reservation != null) {
+	        String intrId = reservation.getIntrId();
+	        service.charge(intrId, amount);
+	    }
+
+	    Payment payment = Payment.builder()
+	            .userId(user.getUserId())
+	            .resId(resId)
+	            .payAmount(BigDecimal.valueOf(amount))
+	            .payType(Payment.PayType.POINT)
+	            .payStatus(Payment.PayStatus.paid)
+	            .payResno("POINT_" + System.currentTimeMillis())
+	            .build();
+
+	    paymentRepository.save(payment);
+
+	    return ResponseEntity.ok("포인트 결제 완료");
+	}
+
 }

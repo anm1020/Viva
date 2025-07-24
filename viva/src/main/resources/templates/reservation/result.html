@@ -76,14 +76,16 @@
 
       $.ajax({
         type: 'POST',
-        url: '/point/use',
+        url: '/point/use/ajax',  // ajax 전용 엔드포인
         data: { userId, resId, amount },
         success: function(response) {
           alert("포인트 결제 완료!");
           location.href = "/mypage?tab=schedule";
         },
         error: function(xhr) {
-          alert("결제 실패: " + xhr.responseText);
+        	 if (confirm("포인트가 부족합니다. 포인트를 충전하시겠습니까?")) {
+        		    window.location.href = "/point/chargePage"; // 포인트 충전 페이지로 이동
+        	 }
         }
       });
     });

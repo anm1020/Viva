@@ -45,7 +45,7 @@
 						<form th:action="@{/point/use}" method="post" class="inline-form"
 							onsubmit="return confirm('포인트로 결제하시겠습니까?');">
 							<input type="hidden" name="userId" th:value="${userId}" /> 
-							<input type="hidden" name="amount" value="100" /> 
+							<input type="hidden" name="amount" value="5000" /> 
 							<input type="hidden" name="resId" th:value="${r.resId}" />
 							<button type="submit" class="btn-pay btn-point">포인트결제</button>
 						</form>

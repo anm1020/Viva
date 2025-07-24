@@ -62,6 +62,7 @@ p {
   font-style: italic;
   margin-bottom: 35px;
   color: #bbb;
+  text-decoration: none;
 }
 
 .charge-btn {
