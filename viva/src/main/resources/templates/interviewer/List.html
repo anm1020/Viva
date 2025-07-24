@@ -78,9 +78,9 @@
               <div class="categories">
                 <span th:each="cate, iterStat : ${#strings.arraySplit(i.intrCate, ',')}" th:if="${iterStat.index < 3}" th:with="categoryType=${T(com.example.demo.model.entity.CategoryType).valueOf(cate.trim())}" th:text="${categoryType}" class="category-tag"></span>
               </div>
-
             </div>
             <p class="intro" th:text="${i.intrIntro != null ? i.intrIntro : '소개 없음'}">한줄소개</p>
+
 <!--             <button class="reserve-btn" th:onclick="'event.stopPropagation(); location.href=\'/reservation/book?intrId=' + ${i.intrId} + '\''">예약하기</button> -->
 	             <button class="reserve-btn" th:if="${role != 'intr'}" th:onclick="|event.stopPropagation(); location.href='@{/reservation/book(intrId=${i.userId})}'|">예약하기</button>
 			 	 <div th:if="${role == 'intr'}" style="text-align:center; margin:10px 0;">
@@ -110,16 +110,16 @@
             <span>면접관 없음</span>
           </div>
         </div>
-
-          
-<!--       </a> -->
-
-
-
+        
+        <!-- 프로필 카드 만들기 버튼 (9번째 empty box 아래로 이동) -->
+        <div class="create-profile-section" th:if="${role == 'intr'}" style="width: 100%; text-align: center; margin-top: 30px;">
+          <a href="/interviewer/form">
+            <button type="button" class="write-btn">➕ 프로필 카드 만들기</button>
+          </a>
+        </div>
     </div>
   </div>
 </div>
-
 
     <!-- 페이징 UI -->
     <div class="paging">
@@ -133,16 +133,10 @@
       <button>&gt;&gt;</button>
     </div>
 
-    <!-- 하단 액션 영역 -->
+    <!-- 하단 액션 영역 (기존 버튼 제거) -->
     <div class="bottom-actions">
       <div></div> <!-- 빈 공간 -->
-      <div th:if="${role == 'intr'}">
-        <a href="/interviewer/form">
-          <button type="button" class="write-btn">➕ 프로필 카드 만들기</button>
-        </a>
-      </div>
     </div>
-  </div>
 
   <!-- Footer -->
   <div th:replace="fragments/footer :: footerFragment"></div>
