@@ -23,19 +23,45 @@ html, body {
 
 /* ================================== */
 
+.roomList-container {
+  display: flex;
+  flex-direction: column;
+  max-width: 1100px;
+  margin: 50px auto 50px auto;
+  min-height: calc(100vh - 200px);
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 14px rgba(70,110,180,0.08);
+}
+
+
 .room-list {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3열 고정 */
+  gap: 2rem;              /* 카드 사이 간격 */
+  justify-items: center;  /* 카드 내부 가운데 정렬 */
+  margin: 2rem auto;
+  max-width: 1100px;      /* 한줄에 3개까지만 */
 }
 
 .room-card {
-	background-color: #fff;
-	width: 300px;
-	border-radius: 12px;
-	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-	padding: 16px;
-	position: relative;
+  width: 300px;
+  min-height: 180px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 3px 20px #0001;
+  padding: 1.6rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform .13s;
+  cursor: pointer;
+  align-items: flex-start;
+}
+
+.room-card:hover {
+  transform: translateY(-5px) scale(1.03);
+  box-shadow: 0 5px 28px #0002;
 }
 
 .room-status-dot {
@@ -700,202 +726,98 @@ html, body {
 <body>
 <!-- header -->
 <div th:replace="fragments/header :: headerFragment"></div>
- <section class="hero-banner">
-		<div class="text-area">
-			<h1>Interview</h1>
-			<p>Prepare for an interview through a video interview</p>
-		</div>
-		<div class="img-area">
-			<!-- 이미지 숨김 처리됨 -->
-		</div>
-	</section>
-	<div class="board-footer">화상면접</div>
-	<!-- [2] 방 생성 화면 -->
-	<div id="new-view" class="view">
-		<h2>면접 방 생성</h2>
-		<script>
-			console.log("[[${userId}]]");
-		</script>
-<!-- 		<button class="creation">생성</button> -->
-<!-- 		<div id="createRoomModal" class="modal" style="display:none;"> -->
-<!-- 		  <div class="modal-content"> -->
-<!-- 		    <span class="close">&times;</span> -->
-<!-- 		    <h2>면접 방 생성</h2> -->
-<!-- 		    <label>방 제목: <input type="text" id="modalRoomTitle" /></label><br> -->
-<!-- 		    <label>비밀번호: <input type="password" id="modalRoomPw" /></label><br> -->
-<!-- 		    <label>최대 인원: <input type="number" id="modalParticipantCount" min="2" max="6" value="2" /></label><br> -->
-<!-- 		    <button id="submitCreateRoom">방 생성</button> -->
-<!-- 		  </div> -->
-<!-- 		</div> -->
-<!-- 		<form id="createRoomForm"> -->
-<!-- 			<label for="intrRoomTitle">방 제목:</label>  -->
-<!-- 			<input type="text" id="intrRoomTitle" name="intrRoomTitle" required /> -->
-			
-<!-- 			<label for="roomPw">비밀번호:</label> -->
-<!-- 		    <input type="password" id="roomPw" name="roomPw" placeholder="(선택) 비밀번호 입력" /> -->
-		
-<!-- 		    <label for="participantCount">최대 참가 인원:</label> -->
-<!-- 		    <input type="number" id="participantCount" name="participantCount" min="2" max="6" value="2" required /> -->
-					
-<!-- 			<input type="hidden" id="host_id" name="host_id" th:value="${userId}"> -->
-<!-- 			<button type="submit">방생성</button> -->
-<!-- 		</form> -->
-		<button onclick="location.href = '/main'">← 뒤로가기</button>
-		<br>
-		
-		
+<section class="hero-banner">
+	<div class="text-area">
+		<h1>Interview</h1>
+		<p>Prepare for an interview through a video interview</p>
 	</div>
+	<div class="img-area"></div>
+</section>
 
-	<!-- [3] 방 목록 화면 -->
-	<div id="list-view" class="view active">
-		<h2>면접 방 목록</h2>
-		<input type="hidden" id="user_id" name="user_id" th:value="${userId}">
-		<div id="roomList" class="room-list"></div>
-		<button class="moveMain" onclick="location.href = '/main'">메인화면으로 이동</button>
-		<button class="creation" th:if="${userRole == 'intr'}">방생성</button>
+<!-- 방 목록 화면 -->
+<div id="list-view" class="view active">
+	<div class="roomList-container">
+	
+	<h2>면접 방 목록</h2>
+	<input type="hidden" id="user_id" name="user_id" th:value="${userId}">
+	<div id="roomList" class="room-list"></div>
+	<button class="moveMain" onclick="location.href = '/main'">메인화면으로 이동</button>
+	<button class="creation" th:if="${userRole == 'intr'}">방생성</button>
 
-			<!-- 현진 추가 -->
-		<div id="createRoomModal" class="modal" style="display:none;">
-			<div class="modal-content">
-			    <h2>면접 방 생성</h2>
-			    <label for="intrRoomTitle">방 제목:</label> 
-			    <input type="text" id="intrRoomTitle" name="intrRoomTitle" /></label><br>
-			    <label for="roomPw">비밀번호:</label>
-			    <input type="password" id="roomPw" name="roomPw" /></label><br>
-			    <label for="participantCount">최대 참가 인원:</label>
-			    <input type="number" id="participantCount" name="participantCount" min="2" max="6" value="2" /></label><br>
-			    <input type="hidden" id="host_id" name="host_id" th:value=${userId}>
-			    <button id="btn-createRoom" class="btn-createRoom">방 생성</button>
-			    <button id="btn-close" class="btn-close">취소</button>
+	<div id="createRoomModal" class="modal" style="display:none;">
+		<div class="modal-content">
+		    <h2>면접 방 생성</h2>
+		    <label for="intrRoomTitle">방 제목:</label> 
+		    <input type="text" id="intrRoomTitle" name="intrRoomTitle" /></label><br>
+		    <label for="roomPw">비밀번호:</label>
+		    <input type="password" id="roomPw" name="roomPw" /></label><br>
+		    <label for="participantCount">최대 참가 인원:</label>
+		    <input type="number" id="participantCount" name="participantCount" min="2" max="6" value="2" /></label><br>
+		    <input type="hidden" id="host_id" name="host_id" th:value=${userId}>
+		    <button id="btn-createRoom" class="btn-createRoom">방 생성</button>
+		    <button id="btn-close" class="btn-close">취소</button>
+		</div>
+	</div>
+	</div>
+</div>
+
+<!-- 통화방 화면 -->
+<div id="videoroom-view" class="view">
+			
+	<div class="video-chat-wrapper">
+		<div class="main-video-area">
+		  <div class="main-video-bundle">
+			<!-- 상단 썸네일 바 -->
+			<div class="video-thumbnails" id="videoThumbnails"></div>
+			<!-- 중앙 메인 비디오 -->
+			<div class="main-video-container">
+			  <video id="mainVideo" autoplay playsinline muted></video>
 			</div>
-			
-			<script>
-			$(document).off("click", ".creation").on("click", ".creation", function () {
-			    $("#createRoomModal").show();
-			    $("#intrRoomTitle").val("");
-			    $("#roomPw").val("");
-			    $("#participantCount").val("2");
-			});
-		
-			// 모달 닫기
-			$(document).off("click", ".modal .btn-close").on("click", ".modal .btn-close", function () {
-			    $("#createRoomModal").hide();
-			});
-			
-			// 바깥 영역 클릭시 닫기 (선택)
-			$(document).off("mousedown", ".modal").on("mousedown", ".modal", function (e) {
-			    if ($(e.target).is(".modal")) $("#createRoomModal").fadeOut(100);
-			});
-			
-			$(document).off("click", "#btn-createRoom").on("click", "#btn-createRoom", function () {
-			    const title = $("#intrRoomTitle").val();
-			    const host_id = $("#host_id").val();
-			    const roomPw = $("#roomPw").val();
-			    const participantCount = $("#participantCount").val();
-
-			    // 간단 유효성
-			    if (!title) return alert("방 제목을 입력하세요.");
-
-			    fetch("/api/meeting/roomcreate", {
-			        method: "POST",
-			        headers: { "Content-Type": "application/json" },
-			        body: JSON.stringify({
-			            intrRoomTitle: title,
-			            roomPw: roomPw,
-			            hostId: host_id,
-			            participantCount: participantCount
-			        })
-			    })
-			    .then(res => {
-			        if (!res.ok) throw new Error("서버 오류");
-			        return res.json();
-			    })
-			    .then(data => {
-			        alert(`방 생성 완료: ${data.intrRoomTitle}`);
-
-			        const roomId = data.intrRoomId;
-			        const hostId = data.hostId;
-
-			        // Janus 세션 생성(아래 함수 참고)
-			        return createRoomsOnJanus(roomId, hostId, participantCount);
-			    })
-			    .then(() => {
-			        // 모두 완료 후
-			        $("#createRoomModal").hide();
-			        loadRoomList();
-			    })
-			    .catch(err => {
-			        alert("방 생성 실패: " + err.message);
-			    });
-			});
-			
-			</script>
-		</div>
-
-	</div>
-
-	<!-- [4] 통화방 화면 -->
-	<div id="videoroom-view" class="view">
-			
-		<div class="video-chat-wrapper">
-			<div class="main-video-area">
-			  <div class="main-video-bundle">
-				<!-- 상단 썸네일 바 -->
-				<div class="video-thumbnails" id="videoThumbnails"></div>
-				<!-- 중앙 메인 비디오 -->
-				<div class="main-video-container">
-				  <video id="mainVideo" autoplay playsinline muted></video>
-				</div>
-				<div class="control-bar">
-				    <div class="control-btn" id="mute-toggle">
-				      <span class="icon">🎤</span>
-				      <span class="label">마이크</span>
-				    </div>
-				    <div class="control-btn" id="startCamBtn">
-				      <span class="icon">📷</span>
-				      <span class="label">카메라</span>
-				    </div>
-				    <div class="control-btn" id="recordToggleBtn">
-				      <span class="icon">🎥</span>
-				      <span class="label">녹화</span>
-				    </div> 
-				    <div class="control-btn" id="audioRecordToggleBtn">
-				      <span class="icon">🎙️</span>
-				      <span class="label">음성녹음</span>
-				    </div>
-				    <div class="control-btn end" id="exitBtn">
-				      <span class="icon">🚪</span>
-				      <span class="label">종료</span>
-				    </div>
-				  </div>
-				
-				
+			<div class="control-bar">
+			    <div class="control-btn" id="mute-toggle">
+			      <span class="icon">🎤</span>
+			      <span class="label">마이크</span>
+			    </div>
+			    <div class="control-btn" id="startCamBtn">
+			      <span class="icon">📷</span>
+			      <span class="label">카메라</span>
+			    </div>
+			    <div class="control-btn" id="recordToggleBtn">
+			      <span class="icon">🎥</span>
+			      <span class="label">녹화</span>
+			    </div> 
+			    <div class="control-btn" id="audioRecordToggleBtn">
+			      <span class="icon">🎙️</span>
+			      <span class="label">음성녹음</span>
+			    </div>
+			    <div class="control-btn end" id="exitBtn">
+			      <span class="icon">🚪</span>
+			      <span class="label">종료</span>
+			    </div>
 			  </div>
-			</div>
-			<div class="right-panel">
-				<!-- 참가자 패널 -->
-				<div id="participantPanel" class="participant-panel">
-				  <div class="panel-header">
-				    <span>참가자(<span id="participantCount">0</span>)</span>
-				    <button onclick="refreshParticipantList()">🔄</button>
-				  </div>
-				  <div class="panel-body" id="participantList"></div>
-				</div>
-
-				<!-- 🔵 채팅창 -->
-			    <div class="chat-panel">
-			      <div class="chat-title">채팅창</div>
-			      <div class="chat-messages" id="chatMessages"></div>
-			      <div class="chat-input-area">
-			        <input type="text" id="chatInput" placeholder="내용 입력" />
-			        <button id="sendChatBtn">전송</button>
-			      </div>
-			  	</div>
-			
-			</div>
+		  </div>
 		</div>
-
+		<div class="right-panel">
+			<!-- 참가자 패널 -->
+			<div id="participantPanel" class="participant-panel">
+			  <div class="panel-header">
+			    <span>참가자(<span id="participantCount">0</span>)</span>
+			    <button onclick="refreshParticipantList()">🔄</button>
+			  </div>
+			  <div class="panel-body" id="participantList"></div>
+			</div>
+			<!-- 🔵 채팅창 -->
+		    <div class="chat-panel">
+		      <div class="chat-title">채팅창</div>
+		      <div class="chat-messages" id="chatMessages"></div>
+		      <div class="chat-input-area">
+		        <input type="text" id="chatInput" placeholder="내용 입력" />
+		        <button id="sendChatBtn">전송</button>
+		      </div>
+		  	</div>
+		</div>
 	</div>
+</div>
 
 <script>
 //✅ 전역 상태 변수
@@ -953,6 +875,67 @@ function navigate(view) {
   
   	currentView = view;
 }
+
+// 방 생성 버튼 클릭
+$(document).off("click", ".creation").on("click", ".creation", function () {
+    $("#createRoomModal").show();
+    $("#intrRoomTitle").val("");
+    $("#roomPw").val("");
+    $("#participantCount").val("2");
+});
+
+// 모달 닫기
+$(document).off("click", ".modal .btn-close").on("click", ".modal .btn-close", function () {
+    $("#createRoomModal").hide();
+});
+
+// 바깥 영역 클릭시 닫기 (선택)
+$(document).off("mousedown", ".modal").on("mousedown", ".modal", function (e) {
+    if ($(e.target).is(".modal")) $("#createRoomModal").fadeOut(100);
+});
+
+$(document).off("click", "#btn-createRoom").on("click", "#btn-createRoom", function () {
+    const title = $("#intrRoomTitle").val();
+    const host_id = $("#host_id").val();
+    const roomPw = $("#roomPw").val();
+    const participantCount = $("#participantCount").val();
+
+    // 간단 유효성
+    if (!title) return alert("방 제목을 입력하세요.");
+
+    fetch("/api/meeting/roomcreate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            intrRoomTitle: title,
+            roomPw: roomPw,
+            hostId: host_id,
+            participantCount: participantCount
+        })
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("서버 오류");
+        return res.json();
+    })
+    .then(data => {
+        alert(`방 생성 완료: ${data.intrRoomTitle}`);
+
+        const roomId = data.intrRoomId;
+        const hostId = data.hostId;
+
+        // Janus 세션 생성(아래 함수 참고)
+        return createRoomsOnJanus(roomId, hostId, participantCount);
+    })
+    .then(() => {
+        // 모두 완료 후
+        $("#createRoomModal").hide();
+        loadRoomList();
+    })
+    .catch(err => {
+        alert("방 생성 실패: " + err.message);
+    });
+});
+
 
 // ✅ 방 생성
 const createForm = document.getElementById("createRoomForm");
