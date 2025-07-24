@@ -1476,6 +1476,7 @@ function createJanusSession() {
   });
 }
 
+
 function restartPublisherWithRealCam() {
 	if (!janus || !selectedRoomId) return;
 
@@ -1925,6 +1926,14 @@ function cleanupAllFeeds() {
   document.getElementById('videoThumbnails').innerHTML = '';
   document.getElementById('mainVideo').srcObject = null;
   
+  // remoteAudioMap의 모든 스트림 중지 및 해제
+  remoteAudioMap.forEach((stream, feedId) => {
+      // 오디오 트랙 정지
+      stream.getTracks().forEach(track => track.stop());
+      remoteAudioMap.delete(feedId);
+  });
+
+  
   // Audio context 정리
   Object.values(audioContexts).forEach(state => state.ctx.close());
   Object.keys(audioContexts).forEach(k => delete audioContexts[k]);
@@ -2008,13 +2017,8 @@ function connectChat(roomId) {
     
     // 구독
     stompClient.subscribe(`/topic/chat/${roomId}`, function (messageOutput) {
-      console.log("채팅 연결 1");
       const msg = JSON.parse(messageOutput.body);
-      console.log("채팅 연결 2");
-
 	  appendChatMessage(msg.sender, msg.message);
-      console.log("채팅 연결 3");
-
     });
 	sendMessage(displayName + "님이 입장하셨습니다.");
   });
@@ -2064,7 +2068,10 @@ function leaveRoom() {
 		        isDestroying = false;
 	    	}
 	  	});
-	}
+	} else {
+        // 만약 janus 세션이 이미 없거나 이미 종료 중이면 직접 정리!
+        cleanupAllFeeds();
+    }
 	
 	// 5. 전역 상태 초기화
 	selectedRoomId = null;
@@ -2153,13 +2160,42 @@ document.getElementById("exitBtn").addEventListener("click", function () {
 	navigate('list'); // navigate는 세션정리 없이 화면 전환만
 });
 
+let isCamOn = true;
 // 캠 시작 버튼 클릭
 document.getElementById("startCamBtn").addEventListener("click", function () {
-	restartPublisherWithRealCam();
+	if (isCamOn) {
+        // 캠 끄기 (unpublish 또는 dummy publish)
+        turnOffCamera();
+    } else {
+        // 캠 켜기 (실제 캠 publish)
+        turnOnCamera();
+    }
+    isCamOn = !isCamOn; // 상태 토글
+    updateCamBtn();
+	// 	restartPublisherWithRealCam();
 });
 
 //마이크 토글 버튼 클릭 핸들러
 document.getElementById("mute-toggle").addEventListener("click", toggleMute);
+
+
+function updateCamBtn() {
+    const btn = document.getElementById("startCamBtn");
+    btn.textContent = isCamOn ? "캠 끄기" : "캠 켜기";
+}
+
+// 캠 끄기 (실제로는 dummy stream publish 또는 unpublish)
+function turnOffCamera() {
+    if (!sfutest) return;
+    // 내 트랙을 멈추고 dummyStream을 publish
+    publishOwnDummyFeed(displayName); // 또는 sfutest.send({ request: "unpublish" });
+}
+
+// 캠 켜기 (실제 카메라 스트림 publish)
+function turnOnCamera() {
+    // 실제 캠 스트림을 재연결
+    publishOwnFeed(displayName);
+}
 
 //녹음 및 녹화 버튼 토글
 let isRecording = false;
