@@ -142,7 +142,6 @@
 /* 확인 버튼 */
 #btn-confirm {
 	  align-self: center;
-	margin-top: 310px;
 	padding: 10px 20px;
 	font-size: 16px;
 	background-color: #f0f0f0;
@@ -155,6 +154,23 @@
 }
 
 #btn-confirm:hover {
+	background: gray;
+	color: white;
+}
+.reserve-btnn {
+	  align-self: center;
+	padding: 10px 20px;
+	font-size: 16px;
+	background-color: #f0f0f0;
+	color: black;
+	border: none;
+	border-radius: 6px;
+	cursor: pointer;
+	transition: background 0.2s;
+	font-family: 'Georgia', serif;
+}
+
+#reserve-btn:hover {
 	background: gray;
 	color: white;
 }
