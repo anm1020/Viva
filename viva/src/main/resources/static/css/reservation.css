@@ -136,11 +136,12 @@
 .summary-box {
 	font-size: 14px;
 	line-height: 1.6;
+	justify-content: space-between; /* 위-아래 분산 */
 }
 
 /* 확인 버튼 */
 #btn-confirm {
-	margin-top: 20px;
+	  align-self: center;
 	padding: 10px 20px;
 	font-size: 16px;
 	background-color: #f0f0f0;
@@ -153,6 +154,23 @@
 }
 
 #btn-confirm:hover {
+	background: gray;
+	color: white;
+}
+.reserve-btnn {
+	  align-self: center;
+	padding: 10px 20px;
+	font-size: 16px;
+	background-color: #f0f0f0;
+	color: black;
+	border: none;
+	border-radius: 6px;
+	cursor: pointer;
+	transition: background 0.2s;
+	font-family: 'Georgia', serif;
+}
+
+#reserve-btn:hover {
 	background: gray;
 	color: white;
 }
