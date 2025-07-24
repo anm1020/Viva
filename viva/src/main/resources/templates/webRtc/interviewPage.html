@@ -562,6 +562,21 @@ html, body {
 	color: #000;
 }
 
+.moveMain{
+	background: #e0e4eb; /* 연한 회색 배경 */
+	color: #333; /* 어두운 글자색 */
+	font-size: 13px;
+	padding: 6px 12px;
+	border: none; /* 테두리 없음 */
+	border-radius: 6px;
+	cursor: pointer;
+	transition: background 0.2s, color 0.2s;
+}
+.moveMain:hover {
+	background: #cfd5e0; /* 살짝 진한 회색으로 강조 */
+	color: #000;
+}
+
 /* 방 생성 버튼 css 추가(현진) */
 .btn-createRoom{
 	background: #e0e4eb; /* 연한 회색 배경 */
@@ -736,8 +751,8 @@ html, body {
 		<h2>면접 방 목록</h2>
 		<input type="hidden" id="user_id" name="user_id" th:value="${userId}">
 		<div id="roomList" class="room-list"></div>
-		<button onclick="location.href = '/main'">← 뒤로가기</button>
-		<button class="creation" th:if="${userRole == 'intr'}">생성</button>
+		<button class="moveMain" onclick="location.href = '/main'">메인화면으로 이동</button>
+		<button class="creation" th:if="${userRole == 'intr'}">방생성</button>
 
 			<!-- 현진 추가 -->
 		<div id="createRoomModal" class="modal" style="display:none;">
@@ -1038,10 +1053,26 @@ function loadRoomList() {
           </div>
           <div class="room-title">${room.intrRoomTitle}</div>
           <div class="room-info">${room.hostId}님의 방</div>
+          <div class="room-info">현재 참가 인원 : 0 / ${room.participantCount}</div>
           <div class="room-info">생성: ${formatDate(room.createdDt)}</div>
-          <div class="room-icon">🔒 🔓</div>
+          <div class="room-icon">${room.roomPw ? '🔒' : '🔓'}</div>
         `;
-        div.addEventListener("click", () => enterRoom(room.intrRoomId, room.hostId, userId));
+        div.addEventListener("click", () => {
+	        if (room.roomPw) {
+	            // 비밀번호 입력 팝업
+	            const input = prompt("비밀번호를 입력하세요:");
+	            if (input === null) return; // 취소
+	            if (input === room.roomPw) {
+	                // 비밀번호 일치 → 입장
+	                enterRoom(room.intrRoomId, room.hostId, userId);
+	            } else {
+	                alert("비밀번호가 일치하지 않습니다.");
+	            }
+	        } else {
+	            // 비밀번호 없는 방 → 바로 입장
+	            enterRoom(room.intrRoomId, room.hostId, userId);
+	        }
+	    });
         listEl.appendChild(div);
       });
     });
