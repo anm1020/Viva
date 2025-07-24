@@ -28,8 +28,9 @@ public class AudioUploadController {
 		
 		// EC2에서는 /home/ubuntu/uploads/audio 절대경로
         String osName = System.getProperty("os.name").toLowerCase();
-        if (osName.contains("win")) {
-            this.baseUploadPath = "C:/recordings/uploads/audio/"; // 로컬 개발용 window에서 저장
+        if (osName.contains("win") || osName.contains("mac")) {
+        	this.baseUploadPath = System.getProperty("user.dir") + "/recordings/audio/";
+ // 로컬 개발용 window에서 저장
         } else {
             this.baseUploadPath = "/home/ubuntu/recordings/audio/"; // EC2 리눅스 서버용
         }
