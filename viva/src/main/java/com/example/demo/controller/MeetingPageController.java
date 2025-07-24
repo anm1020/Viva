@@ -35,9 +35,6 @@ public class MeetingPageController {
 		return "webRtc/interviewPage";
 	}
 
-	@GetMapping("/demoTest")
-	public String demoTest() {
-		return "webRtc/webRtcDemoTest";
-	}
+	
 
 }

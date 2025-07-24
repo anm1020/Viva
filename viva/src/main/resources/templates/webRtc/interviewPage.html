@@ -1172,6 +1172,7 @@ function enterRoom(roomId, host, name) {
 function initJanus() {
   if (!Janus.isWebrtcSupported()) {
     alert("WebRTC를 지원하지 않는 브라우저입니다.");
+    navigate('list');
     return;
   }
   
