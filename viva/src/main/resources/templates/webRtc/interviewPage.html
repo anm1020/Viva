@@ -592,7 +592,7 @@ html, body {
 	</section>
 	<div class="board-footer">화상면접</div>
 	<!-- [2] 방 생성 화면 -->
-	<div id="new-view" class="view active">
+	<div id="new-view" class="view">
 		<h2>면접 방 생성</h2>
 		<script>
 			console.log("[[${userId}]]");
@@ -675,7 +675,7 @@ html, body {
 
 
 	<!-- [3] 방 목록 화면 -->
-	<div id="list-view" class="view">
+	<div id="list-view" class="view active">
 		<h2>면접 방 목록</h2>
 		<input type="hidden" id="user_id" name="user_id" th:value="${userId}">
 		<div id="roomList" class="room-list"></div>
@@ -1851,9 +1851,12 @@ function connectChat(roomId) {
     
     // 구독
     stompClient.subscribe(`/topic/chat/${roomId}`, function (messageOutput) {
+      console.log("채팅 연결 1");
       const msg = JSON.parse(messageOutput.body);
+      console.log("채팅 연결 2");
 
 	  appendChatMessage(msg.sender, msg.message);
+      console.log("채팅 연결 3");
 
     });
 	sendMessage(displayName + "님이 입장하셨습니다.");
