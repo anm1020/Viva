@@ -18,13 +18,13 @@
 				<!-- 예약번호가 0이 아닌 결제 내역만 -->
 				<tr th:each="payment : ${payments}" th:if="${payment.resId != null}">
 					<td th:text="${payment.payId}">1</td>
-					<td th:text="${payment.resId}">100</td>
+					<td th:text="${payment.resId}">5000</td>
 					<td
 						th:text="${#dates.format(payment.payCreateDt, 'yyyy-MM-dd HH:mm')}">2025-07-13
 						15:30</td>
 					<td th:text="${payment.payType}">CARD</td>
 					<td
-						th:text="${#numbers.formatDecimal(payment.payAmount, 0, 'COMMA', 0, 'POINT')} + '원'">100원</td>
+						th:text="${#numbers.formatDecimal(payment.payAmount, 0, 'COMMA', 0, 'POINT')} + '원'">5000원</td>
 
 
 				</tr>

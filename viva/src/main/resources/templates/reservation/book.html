@@ -1,57 +1,66 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>예약 페이지</title>
-   <link rel="stylesheet" th:href="@{/css/common.css}">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <script src="https://code.jquery.com/jquery-latest.js"></script>
-  <link rel="stylesheet" href="/css/reservation.css"/>
-  <link rel="stylesheet" href="/css/book.css"/>
+<meta charset="UTF-8">
+<title>예약 페이지</title>
+<link rel="stylesheet" th:href="@{/css/common.css}">
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://code.jquery.com/jquery-latest.js"></script>
+<link rel="stylesheet" href="/css/reservation.css" />
+<link rel="stylesheet" href="/css/book.css" />
 </head>
 <body>
 
-  <div th:replace="fragments/header :: headerFragment"></div>
-<div class="header-wrapper">
-  <h1 th:text="  ${userName} + '님 '+ '예약 '">예약하기</h1>
+	<div th:replace="fragments/header :: headerFragment"></div>
+	<div class="header-wrapper">
+		<h1 th:text="  ${userName} + '님 '+ '예약 '">예약하기</h1>
 
-  <p>
-    면접관: <span th:text="${intrName}">홍길동</span>
-  </p>
+		<p>
+			면접관: <span th:text="${intrName}">홍길동</span>
+		</p>
 
-  <p>
-    예약자: <span th:text="${userName} ?: '이름없음'"></span>
-  </p>
-</div>
+		<p>
+			예약자: <span th:text="${userName} ?: '이름없음'"></span>
+		</p>
+	</div>
 
-<!-- 3단 구성 -->
-<div class="reservation-wrapper">
-  <!-- ① 달력 -->
-  <div class="calendar-panel">
-    <div id="calendar"></div>
-  </div>
+	<!-- 3단 구성 -->
+	<div class="reservation-wrapper">
+		<!-- ① 달력 -->
+		<div class="calendar-panel">
+			<div id="calendar"></div>
+		</div>
 
-  <!-- ② 시간 버튼 -->
-  <div class="time-panel">
-    <h3 id="selected-date-label">날짜를 선택해주세요</h3>
-    <div id="times-grid" class="times-grid"></div>
-  </div>
+		<!-- ② 시간 버튼 -->
+		<div class="time-panel">
+			<h3 id="selected-date-label">날짜를 선택해주세요</h3>
+			<div id="times-grid" class="times-grid"></div>
+		</div>
 
-  <!-- ③ 정보 + 확인 버튼 -->
-  <div class="summary-panel">
-    <div class="summary-box">
-      <p><strong>선택한 날짜</strong> </p>
-      <p><span id="summary-date">-</span></p>
-      <p><strong>선택한 시간</strong> </p>
-      <p><span id="summary-time">-</span></p>
-    </div>
-    <button id="btn-confirm">확인</button>
-  </div>
-</div>
+		<!-- ③ 정보 + 확인 버튼 -->
+		<div class="summary-panel">
+			<div class="summary-box">
+				<p>
+					<strong>선택한 날짜</strong>
+				</p>
+				<p>
+					<span id="summary-date">-</span>
+				</p>
+				<p>
+					<strong>선택한 시간</strong>
+				</p>
+				<p>
+					<span id="summary-time">-</span>
+				</p>
+			</div>
+			<button id="btn-confirm">확인</button>
+		</div>
+	</div>
 
-<!-- Script -->
-<script th:inline="javascript">
+	<!-- Script -->
+	<script th:inline="javascript">
   var intrId = /*[[${intrId}]]*/ 'unknown';
   var reservedSlots = /*[[${reservedSlots}]]*/ {};
   var disabledSlots = /*[[${disabledSlots}]]*/ {};
@@ -132,8 +141,8 @@
     });
   });
 </script>
-<!-- Footer -->
-  <div th:replace="fragments/footer :: footerFragment"></div>
+	<!-- Footer -->
+	<div th:replace="fragments/footer :: footerFragment"></div>
 
 </body>
 </html>
