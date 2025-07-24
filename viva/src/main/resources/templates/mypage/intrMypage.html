@@ -5,6 +5,8 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<!-- 수정폼 --> 
+<script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <meta charset="UTF-8">
 <title>면접관 마이페이지</title>
 <link rel="stylesheet" th:href="@{/css/main.css}">
@@ -33,7 +35,7 @@ body {
 /* 사이드바 */
 .sidebar {
 	width: 230px;
-	background: #eaf1fb;
+	background: #f9f6f1; 
 	padding: 36px 0 0 0;
 	display: flex;
 	flex-direction: column;
@@ -49,7 +51,7 @@ body {
 
 .sidebar-menu a {
 	font-size: 17px;
-	color: #314266;
+	color: #5a4220;  /* 진한 브라운 글씨 */
 	text-decoration: none;
 	padding: 10px 0 10px 12px;
 	border-radius: 5px 0 0 5px;
@@ -58,9 +60,10 @@ body {
 	letter-spacing: -0.2px;
 }
 
-.sidebar-menu a.active, .sidebar-menu a:hover {
-	background: #c3d3ee;
-	color: #2951a3;
+.sidebar-menu a.active, 
+.sidebar-menu a:hover {
+	background: #edd3b3;
+	color: black;
 	font-weight: bold;
 }
 
@@ -122,7 +125,7 @@ body {
 }
 
 .stat-info {
-	background: #eaf1fb;
+	background: #f2f6fb;
 	border-radius: 9px;
 	box-shadow: 0 2px 8px rgba(70, 110, 180, 0.06);
 	padding: 32px 40px;
