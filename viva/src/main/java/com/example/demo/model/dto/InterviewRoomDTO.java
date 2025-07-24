@@ -19,4 +19,6 @@ public class InterviewRoomDTO {
     private LocalDateTime startedDt;
     private LocalDateTime endedDt;
     private String statusCd;
+    private String roomPw;            // 방 비밀번호
+    private Integer participantCount; // 참여 인원
 }
