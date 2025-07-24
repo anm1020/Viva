@@ -28,7 +28,7 @@
   <!-- 커스텀 상단 -->
   <div class="custom-header">
     <button type="button" id="new-chat-btn">새로운 대화 생성</button>
-    <button type="button" id="load-sessions-btn">대화내역 불러오기</button>
+   <!-- <button type="button" id="load-sessions-btn">대화내역 불러오기</button>-->
   </div>
 
   <div class="container">
@@ -64,7 +64,8 @@
       </form>
     </div>
   </div>
-
+<!-- Footer -->
+  <div th:replace="fragments/footer :: footerFragment"></div>
   <script th:inline="javascript">
   const form = document.getElementById("prompt-form");
   const input = document.getElementById("prompt-input");
