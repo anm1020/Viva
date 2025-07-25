@@ -74,7 +74,7 @@
           <div class="card-hover">
             <!-- 복제된 이름 + 카테고리 (슬라이드되게 위쪽에 표시) -->
             <div class="slide-info">
-              <h3 class="name" th:text="${i.userName + role}">이름</h3>
+              <h3 class="name" th:text="${i.userName}">이름</h3>
               <div class="categories">
                 <span th:each="cate, iterStat : ${#strings.arraySplit(i.intrCate, ',')}" th:if="${iterStat.index < 3}" th:with="categoryType=${T(com.example.demo.model.entity.CategoryType).valueOf(cate.trim())}" th:text="${categoryType}" class="category-tag"></span>
               </div>
