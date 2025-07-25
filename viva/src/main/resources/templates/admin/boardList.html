@@ -24,7 +24,7 @@
                 <td th:text="${board.likeCount}"></td>
                 <td th:text="${board.viewCount}"></td>
                 <td>
-                    <button class="btn-delete-board" th:attr="data-id=${board.id}">삭제</button>
+                    <div class="delete-board" th:attr="data-id=${board.id}">삭제</div>
                 </td>
             </tr>
         </tbody>

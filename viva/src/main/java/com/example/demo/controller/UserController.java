@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import java.security.Principal;
+
 import java.util.List;
 import java.util.Map;
 
@@ -508,8 +509,15 @@ public class UserController {
 
 	// 취업사이트 버튼(마이페이지에)
 	@GetMapping("/jobsite")
-	public String jobSitesPage() {
-		return "mypage/jobsite"; // jobSites.html
+	public String jobSitesPage(HttpSession session, Model model) {
+	    Users users = (Users) session.getAttribute("user");
+	    // 디버그용(항상 찍힘)
+	    System.out.println("===== /mypage/jobsite 호출됨, session user=" + users);
+	    if (users != null) {
+	        System.out.println(" → role=" + users.getUserRole());
+	        model.addAttribute("role", users.getUserRole());
+	    }
+	    return "mypage/jobsite";
 	}
 
 	// 결제 내역(마이페이지)

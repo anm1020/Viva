@@ -9,7 +9,7 @@
           <th style="padding:10px; border:1px solid #ddd;">회원 ID</th>
           <th style="padding:10px; border:1px solid #ddd;">리뷰 내용</th>
           <th style="padding:10px; border:1px solid #ddd;">평점</th>
-          <th style="padding:10px; border:1px solid #ddd;">작성일</th>
+          <!-- <th style="padding:10px; border:1px solid #ddd;">작성일</th> -->
         </tr>
       </thead>
       <tbody>
@@ -20,7 +20,7 @@
           <td th:text="${review.userId}" style="padding:10px; border:1px solid #ddd;"></td>
           <td th:text="${review.content}" style="padding:10px; border:1px solid #ddd;"></td>
           <td th:text="${review.score}" style="padding:10px; border:1px solid #ddd;"></td>
-          <td th:text="${#temporals.format(review.createdDt, 'yyyy-MM-dd HH:mm')}" style="padding:10px; border:1px solid #ddd;"></td>
+          <!-- <td th:text="${#temporals.format(review.createdDt, 'yyyy-MM-dd HH:mm')}" style="padding:10px; border:1px solid #ddd;"></td> -->
         </tr>
       </tbody>
     </table>
