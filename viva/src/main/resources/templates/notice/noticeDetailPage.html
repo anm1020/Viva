@@ -1,25 +1,194 @@
-<!-- templates/notice/noticeDetailPage.html
-	일반 사용자에게 전체 HTML로 공지 보여주는 페이지 -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>공지 상세</title>
-  <link rel="stylesheet" th:href="@{/css/main.css}">
-  <link rel="stylesheet" th:href="@{/css/common.css}">
+  <meta charset="UTF-8" />
+  <title>공지사항 상세</title>
+  <link rel="stylesheet" th:href="@{/css/common.css}" />
+  <link rel="stylesheet" th:href="@{/css/board.css}" />
 </head>
 <body>
-  <div th:replace="~{fragments/header :: header}"></div>
+  <!-- Header -->
+  <div th:replace="fragments/header :: headerFragment"></div>
 
-  <div class="container" style="padding: 30px;">
-    <h1 style="text-align:center;">공지사항 상세</h1>
+  <div class="detail-container">
+    <!-- 목록 버튼 -->
+    <div class="btn-group btn-group-list">
+      <a th:href="@{/board/list}">목록으로</a>
+    </div>
 
-    <!-- 공통 본문 -->
-    <div th:replace="~{notice/detailContent :: noticeDetail}"></div>
+    <!-- 제목/메타 -->
+    <div class="title-row">
+      <h2 th:text="${notice.title}">공지 제목</h2>
+      <div class="meta-info">
+        <span th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
+        <span>조회수: <span th:text="${notice.viewCount}"></span></span>
+      </div>
+    </div>
 
-    <div style="text-align:center; margin-top: 20px;">
-      <a href="/board/list">← 목록으로</a>
+    <!-- 작성자 -->
+    <div class="detail-author">
+      작성자: <span th:text="${notice.user.userId}">admin</span>
+    </div>
+
+    <!-- 본문 내용 -->
+    <div class="detail-content" th:text="${notice.content}">공지 내용</div>
+
+    <!-- 추천수 및 추천 버튼 -->
+    <div class="detail-like">
+      추천 수: <span class="like-count" th:text="${notice.likeCount != null ? notice.likeCount : 0}">0</span>
+    </div>
+    <button class="like-button" th:attr="data-id=${notice.noticeId}">추천</button>
+
+    <!-- 댓글 영역 -->
+    <div class="comment-box">
+      <h3>댓글</h3>
+      <button id="show-comment-form" type="button" class="commentwrite">댓글 작성</button>
+      <!-- 댓글 작성 폼 -->
+      <form th:action="@{/notice/comment/add}" method="post" id="comment-form" style="display: none;">
+        <input type="hidden" id="noticeId" name="noticeId" th:value="${notice.noticeId}" />
+        <textarea name="content" rows="3" required></textarea>
+        <br />
+        <button class="commentwrite" type="submit">댓글 작성 완료</button>
+      </form>
+      <!-- 댓글 목록 -->
+      <div id="commentList">
+        <div th:each="comment : ${commentList}" class="comment-item">
+          <div class="comment-wrapper">
+            <div class="comment-main">
+              <span class="comment-meta">
+                <strong th:text="${comment.user.userId}">작성자ID</strong> · 
+                <span th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</span>
+              </span>
+              <div class="comment-content" th:id="'content-' + ${comment.id}" th:text="${comment.content}">댓글 내용</div>
+              <!-- 댓글 수정 폼 (기본 숨김) -->
+              <form th:action="@{/notice/comment/update}" method="post" th:id="'form-' + ${comment.id}" class="comment-edit-form" style="display: none;">
+                <input type="hidden" name="commentId" th:value="${comment.id}" />
+                <input type="hidden" name="noticeId" th:value="${notice.noticeId}" />
+                <input type="text" name="content" th:value="${comment.content}" required />
+                <button type="submit" class="btn-editok">수정완료</button>
+                <button type="button" class="btn-cancel" th:data-id="${comment.id}">취소</button>
+              </form>
+            </div>
+            <!-- 본인 댓글만 수정/삭제 -->
+            <div class="btn-group"
+              th:if="${session.user != null and comment.user != null and session.user.userId == comment.user.userId}">
+              <div class="comment-actions">
+                <button type="button" class="btn-edit btn-edit-toggle" th:data-id="${comment.id}">수정</button>
+                <form th:action="@{/notice/comment/delete/{id}(id=${comment.id})}" method="post" style="margin: 0;">
+                  <input type="hidden" name="noticeId" th:value="${notice.noticeId}" />
+                  <button type="submit" class="btn-delete">삭제</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+
+  <!-- JQuery 및 스크립트 -->
+  <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+  <script>
+    $(function() {
+      // 추천 버튼 클릭
+      $('.like-button').click(function() {
+        const button = $(this);
+        const noticeId = button.data('id');
+        if (localStorage.getItem('notice_liked_' + noticeId)) {
+          alert('이미 추천하셨습니다.');
+          return;
+        }
+        const countSpan = $('.detail-like .like-count');
+        $.ajax({
+          url: '/notice/like/' + noticeId,
+          type: 'POST',
+          success: function() {
+            let currentCount = parseInt(countSpan.text()) || 0;
+            countSpan.text(currentCount + 1);
+            localStorage.setItem('notice_liked_' + noticeId, 'true');
+            alert('추천 감사합니다!');
+          },
+          error: function() {
+            alert('추천 처리에 실패했습니다.');
+          }
+        });
+      });
+
+      // 댓글 작성 폼 토글
+      $('#show-comment-form').click(function() {
+        $('#comment-form').toggle();
+      });
+
+      // 댓글 등록 AJAX
+      $('#comment-form').on('submit', function(e) {
+        e.preventDefault();
+
+        var formData = $(this).serialize();
+
+        $.ajax({
+          url: '/notice/comment/add',
+          type: 'POST',
+          data: formData,
+          success: function(data) {
+            alert('댓글이 등록되었습니다!');
+            $('#comment-form')[0].reset();
+            $('#comment-form').hide();
+            loadComments($('#noticeId').val());
+          },
+          error: function() {
+            alert('댓글 등록 실패!');
+          }
+        });
+      });
+
+      // 댓글 목록 AJAX로 새로고침
+      function loadComments(noticeId) {
+        $.ajax({
+          url: '/notice/comment/' + noticeId,
+          type: 'GET',
+          success: function(comments) {
+            var html = '';
+            $.each(comments, function(i, comment) {
+              html += `
+              <div class="comment-item">
+                <div class="comment-wrapper">
+                  <div class="comment-main">
+                    <span class="comment-meta">
+                      <strong>${comment.user ? comment.user.userId : '알수없음'}</strong> · 
+                      <span>${comment.createdAt ? comment.createdAt.substring(0, 16).replace('T',' ') : ''}</span>
+                    </span>
+                    <div class="comment-content">${comment.content}</div>
+                  </div>
+                </div>
+              </div>`;
+            });
+            $('#commentList').html(html);
+          },
+          error: function() {
+            $('#commentList').html('<div>댓글을 불러오지 못했습니다.</div>');
+          }
+        });
+      }
+
+      // 댓글 수정 버튼 토글
+      $(document).on('click', '.btn-edit-toggle', function() {
+        const commentId = $(this).data('id');
+        $('#content-' + commentId).hide();
+        $('#form-' + commentId).show();
+        $(this).hide();
+      });
+
+      // 댓글 수정 취소
+      $(document).on('click', '.btn-cancel', function() {
+        const commentId = $(this).data('id');
+        $('#form-' + commentId).hide();
+        $('#content-' + commentId).show();
+        $('.btn-edit-toggle[data-id="' + commentId + '"]').show();
+      });
+
+    });
+  </script>
+
+  <div th:replace="fragments/footer :: footerFragment"></div>
 </body>
 </html>

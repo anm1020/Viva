@@ -179,3 +179,58 @@
   font-weight: bold;
   vertical-align: middle;
 }
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;  /* 양쪽 정렬 */
+  align-items: center;
+  width: 100%;
+  margin-top: 30px;
+  gap: 0;
+}
+
+.left-btns {
+  display: flex;
+  gap: 12px;
+}
+
+.right-btns {
+  margin-left: auto;  /* 오른쪽 끝으로 */
+}
+
+.form-actions button,
+.btn-notice-list {
+  padding: 8px 22px;
+  border-radius: 8px;
+  border: none;
+  font-size: 1.05rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+  box-shadow: 0 2px 10px 0 rgba(170, 170, 170, 0.09);
+  outline: none;
+}
+
+#btnUpdateNotice {
+  background: #456afe;
+  color: #fff;
+}
+#btnUpdateNotice:hover {
+  background: #2346b2;
+}
+#btnDeleteNotice {
+  background: #ff6262;
+  color: #fff;
+}
+#btnDeleteNotice:hover {
+  background: #d53535;
+}
+.btn-notice-list {
+  background: #fafbff;
+  color: #2346b2;
+  border: 1.2px solid #d2e0ff;
+}
+.btn-notice-list:hover {
+  background: #e9f1ff;
+  color: #1d336e;
+}

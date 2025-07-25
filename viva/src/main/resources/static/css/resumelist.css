@@ -1,0 +1,110 @@
+/* src/main/resources/static/css/resume.css */
+/* 예원추가 */
+@charset "UTF-8";
+
+/* 1. 리스트 컨테이너 */
+.resume-list-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 50px;
+  flex: 1 0 auto;
+}
+
+/* 2. 헤더 영역 */
+.resume-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+.resume-header h2 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
+/* 새 작성 버튼 */
+.btn-new {
+  background: #fff;
+  color: #c97a00;
+  border: 1px solid #c97a00;
+  border-radius: 5px;
+  padding: 8px 18px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-new:hover {
+  background: #c97a00;
+  color: #fff;
+}
+
+/* 3. 각 이력서 카드 */
+.resume-item {
+  border: 1px solid #ccc;
+  padding: 18px 20px 15px 20px;
+  margin-bottom: 18px;
+  border-radius: 12px;
+  background: #fafbfc;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+/* 카드 헤더 (제목 + 액션) */
+.resume-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+/* 제목 링크 */
+.resume-title-link {
+  font-size: 1.15rem;
+  font-weight: bold;
+  color: #222;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.resume-title-link:hover {
+  color: #007bff;
+  text-decoration: underline;
+}
+
+/* 작성/수정 날짜 */
+.resume-date {
+  color: #888;
+  font-size: 0.95rem;
+  margin: 8px 0 0 0;
+}
+
+/* 카드 액션(보기/수정/삭제 버튼) */
+.actions {
+  display: flex;
+  flex-direction: row-reverse;
+  gap: 8px;
+  margin-top: 10px;
+}
+.actions a,
+.actions button {
+  background: #f4f4f4;
+  color: #333;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  padding: 6px 14px;
+  font-size: 0.98rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.actions a:hover,
+.actions button:hover {
+  background: #007bff;
+  color: #fff;
+  border-color: #007bff;
+}
+
+/* 푸터 고정용 (필요하다면) */
+.footer-fixed {
+  margin-top: auto;
+}

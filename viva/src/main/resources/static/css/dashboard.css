@@ -9,3 +9,18 @@
         .admin-main-content { flex: 1; padding: 40px; background-color: #f5f5f5; }
         /* 필요한 다른 CSS는 main.css/common.css/admin-dashboard.css에 분리하세요 */
         
+        
+        
+        
+  .admin-main-content h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.admin-main-content p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #555;
+}
+        

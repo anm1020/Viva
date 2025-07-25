@@ -1,0 +1,44 @@
+<!-- templates/admin/boardList.html -->
+<div th:fragment="boardListContent">
+    <h3>게시글 관리</h3>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>번호</th>
+                <th>제목</th>
+                <th>작성자</th>
+                <th>작성일</th>
+                <th>추천</th>
+                <th>조회수</th>
+                <th>관리</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="board, stat : ${boardPage.content}">
+                <td th:text="${board.id}"></td>
+                <td>
+                    <a href="#" class="board-link" th:attr="data-id=${board.id}" th:text="${board.title}"></a>
+                </td>
+                <td th:text="${board.userId}"></td>
+                <td th:text="${#temporals.format(board.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+                <td th:text="${board.likeCount}"></td>
+                <td th:text="${board.viewCount}"></td>
+                <td>
+                    <div class="delete-board" th:attr="data-id=${board.id}">삭제</div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- 페이징 -->
+    <div class="pagination">
+        <a th:if="${boardPage.hasPrevious()}" href="#" class="page-link" th:attr="data-page=${boardPage.number-1}">&lt;</a>
+        <span th:each="i : ${#numbers.sequence(0, boardPage.totalPages-1)}">
+            <a href="#" class="page-link"
+               th:attr="data-page=${i}"
+               th:text="${i+1}"
+               th:classappend="${i} == ${boardPage.number} ? ' active' : ''"></a>
+        </span>
+        <a th:if="${boardPage.hasNext()}" href="#" class="page-link" th:attr="data-page=${boardPage.number+1}">&gt;</a>
+    </div>
+</div>

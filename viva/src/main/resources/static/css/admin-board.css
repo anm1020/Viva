@@ -1,0 +1,104 @@
+@charset "UTF-8";
+
+/* 전체 컨테이너 */
+.board-detail {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 32px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  box-sizing: border-box;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* 제목 */
+.board-detail .board-title {
+  margin: 0 0 24px;
+  font-size: 1.8rem;
+  color: #333;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 8px;
+}
+
+/* 메타 정보 테이블 */
+.board-meta {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+  font-size: 0.95rem;
+  color: #555;
+}
+.board-meta th,
+.board-meta td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.board-meta th {
+  width: 100px;
+  text-align: left;
+  font-weight: 500;
+  color: #777;
+}
+.board-meta td {
+  background: #fafafa;
+  color: #333;
+}
+
+/* 본문 */
+.board-content pre {
+  background: #f7f7f7;
+  padding: 20px;
+  border-radius: 6px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: keep-all;
+  line-height: 1.6;
+  font-family: 'Courier New', monospace;
+  margin: 0;
+}
+
+/* 버튼 그룹 */
+.btn-group {
+  margin-top: 28px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+/* 버튼 공통 */
+.btn-delete,
+.btn-back-boardlist,
+.delete-board {
+  padding: 8px 20px;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.delete-board{
+ padding: 4px 0px;
+  font-size: 0.875rem;
+  min-width: 60px;
+  width: auto;
+  border-radius: 4px;	
+}
+/* 삭제 버튼 */
+.btn-delete,.delete-board {
+  background: #c0392b;
+  color: #fff;
+}
+/* .btn-delete:hover {
+  background: #c0392b;
+} */
+
+/* 목록 버튼 */
+.btn-back-boardlist {
+  background: #bdc3c7;
+  color: #2c3e50;
+}
+.btn-back-boardlist:hover {
+  background: #95a5a6;
+}

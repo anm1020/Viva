@@ -95,6 +95,15 @@
   <div style="text-align:center; margin-top:32px; color:#777; font-size:14px;">
     <span>더 추가하고 싶은 사이트가 있다면 관리자에게 문의해 주세요!</span>
   </div>
+  
+  <!-- 뒤로가기 버튼 -->
+  <div style="text-align:center; margin-top:20px;">
+    <a th:if="${role=='mem' or role=='intr'}"
+   th:href="@{/mypage}"
+   class="go-btn">
+  마이페이지로 돌아가기
+</a>
+  </div>
 </div>
 </body>
 </html>

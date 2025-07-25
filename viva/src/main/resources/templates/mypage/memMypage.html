@@ -16,6 +16,7 @@
   
   <!-- 예원추가) jaso.css분리. 여기서 임포트 -->
   <link rel="stylesheet" th:href="@{/css/jaso.css}">
+  <link rel="stylesheet" th:href="@{/css/resumelist.css}">
   
   <meta charset="UTF-8">
   <title>취준생 마이페이지</title>
@@ -25,7 +26,7 @@
   
   
   <style>
-    html, body {
+    html, body { 
       height: auto;
       min-height: 100vh;
       margin: 0;
@@ -50,7 +51,7 @@
 }
     .sidebar {
       flex: 0 0 230px;
-      background: #eaf1fb;
+      background: #f9f6f1;   /* ← 연한 베이지 (사이드바) */
       padding: 36px 0 0 0;
       display: flex;
       flex-direction: column;
@@ -66,7 +67,7 @@
 
     .sidebar-menu a {
       font-size: 17px;
-      color: #314266;
+      color: #5a4220;  /* 진한 브라운 글씨 */
       text-decoration: none;
       padding: 10px 0 10px 12px;
       border-radius: 5px 0 0 5px;
@@ -77,8 +78,8 @@
 
     .sidebar-menu a.active,
     .sidebar-menu a:hover {
-      background: #c3d3ee;
-      color: #2951a3;
+      background: #edd3b3;  /* 조금 더 연한 베이지(hover) */
+  	  color: black;			/* 사이드바 후버 글씨 */
       font-weight: bold;
     }
 
@@ -108,7 +109,7 @@
   width: 100%;
   min-width: 900px;
   padding: 46px 44px;
-  background: #f7f9fc;
+  background: #f8f8f8;
   box-sizing: border-box;
 
   /* ↓ 자식들을 세로 방향(column)으로 쌓되, 가로(수평) 중앙 정렬 */
@@ -152,7 +153,7 @@
     }
 
     .stat-info {
-      background: #eaf1fb;
+      background: #f2f6fb;
       border-radius: 9px;
       box-shadow: 0 2px 8px rgba(70,110,180,0.06);
       padding: 32px 40px;
@@ -171,9 +172,21 @@
       font-size: 25px; color: #314266; font-weight: bold; margin-bottom: 8px;
     }
 
+/* jaso.css (또는 main.css 밑에 추가) */
+#jasoContainer,
+#resumeContainer{
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 16px 24px rgba(0, 0, 0, 0.08);
+  padding: 32px 40px;
+  margin-bottom: 24px;
+}
+
+
 	#editContainer,
 #activityContainer,
-#jasoContainer {
+#jasoContainer,
+#resumeContainer {
   max-width: 840px;
   min-width: 840px;
   width: 100%;
@@ -196,6 +209,21 @@
       }
       .info-cards { flex-direction: column; gap: 14px; }
     }
+    
+    .btn-exchange {
+  margin-top: 10px;
+  padding: 8px 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #fff;
+  background-color: #5b7fd3;
+  border: none;
+  border-radius: 6px;     /* 살짝 둥글게 */
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+    
+    
   </style>
 
 <script th:inline="javascript">
@@ -221,7 +249,8 @@
           <!--  <a href="#" id="loadReservations">일정 관리</a> -->
           <a th:href="@{/memschedule}" id="loadReservations">일정 관리</a>
           <a href="#" id="loadJaso">자소서 관리</a>
-          <a th:href="@{/resume/list}">이력서 관리</a> 
+          <!-- <a th:href="@{/resume/list}">이력서 관리</a>  -->
+          <a href="#" id="loadResumeList">이력서 관리</a>
           <a href="#" id="loadPaymentList">결제 내역</a> <!-- 결제내역 탭 또는 버튼 -->
           <a th:href="@{/jobsite}">취업 사이트</a>
           <div class="sidebar-bottom">
@@ -256,7 +285,10 @@
            	<!--  <div th:text="${point + 'P'}"></div> -->
            	</div>   
         	<!--환전 버튼 추가 -->
-  			<button id="exchangeBtn" type="button" style="margin-top: 10px; padding: 8px 16px;">환전하기</button>
+  			<button id="exchangeBtn" type="button" class="btn-exchange">
+  포인트 환전하기
+</button>
+  			<!-- <button id="exchangeBtn" type="button" style="margin-top: 10px; padding: 8px 16px;">환전하기</button> -->
 			<!-- 예: 환전 모달을 넣을 페이지 -->
 			<div th:replace="mypage/exchangeModal :: exchangeModal"></div>
         </div>
@@ -268,6 +300,10 @@
 
 		<!-- 결제내역 표시 영역 -->
 		<div id="paymentListContainer" style="display:none;"></div>
+		
+		<!-- 이력서 관리 표시 영역 -->
+<div id="resumeContainer" style="display:none; width:100%;"></div>
+		
          
         <!-- 마이페이지 내정보 수정 -->
         <div id="editContainer" style="display:none; width:100%; justify-content:center;"></div>
@@ -315,7 +351,7 @@
 <script>
 // 공통 함수
 function hideAllFragments() {
-	  $('#reservationContainer, #editContainer, #activityContainer, #reviewContainer, #jasoContainer, #exchangeBtn,#paymentListContainer').hide();
+	  $('#resumeContainer,#reservationContainer, #editContainer, #activityContainer, #reviewContainer, #jasoContainer, #exchangeBtn,#paymentListContainer').hide();
 	  $('.member-info, .stat-info').hide();
 	}
 
@@ -551,13 +587,6 @@ $('#memberEdit').on('click', function(e){
   });
 });
 	
-// 정보 수정 취소 버튼  >>  없앰
-/* $(document).on('click', '#editCancelBtn', function(){
-  hideAllFragments();  // ✅ 추가
-  $('#editContainer').hide();
-  $('.member-info, .stat-info').show();
-}); */
-
 // 내활동관리
 $('#memberActivity').on('click', function(e){
   e.preventDefault();
@@ -575,7 +604,7 @@ $('#memberActivity').on('click', function(e){
 });
  
 // 자소서 메뉴 fragment
-$('#loadJaso').on('click', function(e) {
+ $('#loadJaso').on('click', function(e) {
     e.preventDefault();
     $('.sidebar-menu a').removeClass('active');
     $(this).addClass('active');
@@ -586,7 +615,8 @@ $('#loadJaso').on('click', function(e) {
             $('#jasoContainer').html('<p>불러오기 실패</p>');
         }
     });
-});
+}); 
+
  
 </script>
 
@@ -685,6 +715,31 @@ $(function() {
 	});
 </script>
 
+<script>
+//이력서 관리 탭 클릭 시
+$(function() {
+  $('#loadResumeList').on('click', function(e) {
+    e.preventDefault();
+    // 사이드바 active 토글
+    $('.sidebar-menu a').removeClass('active');
+    $(this).addClass('active');
+    // 기존 영역 숨기기
+    hideAllFragments();
+    // 이력서 컨테이너 보이기 + AJAX 로드 (fragment 포함)
+    $('#resumeContainer')
+    .show()
+    .load('/resume/list #resumeListFragment', function(resp, status, xhr) {
+      if (status !== 'success') {
+        $('#resumeContainer').html(
+          '<p>이력서 목록을 불러오는 데 실패했습니다: ' + xhr.statusText + '</p>'
+        );
+      }
+    });
+  });
+  });
+
+</script>
+
 
  <script th:inline="javascript">
 $(function() {
@@ -758,7 +813,20 @@ $(function() {
     });
   });
 });
+
+
 </script>
+
+<script>
+
+    // URL 파라미터로 자동 탭 열기 (선택사항)
+   /*  const params = new URLSearchParams(window.location.search);
+    if (params.get("tab") === "resume") {
+      $('#loadResumeList').click();
+    }
+  }); */
+</script>
+
 
 <!-- Footer -->
   <div th:replace="fragments/footer :: footerFragment"></div>
