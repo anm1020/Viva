@@ -17,6 +17,16 @@
 
 <div class="profile-layered">
   <div class="profile-container">
+    <!-- 면접관 본인만 보이는 수정/삭제 버튼 (우측 상단으로 이동) -->
+    <div class="profile-actions-top" th:if="${role == 'intr' and #authentication.name == interviewer.userId}">
+      <a class="edit-btn" th:href="@{'/interviewer/edit/' + ${interviewer.intrId}}">
+        수정
+      </a>
+      <button class="delete-btn" th:onclick="'deleteInterviewer(' + ${interviewer.intrId} + ')'">
+        삭제
+      </button>
+    </div>
+    
     <div class="profile-top">
       <div class="profile-photo">
         <img th:src="@{${interviewer.intrImage}}" alt="프로필 사진" style="width:100%;height:100%;object-fit:cover;"/>
@@ -43,18 +53,6 @@
             th:if="${session.user != null and session.user.userRole == 'intr'}"
             style="margin-top: 40px; text-align: center;">
             <span style="color: gray; font-size: 13px;">(면접관은 예약할 수 없습니다)</span>
-          </div>
-          
-          <!-- 면접관 본인만 보이는 수정/삭제 버튼 -->
-          <div class="owner-actions" th:if="${role == 'intr' and #authentication.name == interviewer.userId}">
-            <a class="edit-btn"
-               th:href="@{'/interviewer/edit/' + ${interviewer.intrId}}">
-              수정
-            </a>
-            <button class="delete-btn" 
-                    th:onclick="'deleteInterviewer(' + ${interviewer.intrId} + ')'">
-              삭제
-            </button>
           </div>
         </div>
         
@@ -87,7 +85,7 @@
         <span class="star" data-value="3">★</span>
         <span class="star" data-value="4">★</span>
         <span class="star" data-value="5">★</span>
-        <input type="hidden" name="score" id="starScore" value="5" required>
+        <input type="hidden" name="score" id="starScore" value="0" required>
       </div>
       <input type="text" name="content" maxlength="300" required placeholder="리뷰를 입력하세요" class="review-input">
       <button type="submit" class="review-submit-btn">등록</button>
@@ -139,6 +137,8 @@
 
     $('#btn-open-popup').on('click', function () {
       $('#reservation-box').slideDown();
+      $(this).hide(); // ✅ 이 줄 추가! 버튼 숨김
+      
 
       flatpickr("#calendar", {
         inline: true,
@@ -238,10 +238,11 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // 별점 기능
+  // 별점 기능 (토글형)
   const stars = document.querySelectorAll('.star-rating .star');
   const scoreInput = document.getElementById('starScore');
-  let selected = parseInt(scoreInput.value) || 5;
+  const starInfo = document.querySelector('.star-info');
+  let selected = 0; // 초기값을 0으로 설정
 
   function updateStars(rating) {
     stars.forEach((star, idx) => {
@@ -251,27 +252,69 @@ document.addEventListener('DOMContentLoaded', function() {
         star.classList.remove('selected');
       }
     });
+    
+    // 별점 정보 업데이트
+    if (rating > 0) {
+      starInfo.textContent = `선택된 별점: ${rating}점`;
+      starInfo.style.color = '#007bff';
+    } else {
+      starInfo.textContent = '별점을 선택해주세요 (1-5점)';
+      starInfo.style.color = '#666';
+    }
   }
 
   stars.forEach((star, idx) => {
     star.addEventListener('mouseenter', function() {
-      updateStars(idx + 1);
-      stars.forEach((s, i) => s.classList.toggle('hovered', i <= idx));
+      if (selected === 0) { // 선택된 별점이 없을 때만 호버 효과
+        updateStars(idx + 1);
+        stars.forEach((s, i) => s.classList.toggle('hovered', i <= idx));
+      }
     });
+    
     star.addEventListener('mouseleave', function() {
-      updateStars(selected);
-      stars.forEach(s => s.classList.remove('hovered'));
+      if (selected === 0) { // 선택된 별점이 없을 때만 호버 효과 제거
+        updateStars(0);
+        stars.forEach(s => s.classList.remove('hovered'));
+      } else {
+        updateStars(selected);
+        stars.forEach(s => s.classList.remove('hovered'));
+      }
     });
+    
     star.addEventListener('click', function() {
-      selected = idx + 1;
-      scoreInput.value = selected;
-      updateStars(selected);
+      const clickedValue = idx + 1;
+      
+      // 토글 로직: 같은 별점을 다시 클릭하면 선택 해제
+      if (selected === clickedValue) {
+        selected = 0;
+        scoreInput.value = 0;
+        updateStars(0);
+        stars.forEach(s => s.classList.remove('hovered'));
+      } else {
+        // 다른 별점을 클릭하면 해당 별점으로 선택
+        selected = clickedValue;
+        scoreInput.value = selected;
+        updateStars(selected);
+        stars.forEach(s => s.classList.remove('hovered'));
+      }
+      
+      console.log('별점 선택됨:', selected); // 디버깅 로그
     });
   });
 
-  updateStars(selected);
+  // 초기 상태: 별점이 선택되지 않은 상태
+  updateStars(0);
 
-  // 기존 리뷰 수정 토글/취소 JS는 삭제됨
+  // 폼 제출 시 별점 값 확인
+  document.querySelector('.review-form').addEventListener('submit', function(e) {
+    const currentScore = document.getElementById('starScore').value;
+    console.log('폼 제출 시 별점:', currentScore); // 디버깅 로그
+    if (!currentScore || currentScore < 1 || currentScore > 5) {
+      e.preventDefault();
+      alert('별점을 선택해주세요 (1-5점)');
+      return false;
+    }
+  });
 });
 
 // 면접관 프로필 삭제 함수

@@ -71,11 +71,16 @@ public class InterviewerController {
                 Users user = userService.findByUserId(principal.getName()).orElse(null);
                 if (user != null) {
                     userRole = user.getUserRole();
+                    System.out.println("사용자 역할: " + userRole); // 디버깅 로그
                 }
             } catch (Exception e) {
-                // 사용자 정보를 가져올 수 없는 경우 무시
+                System.err.println("사용자 역할 조회 중 오류: " + e.getMessage()); // 디버깅 로그
             }
+        } else {
+            System.out.println("Principal이 null입니다."); // 디버깅 로그
         }
+        
+        System.out.println("설정된 role: " + userRole); // 디버깅 로그
         
         model.addAttribute("interviewers", interviewers);
         model.addAttribute("role", userRole);

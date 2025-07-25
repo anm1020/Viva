@@ -308,7 +308,7 @@ public class UserController {
 
 		// Service에서 현재 로그인 사용자의 정보 조회
 	@GetMapping("/mypage")
-	public String mypage(Model model, Principal principal) {
+	public String mypage(Model model, Principal principal,@RequestParam(value = "error", required = false) String error) {
 		
 		
 	    // 현재 로그인한 아이디
@@ -322,6 +322,7 @@ public class UserController {
 	    // 포인트
 	    int point =pointService.getPoint(userId);
 	    model.addAttribute("point", point);
+	    model.addAttribute("error", error);
 	    // 결제 내역 조회 추가
 	    List<Payment> payments = paymentService.getPaymentsByUserId(userId);
 	    model.addAttribute("payments", payments);

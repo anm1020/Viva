@@ -1,17 +1,21 @@
 package com.example.demo.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.model.dto.InterviewRoomDTO;
+import com.example.demo.model.entity.InterviewRoom;
+import com.example.demo.repository.InterviewRoomRepository;
 import com.example.demo.service.InterviewRoomService;
 
 import lombok.RequiredArgsConstructor;
@@ -22,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class MeetingRoomController {
 
 	private final InterviewRoomService service;
+	private final InterviewRoomRepository roomRepository;
 
 	// 방 생성
 	@PostMapping("/roomcreate")
@@ -55,6 +60,21 @@ public class MeetingRoomController {
 	public ResponseEntity<List<InterviewRoomDTO>> listRooms() {
 		List<InterviewRoomDTO> roomList = service.getAllRooms();
 		return ResponseEntity.ok(roomList);
+	}
+	
+	
+	@PostMapping("/{roomId}/end")
+	public ResponseEntity<?> endRoom(@PathVariable("roomId") Integer roomId, @RequestBody Map<String, String> body) {
+	    String inputPw = body.get("roomPw");
+	    InterviewRoom room = roomRepository.findById(roomId)
+	                         .orElseThrow(() -> new RuntimeException("방 없음"));
+
+	    if (!room.getRoomPw().equals(inputPw)) {
+	        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("비밀번호 불일치");
+	    }
+	    room.setStatusCd("ended");
+	    roomRepository.save(room);
+	    return ResponseEntity.ok().build();
 	}
 	
 }

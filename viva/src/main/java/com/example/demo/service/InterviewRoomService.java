@@ -33,7 +33,8 @@ public class InterviewRoomService {
 	
 	// 방 전체 조회
 	public List<InterviewRoomDTO> getAllRooms() {
-        return intrRoomRepo.findAll().stream()					// 모든 인터뷰 방 목록 가져옴
+        return intrRoomRepo.findAllByOrderByIntrRoomIdDesc()
+        		.stream()										// 모든 인터뷰 방 목록  가져옴
                 .map(this::interviewRoomConvertToDTO)			// 각 엔티티 DTO 변환
                 .collect(Collectors.toList());					// 다시 리스트 형태로 변환
     }

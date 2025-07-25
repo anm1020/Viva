@@ -26,6 +26,8 @@ public interface UsersRepository extends JpaRepository<Users, String>{
 	Optional<Users> findByUserId(String userId);
 	
 	Page<Users> findAllByUserRole(String userRole, Pageable pageable);
+	
+	
 
 //	List<Users> findByUserIdContainingOrUserNameContainingOrderByCreatedDtDesc(String keyword, String keyword2);
 
