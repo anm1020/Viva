@@ -110,17 +110,18 @@
             <span>면접관 없음</span>
           </div>
         </div>
-        
-        <!-- 프로필 카드 만들기 버튼 (9번째 empty box 아래로 이동) -->
-        <div class="create-profile-section" th:if="${role == 'intr'}" style="width: 100%; text-align: center; margin-top: 30px;">
-          <a href="/interviewer/form">
-            <button type="button" class="write-btn">➕ 프로필 카드 만들기</button>
-          </a>
-        </div>
-    </div>
+      </div>
   </div>
 </div>
-</div>
+
+
+    <!-- 프로필 카드 만들기 버튼 (interviewer-grid 밖으로 이동) -->
+    <div class="create-profile-section" th:if="${role == 'intr'}" style="width: 100%; text-align: center; margin-top: 30px;">
+      <a href="/interviewer/form">
+        <button type="button" class="write-btn">➕ 프로필 카드 만들기</button>
+      </a>
+    </div>
+
     <!-- 페이징 UI -->
     <div class="paging">
       <button class="disabled">&lt;&lt;</button>
@@ -137,7 +138,7 @@
     <div class="bottom-actions">
       <div></div> <!-- 빈 공간 -->
     </div>
-
+</div>
   <!-- Footer -->
   <div th:replace="fragments/footer :: footerFragment"></div>
 
