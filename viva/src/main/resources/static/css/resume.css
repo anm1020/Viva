@@ -132,6 +132,21 @@
   background-color: #f8f9fa;
 }
 
+.section-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #000;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  padding: 5px 0;
+}
+
+.section-input:focus {
+  background-color: #f8f9fa;
+}
+
 .date-input, .org-input, .detail-input {
   border: none;
   background: transparent;
