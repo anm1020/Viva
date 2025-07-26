@@ -24,6 +24,14 @@
     </div>
 
     <form id="resumeForm" th:action="@{'/resume/edit/' + ${resume.reId}}" method="post" th:object="${resume}" onsubmit="return processFormData()">
+        <!-- 이력서 제목 -->
+        <div class="resume-section">
+            <h2 class="section-title">이력서 제목</h2>
+            <div class="section-content">
+                <input type="text" class="section-input" th:field="*{reTitle}" placeholder="이력서 제목을 입력하세요 (예: 웹 백엔드 개발자 이력서)">
+            </div>
+        </div>
+        
         <!-- 개인정보 -->
         <div class="info-section">
             <div class="info-row">

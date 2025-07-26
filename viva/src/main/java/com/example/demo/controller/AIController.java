@@ -177,7 +177,9 @@ public class AIController {
     @PostMapping("/sendAndReply")
     public ResponseEntity<Map<String, AiMessage>> sendAndReply(@RequestBody AiRequestDTO request) {
         try {
+             // 1. 내 질문과 세션ID를 받아서
             Map<String, AiMessage> result = aiMessageService.sendAndReply(request.getSessionId(), request.getPrompt());
+            // 2. AI 답변까지 생성해서 반환
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             e.printStackTrace();

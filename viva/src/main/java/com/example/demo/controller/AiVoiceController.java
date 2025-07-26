@@ -162,25 +162,55 @@ public class AiVoiceController {
     }
     @PostMapping("/ai/voice/interview")
     @ResponseBody
-    public ResponseEntity<Map<String, String>> processVoiceInterview(@RequestParam("file") MultipartFile file,
+    public ResponseEntity<Map<String, Object>> processVoiceInterview(@RequestParam("file") MultipartFile file,
                                                                      @RequestParam("sessionId") String sessionId) {
         try {
             // Whisper API로 텍스트 추출
             String transcript = aiVoiceService.transcribe(file);
 
-            // 간단한 피드백 생성 (실제로는 GPT API 호출 필요)
-            String feedback = "음성 인식 결과: " + transcript + "\n\n" +
-                            "면접 답변으로서 적절한 내용입니다. " +
-                            "자신감 있게 답변하시고, 구체적인 경험을 포함하면 더 좋겠습니다.";
+            // GPT API로 상세 피드백 생성
+            String gptPrompt = String.format("""
+                다음 면접 답변을 분석하여 상세한 피드백을 제공해주세요.
+                
+                답변 내용: %s
+                
+                다음 형식으로 JSON 응답을 제공해주세요:
+                {
+                    "summary": "전체 답변 요약 (2-3문장)",
+                    "speechSpeed": "말속도 평가",
+                    "pronunciation": "발음 평가", 
+                    "strengths": "장점 분석",
+                    "weaknesses": "개선점 분석",
+                    "details": [
+                        {"title": "내용 구성", "comment": "구체적인 피드백"},
+                        {"title": "표현력", "comment": "구체적인 피드백"},
+                        {"title": "자신감", "comment": "구체적인 피드백"}
+                    ],
+                    "example": "개선된 답변 예시 문장",
+                    "suggestions": [
+                        "다음 단계 제안 1",
+                        "다음 단계 제안 2", 
+                        "다음 단계 제안 3"
+                    ]
+                }
+                """, transcript);
 
+            String gptResponse = aiVoiceService.generateVoiceFeedback(gptPrompt);
+            
+            // JSON 파싱
+            Map<String, Object> feedbackData = aiVoiceService.parseFeedbackResponse(gptResponse);
+            
             // 결과 Map 구성
-            Map<String, String> result = new HashMap<>();
+            Map<String, Object> result = new HashMap<>();
             result.put("transcript", transcript);
-            result.put("summary", feedback);
-            result.put("speechSpeed", "적절함");
-            result.put("pronunciation", "명확함");
-            result.put("strengths", "자신감 있게 답변");
-            result.put("weaknesses", "구체적인 예시 추가 필요");
+            result.put("summary", feedbackData.getOrDefault("summary", "분석 중..."));
+            result.put("speechSpeed", feedbackData.getOrDefault("speechSpeed", "분석 중..."));
+            result.put("pronunciation", feedbackData.getOrDefault("pronunciation", "분석 중..."));
+            result.put("strengths", feedbackData.getOrDefault("strengths", "분석 중..."));
+            result.put("weaknesses", feedbackData.getOrDefault("weaknesses", "분석 중..."));
+            result.put("details", feedbackData.getOrDefault("details", List.of()));
+            result.put("example", feedbackData.getOrDefault("example", ""));
+            result.put("suggestions", feedbackData.getOrDefault("suggestions", List.of()));
             
             return ResponseEntity.ok(result);
         } catch (Exception e) {
