@@ -56,6 +56,11 @@ public class InterviewRoom {
     @Column(name = "participant_count")
     private Integer participantCount;
 	
+    // 예약 번호
+    @ManyToOne
+    @JoinColumn(name = "res_id", referencedColumnName = "res_id")
+    private Reservation reservation;
+    
 	// insert 수행시 createDt값 자동으로 저장
 	@PrePersist
     public void prePersist() {

@@ -26,7 +26,10 @@
 					th:text="${r.resStatus=='pending'?'결제 전':r.resStatus=='confirmed'?'결제 완료':r.resStatus=='cancelled'?'취소됨':'알 수 없음'}">
 				</span></td>
 				<td>
-					<button class="creation">생성</button>
+					<button class="creation" 
+							th:attr="data-resid=${r.resId}, 
+						             data-reserved-date=${r.reservedDate}, 
+						             data-reserved-time=${r.reservedTime}">생성</button>
 				</td>
 			</tr>
 		</tbody>
@@ -35,6 +38,10 @@
 	<div id="createRoomModal" class="modal" style="display:none;">
 		<div class="modal-content">
 		    <h2>면접 방 생성</h2>
+		    <input type="hidden" id="res_id" name="res_id" />
+		    <input type="hidden" id="reserved_date" name="reserved_date" />
+		    <input type="hidden" id="reserved_time" name="reserved_time" />
+		    
 		    <label for="intrRoomTitle">방 제목:</label> 
 		    <input type="text" id="intrRoomTitle" name="intrRoomTitle" /></label><br>
 		    <label for="roomPw">비밀번호:</label>
@@ -48,7 +55,13 @@
 	</div>
 	<script>
 		$(document).off("click", ".creation").on("click", ".creation", function () {
-		    $("#createRoomModal").show();
+			const resId = $(this).data("resid");
+			const reservedDate = $(this).data("reservedDate");
+			const reservedTime = $(this).data("reservedTime");
+			$("#createRoomModal").show();
+		    $("#res_id").val(resId);
+		    $("#reserved_date").val(reservedDate);
+		    $("#reserved_time").val(reservedTime);
 		    $("#intrRoomTitle").val("");
 		    $("#roomPw").val("");
 		    $("#participantCount").val("2");
@@ -70,6 +83,9 @@
 		    const host_id = $("#host_id").val();
 		    const roomPw = $("#roomPw").val();
 		    const participantCount = $("#participantCount").val();
+		    const res_id = $("#res_id").val();
+		    const reserved_date = $("#reserved_date").val();
+		    const reserved_time = $("#reserved_time").val();
 
 		    // 간단 유효성
 		    if (!title) return alert("방 제목을 입력하세요.");
@@ -78,14 +94,20 @@
 		        method: "POST",
 		        headers: { "Content-Type": "application/json" },
 		        body: JSON.stringify({
-		            intrRoomTitle: title,
+		        	resId: res_id,
+		        	reservedDate: reserved_date,
+		        	reservedTime: reserved_time,
+		        	intrRoomTitle: title,
 		            roomPw: roomPw,
 		            hostId: host_id,
 		            participantCount: participantCount
 		        })
 		    })
-		    .then(res => {
-		        if (!res.ok) throw new Error("서버 오류");
+		    .then(async res => {
+		        if (!res.ok) {
+		            const errorText = await res.text();
+		            throw new Error(errorText);  // catch(err)에서 message로 전달됨
+		        }
 		        return res.json();
 		    })
 		    .then(data => {
@@ -104,6 +126,8 @@
 		    })
 		    .catch(err => {
 		        alert("방 생성 실패: " + err.message);
+		        resolve();
+		        
 		    });
 		});
 
@@ -134,30 +158,14 @@
 		                                        request: "create",
 		                                        room: roomId,
 		                                        description: `Room for host ${hostId}`,
-		                                        publishers: participantCount,
+		                                        publishers: 6,
 		                                        data: true
 		                                    }
 		                                });
 		                                
-		                                videohandle.onmessage = function (msg, jsep) {
-		                                	console.log("Janus server:", server);
-		                                	console.log("Janus onmessage 수신:", msg); // 모든 메시지 찍기
-		                                    if (msg["videoroom"] === "created") {
-		                                        console.log("✅ Janus room 생성됨!", msg);
-		                                        // 생성 끝나면 세션 닫기!
-		                                        janus.destroy();
-		                                        resolve();
-		                                    } else if (msg["error"]) {
-		                                        janus.destroy();
-		                                        reject(new Error("Janus 방 생성 실패: " + msg["error"]));
-		                                    }
-		                                };
-		                                
-		                                // 실제 생성 결과를 받으려면 onmessage 핸들 추가도 가능
-// 		                                alert("videoroom 생성 성공");
-// 		                                resolve();
-// 			                            console.log("📹 Video room created");
-			        	            },
+		                                resolve();
+
+		                            },
 			        	            error: function (err) {
 			        	              console.error("Video plugin attach error", err);
 			        	              janus.destroy(); reject(err);

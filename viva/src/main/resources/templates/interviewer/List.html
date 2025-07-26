@@ -61,7 +61,7 @@
         <div class="interviewer-card" th:each="i, iterStat : ${interviewers}" th:if="${iterStat.index} < 9" th:onclick="'location.href=\'/interviewer/' + ${i.intrId} + '\''">
           <img th:if="${i.intrImage != null and i.intrImage != ''}" th:src="${i.intrImage}" alt="프로필 이미지" class="card-bg" />
           <img th:unless="${i.intrImage != null and i.intrImage != ''}" src="/images/default_profile.jpg" alt="기본 프로필 이미지" class="card-bg" />
-
+		  
           <!-- 기존 하단 고정 영역: 그대로 유지 -->
           <div class="card-bottom">
             <h3 class="name" th:text="${i.userName}">이름</h3>
@@ -120,7 +120,7 @@
     </div>
   </div>
 </div>
-
+</div>
     <!-- 페이징 UI -->
     <div class="paging">
       <button class="disabled">&lt;&lt;</button>

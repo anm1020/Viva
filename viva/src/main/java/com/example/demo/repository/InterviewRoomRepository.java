@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.example.demo.model.entity.InterviewRoom;
+import com.example.demo.model.entity.Reservation;
 import com.example.demo.model.entity.Users;
 
 @Repository
@@ -22,4 +23,7 @@ public interface InterviewRoomRepository extends JpaRepository<InterviewRoom, In
 	// 예시: 특정 사용자가 만든 방 목록 조회
 	List<InterviewRoom> findByHost(Users host);
 
+	// 예약 번호로 된 방이 생성된지 체크
+	boolean existsByReservation(Reservation reservation);
+	
 }
