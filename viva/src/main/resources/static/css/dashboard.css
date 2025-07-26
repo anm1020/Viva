@@ -1,18 +1,66 @@
 /* ===== 전체 레이아웃 ===== */
-        .admin-dashboard-container { display: flex; min-height: 80vh; background-color: #f5f5f5; font-family: 'Noto Sans KR', sans-serif; }
-        .admin-sidebar { width: 180px; background-color: #fafafa; border-right: 1px solid #ddd; padding: 30px 15px; font-size: 14px; }
-        .admin-sidebar .admin-title { 
-        margin-top: 15px;
-        margin-bottom: 25px; font-weight: bold; font-size: 16px; text-align: center; padding-bottom: 15px; color: #333; }
-        .admin-sidebar a { display: block; margin-bottom: 15px; color: #333; text-decoration: none; }
-        .admin-sidebar a:hover, .admin-sidebar a.active { font-weight: bold; color: #2243aa; background: #e7e9f7; border-radius: 6px; }
-        .admin-main-content { flex: 1; padding: 40px; background-color: #f5f5f5; }
-        /* 필요한 다른 CSS는 main.css/common.css/admin-dashboard.css에 분리하세요 */
-        
-        
-        
-        
-  .admin-main-content h2 {
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* 대시보드 컨테이너가 본문 전체를 채우게 */
+.admin-dashboard-container {
+  flex: 1;
+  display: flex;
+  background-color: #f5f5f5;
+  box-sizing: border-box;
+}
+
+/* 사이드바 */
+.admin-sidebar {
+  width: 180px;
+  background-color: #fafafa;
+  border-right: 1px solid #ddd;
+  padding: 30px 15px;
+  font-size: 14px;
+}
+
+.admin-sidebar .admin-title {
+  margin-top: 15px;
+  margin-bottom: 25px;
+  font-weight: bold;
+  font-size: 16px;
+  text-align: center;
+  padding-bottom: 15px;
+  color: #333;
+}
+
+.admin-sidebar a {
+  display: block;
+  margin-bottom: 15px;
+  color: #333;
+  text-decoration: none;
+}
+
+.admin-sidebar a:hover,
+.admin-sidebar a.active {
+  font-weight: bold;
+  color: #2243aa;
+  background: #e7e9f7;
+  border-radius: 6px;
+}
+
+/* 본문 콘텐츠 */
+.admin-main-content {
+  flex: 1;
+  padding: 30px;
+  background-color: #f5f5f5;
+  overflow-y: auto;
+}
+
+/* 본문 텍스트 */
+.admin-main-content h2 {
   font-size: 1.8rem;
   font-weight: 600;
   color: #2c3e50;
@@ -23,4 +71,13 @@
   line-height: 1.6;
   color: #555;
 }
-        
+
+/* 푸터는 기존대로 유지 */
+footer {
+  background-color: #f9f6f1;
+  color: black;
+  padding: 30px;
+  text-align: center;
+  flex-shrink: 0;
+  margin-top: 150px; /* 기존 그대로 유지 */
+}
