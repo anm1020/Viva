@@ -341,7 +341,8 @@ public class AiVoiceController {
 
     @PostMapping("/ai/voice/session/new")
     @ResponseBody
-    public ResponseEntity<Map<String, String>> createNewVoiceSession(HttpSession session, @RequestParam(value = "title", defaultValue = "음성면접") String title) {
+    public ResponseEntity<Map<String, String>> createNewVoiceSession
+    (HttpSession session, @RequestParam(value = "title", defaultValue = "음성면접") String title) {
         String userId = (String) session.getAttribute("userId");
         if (userId == null) {
             return ResponseEntity.status(401).body(Map.of("error", "로그인 필요"));

@@ -39,7 +39,7 @@ public class ResumeController {
         Users user = usersRepository.findByUserId(userId).orElseThrow();
         resume.setUser(user);
         resumeService.save(resume);
-        return "redirect:/resume/list";
+        return "redirect:/mypage";
     }
 
     @GetMapping("/list")
@@ -54,9 +54,70 @@ public class ResumeController {
         Resume resume = resumeService.getResumeById(reId).orElseThrow();
         // 사용자 정보를 별도로 로드하여 전달
         Users user = resume.getUser();
+        
+        // 빈 배열 방어 로직 추가
+        processResumeArrays(resume);
+        
         model.addAttribute("resume", resume);
         model.addAttribute("user", user);
         return "resu/resume-view";
+    }
+    
+    // 빈 배열 방어를 위한 헬퍼 메서드
+    private void processResumeArrays(Resume resume) {
+        // 각 필드가 null이거나 빈 문자열인 경우 빈 배열로 처리
+        if (resume.getReTrainingPeriod() == null || resume.getReTrainingPeriod().trim().isEmpty()) {
+            resume.setReTrainingPeriod("");
+        }
+        if (resume.getReTrainingInstitution() == null || resume.getReTrainingInstitution().trim().isEmpty()) {
+            resume.setReTrainingInstitution("");
+        }
+        if (resume.getReTrainingCourse() == null || resume.getReTrainingCourse().trim().isEmpty()) {
+            resume.setReTrainingCourse("");
+        }
+        
+        if (resume.getReExperiencePeriod() == null || resume.getReExperiencePeriod().trim().isEmpty()) {
+            resume.setReExperiencePeriod("");
+        }
+        if (resume.getReExperienceCompany() == null || resume.getReExperienceCompany().trim().isEmpty()) {
+            resume.setReExperienceCompany("");
+        }
+        if (resume.getReExperiencePosition() == null || resume.getReExperiencePosition().trim().isEmpty()) {
+            resume.setReExperiencePosition("");
+        }
+        
+        if (resume.getReCertificationsPeriod() == null || resume.getReCertificationsPeriod().trim().isEmpty()) {
+            resume.setReCertificationsPeriod("");
+        }
+        if (resume.getReCertificationsInstitution() == null || resume.getReCertificationsInstitution().trim().isEmpty()) {
+            resume.setReCertificationsInstitution("");
+        }
+        if (resume.getReCertificationsName() == null || resume.getReCertificationsName().trim().isEmpty()) {
+            resume.setReCertificationsName("");
+        }
+        
+        if (resume.getReLanguagesPeriod() == null || resume.getReLanguagesPeriod().trim().isEmpty()) {
+            resume.setReLanguagesPeriod("");
+        }
+        if (resume.getReLanguagesLanguage() == null || resume.getReLanguagesLanguage().trim().isEmpty()) {
+            resume.setReLanguagesLanguage("");
+        }
+        if (resume.getReLanguagesLevel() == null || resume.getReLanguagesLevel().trim().isEmpty()) {
+            resume.setReLanguagesLevel("");
+        }
+        
+        if (resume.getReProjectsPeriod() == null || resume.getReProjectsPeriod().trim().isEmpty()) {
+            resume.setReProjectsPeriod("");
+        }
+        if (resume.getReProjectsTitle() == null || resume.getReProjectsTitle().trim().isEmpty()) {
+            resume.setReProjectsTitle("");
+        }
+        if (resume.getReProjectsLink() == null || resume.getReProjectsLink().trim().isEmpty()) {
+            resume.setReProjectsLink("");
+        }
+        if (resume.getReProjectsContent() == null || resume.getReProjectsContent().trim().isEmpty()) {
+            resume.setReProjectsContent("");
+        }
     }
     
     @GetMapping("/edit/{id}")
@@ -78,7 +139,7 @@ public class ResumeController {
     @PostMapping("/delete/{id}")
     public String deleteResume(@PathVariable("id") int reId) {
         resumeService.deleteResume(reId);
-        return "redirect:/resume/list";
+        return "redirect:/mypage";
     }
 
     // 데이터 디버깅용
