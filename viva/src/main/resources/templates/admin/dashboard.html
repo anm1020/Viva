@@ -63,8 +63,24 @@
 <script src="/js/points1.js"></script>
 <script src="/js/adminBoardlist.js"></script>
 
-<script>
-   
+<script> 
+$(document).on("click", ".sidebar-link", function(e) {
+    e.preventDefault();
+
+    // 1. 기존 active 제거
+    $(".sidebar-link").removeClass("active");
+
+    // 2. 현재 클릭한 메뉴에 active 추가
+    $(this).addClass("active");
+
+    // 3. 본문 콘텐츠 AJAX 로드
+    const url = $(this).data("url");
+    $("#adminMainContent").load(data-url, function(resp, status, xhr){
+      if (status !== "success") {
+        alert("페이지 로딩 실패: " + xhr.statusText);
+      }
+    });
+  });
 </script>
 
 
