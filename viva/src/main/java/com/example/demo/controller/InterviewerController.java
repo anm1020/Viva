@@ -60,9 +60,7 @@ public class InterviewerController {
             // 전체 목록
             interviewers = interviewerService.getInterviewerList();
         }
-        if (interviewers == null) {
-            interviewers = java.util.Collections.emptyList();
-        }
+        interviewers = (interviewers == null) ? java.util.Collections.emptyList() : interviewers;
         
         // 현재 로그인한 사용자의 역할 확인
         String userRole = null;

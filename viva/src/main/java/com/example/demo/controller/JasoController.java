@@ -92,7 +92,7 @@ public class JasoController {
             System.out.println("저장 실패: " + e.getMessage());
             e.printStackTrace();
         }
-        return "redirect:/mypage/jaso/list";
+        return "redirect:/mypage";
     }
     
     // ✅ 3-1. 간단한 자소서 저장 처리 (기존 방식)
@@ -116,7 +116,7 @@ public class JasoController {
             e.printStackTrace();
         }
         
-        return "redirect:/mypage/jaso/list";
+        return "redirect:/mypage";
     }
 
 
@@ -197,7 +197,7 @@ public class JasoController {
             redirectAttributes.addFlashAttribute("error", "자소서 삭제 중 오류가 발생했습니다.");
             e.printStackTrace();
         }
-        return "redirect:/mypage/jaso/list";
+        return "redirect:/mypage";
     }
 
     @PostMapping("/update-section/{id}")

@@ -104,13 +104,17 @@
 <!-- 			</div> -->
 
         
-        <!-- 빈 박스 (9개 미만일 때) -->
-        <div class="empty-box" th:each="i : ${#numbers.sequence(1, 9 - #lists.size(interviewers))}" th:if="${#lists.size(interviewers) < 9}">
-          <div class="empty-content">
-            <span>면접관 없음</span>
-          </div>
-        </div>
-      </div>
+
+   
+    </div>
+         <!-- 빈 박스 (9개 미만일 때) -->
+        <div class="empty-box"
+     th:each="i : ${#numbers.sequence(1, 9 - (#lists.size(interviewers) != null ? #lists.size(interviewers) : 0))}"
+     th:if="${#lists.size(interviewers) < 9}">
+  <div class="empty-content">
+    <span>면접관 없음</span>
+  </div>
+</div>
   </div>
 </div>
 
