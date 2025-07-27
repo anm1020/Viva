@@ -19,7 +19,8 @@ public class InterviewRoomDTO {
     private LocalDateTime startedDt;
     private LocalDateTime endedDt;
     private String statusCd;
-    private String roomPw;            // 방 비밀번호
-    private Integer participantCount; // 참여 인원
-    private Long resId;
+    private String roomPw;            			// 방 비밀번호
+    private Integer participantCount; 			// 최대 참여 인원
+    private Long resId;							// 예약 번호
+    private Integer currentParticipantCount;	// 현재 참여 인원
 }

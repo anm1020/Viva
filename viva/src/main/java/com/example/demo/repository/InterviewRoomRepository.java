@@ -1,6 +1,7 @@
 package com.example.demo.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -25,5 +26,8 @@ public interface InterviewRoomRepository extends JpaRepository<InterviewRoom, In
 
 	// 예약 번호로 된 방이 생성된지 체크
 	boolean existsByReservation(Reservation reservation);
+	
+	// 예약 번호로 방 정보 검색
+	Optional<InterviewRoom> findByReservation_ResId(Integer resId);
 	
 }

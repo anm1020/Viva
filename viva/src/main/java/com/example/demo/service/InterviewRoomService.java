@@ -44,6 +44,13 @@ public class InterviewRoomService {
                 .collect(Collectors.toList());					// 다시 리스트 형태로 변환
     }
 
+	// 예약번호로 방검색
+	public InterviewRoomDTO getRoomByResId(Integer resId) {
+	    InterviewRoom entity = intrRoomRepo.findByReservation_ResId(resId)
+	        .orElseThrow(() -> new IllegalArgumentException("해당 예약(resId)에 방이 존재하지 않습니다."));
+	    return interviewRoomConvertToDTO(entity);
+	}
+	
 	// 방 생성 중복 검사
 	@Transactional
 	public InterviewRoomDTO createRoomSafely(InterviewRoomDTO dto) {
@@ -98,6 +105,27 @@ public class InterviewRoomService {
 	    return interviewRoomConvertToDTO(savedRoom);
 	}
 	
+	// 방 참가
+	@Transactional
+	public void increaseCurrentParticipantCount(Integer roomId) {
+	    InterviewRoom room = intrRoomRepo.findById(roomId)
+	        .orElseThrow(() -> new IllegalArgumentException("방 없음"));
+	    int now = (room.getCurrentParticipantCount() != null) ? room.getCurrentParticipantCount() : 0;
+	    room.setCurrentParticipantCount(now + 1);
+	    intrRoomRepo.save(room);
+	}
+
+	// 방 퇴장
+	@Transactional
+	public void decreaseCurrentParticipantCount(Integer roomId) {
+	    InterviewRoom room = intrRoomRepo.findById(roomId)
+	        .orElseThrow(() -> new IllegalArgumentException("방 없음"));
+	    int now = (room.getCurrentParticipantCount() != null) ? room.getCurrentParticipantCount() : 0;
+	    room.setCurrentParticipantCount(Math.max(0, now - 1));
+	    intrRoomRepo.save(room);
+	}
+	
+	
 	
 	// entity객체 -> DTO 객체로 변환 함수
     // interviewRoom
@@ -112,6 +140,7 @@ public class InterviewRoomService {
 	            .statusCd(entity.getStatusCd())
 	            .roomPw(entity.getRoomPw())                        
 	            .participantCount(entity.getParticipantCount())
+	            .currentParticipantCount(entity.getCurrentParticipantCount()) 
 	            .resId(entity.getReservation() != null ? entity.getReservation().getResId() : null)
 	            .build();
 	}

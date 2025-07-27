@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.model.dto.InterviewRoomDTO;
@@ -78,6 +79,28 @@ public class MeetingRoomController {
 		List<InterviewRoomDTO> roomList = service.getAllRooms();
 		return ResponseEntity.ok(roomList);
 	}
+	
+	// 방 정보
+	@GetMapping("/roominfo")
+    public InterviewRoomDTO getRoomInfo(@RequestParam("resId") Integer resId) {
+		InterviewRoomDTO roomInfo = service.getRoomByResId(resId);  
+		System.out.println("방제목: " + roomInfo.getIntrRoomTitle());
+		System.out.println("방비밀번호: " + roomInfo.getRoomPw());
+		
+		return roomInfo;
+    }
+	
+	// 참가자 입장 (인원 +1)
+    @PostMapping("/room/{roomId}/join")
+    public void joinRoom(@PathVariable("roomId") Integer roomId) {
+        service.increaseCurrentParticipantCount(roomId);
+    }
+
+    // 참가자 퇴장 (인원 -1)
+    @PostMapping("/room/{roomId}/leave")
+    public void leaveRoom(@PathVariable("roomId") Integer roomId) {
+        service.decreaseCurrentParticipantCount(roomId);
+    }
 	
 	// 방 삭제
 	@PostMapping("/{roomId}/end")
