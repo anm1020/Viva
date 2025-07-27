@@ -107,22 +107,24 @@ public class InterviewRoomService {
 	
 	// 방 참가
 	@Transactional
-	public void increaseCurrentParticipantCount(Integer roomId) {
+	public int increaseCurrentParticipantCount(Integer roomId) {
 	    InterviewRoom room = intrRoomRepo.findById(roomId)
 	        .orElseThrow(() -> new IllegalArgumentException("방 없음"));
 	    int now = (room.getCurrentParticipantCount() != null) ? room.getCurrentParticipantCount() : 0;
 	    room.setCurrentParticipantCount(now + 1);
 	    intrRoomRepo.save(room);
+	    return room.getCurrentParticipantCount();
 	}
 
 	// 방 퇴장
 	@Transactional
-	public void decreaseCurrentParticipantCount(Integer roomId) {
+	public int decreaseCurrentParticipantCount(Integer roomId) {
 	    InterviewRoom room = intrRoomRepo.findById(roomId)
 	        .orElseThrow(() -> new IllegalArgumentException("방 없음"));
 	    int now = (room.getCurrentParticipantCount() != null) ? room.getCurrentParticipantCount() : 0;
 	    room.setCurrentParticipantCount(Math.max(0, now - 1));
 	    intrRoomRepo.save(room);
+	    return room.getCurrentParticipantCount();
 	}
 	
 	

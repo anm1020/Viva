@@ -732,6 +732,7 @@ let isDataChannelReady = false;
 let currentView = null;
 const feedHandles = {}; 
 let isMicMuted = false;			//현재 음소거 상태 저장용 전역 변수 (초기값 false)
+let maxParticipantCount = null; 
 
 document.addEventListener("DOMContentLoaded", () => {
 	  // 'list-view'가 활성화된 경우 자동으로 방 목록 불러오기
@@ -934,7 +935,7 @@ function loadRoomList() {
           </div>
           <div class="room-title">${room.intrRoomTitle}</div>
           <div class="room-info">${room.hostId}님의 방</div>
-          <div class="room-info">현재 참가 인원 : 0 / ${room.participantCount}</div>
+          <div class="room-info">현재 참가 인원 : ${room.currentParticipantCount} / ${room.participantCount}</div>
           <div class="room-info">생성: ${formatDate(room.createdDt)}</div>
 	      ${isHost ? '<button class="room-delete-btn">삭제</button>' : ''}
         `;
@@ -959,7 +960,11 @@ function loadRoomList() {
 	            	// 🟢 참가자 수 증가 백엔드 반영
 	            	console.log(selectedRoomId);
 	                if (room.intrRoomId) {
-	                    $.post('/api/meeting/room/' + room.intrRoomId + '/join');
+	                	$.post('/api/meeting/room/' + room.intrRoomId + '/join', function(currentCount) {
+	                        $('.room-info').text(`현재 참가 인원 : ${currentCount} / ${room.participantCount}`);
+	                        maxParticipantCount = room.participantCount;
+	                        console.log("방 최대 인원 : " + maxParticipantCount);
+	                    });
 	                }
 	            } else {
 	                alert("비밀번호가 일치하지 않습니다.");
@@ -2026,6 +2031,8 @@ function leaveRoom() {
 	displayName = null;
 	participants = [];
 	isCamOn = true;
+	
+	
 }
 
 // 메세지 전송
@@ -2109,7 +2116,11 @@ document.getElementById("exitBtn").addEventListener("click", function () {
 	//🟡 참가자 수 감소 백엔드 반영
 	console.log("현재 선택된 방 : " + selectedRoomId);
     if (selectedRoomId) {
-	    $.post('/api/meeting/room/' + selectedRoomId + '/leave');
+    	$.post('/api/meeting/room/' + selectedRoomId + '/leave', function(currentCount) {
+            $('.room-info').text(`현재 참가 인원 : ${currentCount} / ${maxParticipantCount}`);
+	    	console.log("방나감 현재 인원/최대인원: " + currentCount + "/" +maxParticipantCount);
+	    	loadRoomList();
+        });
 	}
 	navigate('list'); // navigate는 세션정리 없이 화면 전환만
 });
