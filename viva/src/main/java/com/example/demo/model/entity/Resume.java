@@ -20,6 +20,7 @@ public class Resume {
     @JoinColumn(name = "user_id")
     private Users user;
 
+    private String reTitle;  // 이력서 제목
     private String rePosition;
     private String reStrengths;
     

@@ -40,6 +40,7 @@ public class ResumeService {
         Resume resume = resumeRepository.findById(reId).orElseThrow();
         
         // 기본 정보
+        resume.setReTitle(updated.getReTitle());
         resume.setRePosition(updated.getRePosition());
         resume.setReStrengths(updated.getReStrengths());
         
