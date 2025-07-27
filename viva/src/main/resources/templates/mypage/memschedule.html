@@ -20,6 +20,7 @@
 				<th>상태</th>
 				<th>결제</th>
 				<th>결제수단</th>
+				<th>방정보</th>			<!-- 현진 추가 -->
 				<th>변경</th>
 				<th>취소</th>
 			</tr>
@@ -55,6 +56,12 @@
 				<td>
 				<span th:if="${r.payment != null}"th:text="${r.payment.payType}">CARD</span> 
 				<span th:if="${r.payment == null}">-</span></td>
+				
+				<!-- 현진 추가 -->
+				<td><a th:if="${r.resStatus!='cancelled'}" href="#" 
+					th:attr="data-res-id=${r.resId}"
+					class="action-link info">방정보</a></td>
+				<!-- 끝 -->
 				<td><a th:if="${r.resStatus!='cancelled'}" href="#"
 					class="action-link change">변경</a></td>
 				<td><a th:if="${r.resStatus != 'cancelled'}"
@@ -99,6 +106,30 @@
 				<div class="action-buttons">
 					<button id="saveChange" class="btn-save">저장</button>
 					<button id="cancelChange" class="btn-cancel">취소</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<!-- 현진 추가 -->
+	<div id="schedulerInfoPanel" class="scheduler-info-panel" style="display: none;">
+		<div class="scheduler-inner">
+			<div class="info-area" style="margin-left: auto; width: 200px;">
+				<h4>내 예약 정보</h4>
+				<p>
+					예약번호: <strong id="infoResIdRoom"></strong>
+				</p>
+				<p>
+					면접관: <strong id="infoIntrNameRoom"></strong>
+				</p>
+				<p>
+					방제목: <strong id="intrRoomTitle"></strong>
+				</p>
+				<p>
+					방비밀번호: <strong id="intrRoomPw"></strong>
+				</p>
+				<div class="action-buttons">
+					<button id="cancelInfo" class="btn-cancel">취소</button>
 				</div>
 			</div>
 		</div>
