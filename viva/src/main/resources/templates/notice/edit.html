@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>공지 수정</title>
+  <link rel="stylesheet" th:href="@{/css/notice.css}">
+</head>
+<body>
+
+  <h2>공지 수정</h2>
+  <form th:action="@{/notice/edit/{id}(id=${notice.noticeId})}"
+        th:object="${notice}" method="post">
+    <div>
+      <label>제목</label>
+      <input type="text" th:field="*{title}" required />
+    </div>
+    <div>
+      <label>고정 여부</label>
+      <!-- <input type="checkbox" th:field="*{isFixed}" /> -->
+		<td>
+		  <button type="button"
+		          th:data-notice-id="${notice.noticeId}"
+		          th:data-current-fixed="${notice.isFixed}"
+		          th:text="${notice.isFixed == 'Y' ? '공지 중' : '미공지'}"
+		          class="toggleFixedBtn"
+		          th:classappend="${notice.isFixed == 'Y' ? ' active' : ' inactive'}">
+		  </button>
+		</td>
+    </div>
+    <div>
+      <label>내용</label>
+      <textarea th:field="*{content}" rows="10" required></textarea>
+    </div>
+    <button type="submit">저장</button>
+    <a th:href="@{/notice/noticeList}">취소</a>
+  </form>
+
+</body>
+</html>

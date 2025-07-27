@@ -1,0 +1,164 @@
+<!-- 면접관 리스트 페이지 (interviewer.html) -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+
+  <title>면접관 리스트</title> 
+  <link rel="stylesheet" th:href="@{/css/common.css}">
+  <link rel="stylesheet" th:href="@{/css/interviewer.css}">
+  <link rel="stylesheet" th:href="@{/css/hero.css}">
+   
+</head>
+<body>
+
+  <!-- Header -->
+  <div th:replace="fragments/header :: headerFragment"></div>
+  <section class="hero-banner">
+		<div class="text-area">
+			<h1>Interviewer</h1>
+			<p>Please choose your interviewer</p>
+		</div>
+		<div class="img-area">
+			<!-- 이미지 숨김 처리됨 -->
+		</div>
+	</section>
+	<div class="board-footer">면접관</div>
+
+
+  <div class="interviewer-layout">
+    <div class="container">
+    <h1>면접관 목록</h1>
+
+    <!-- ✅ 직무 필터 -->
+    <div class="category-section">
+      <div class="category-filter">
+        <label class="filter-label">직무·직업</label>
+        <div class="tag-container">
+          <span class="tag"
+                th:each="cate : ${T(com.example.demo.model.entity.CategoryType).values()}"
+                th:text="${cate}"
+                th:attr="data-value=${cate}"
+                onclick="toggleTag(this)">
+          </span>
+        </div>
+      </div>
+      
+      <div class="search-section">
+        <form method="get" th:action="@{/interviewer}">
+          <input type="hidden" name="intrCate" id="intrCateHidden">
+          <button type="submit" class="search-btn">검색</button>
+        </form>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- ✅ 면접관 카드 리스트 -->
+
+    <div class="interviewer-grid">
+        <!-- 면접관 카드 (최대 9개) -->
+        <div class="interviewer-card" th:each="i, iterStat : ${interviewers}" th:if="${iterStat.index} < 9" th:onclick="'location.href=\'/interviewer/' + ${i.intrId} + '\''">
+          <img th:if="${i.intrImage != null and i.intrImage != ''}" th:src="${i.intrImage}" alt="프로필 이미지" class="card-bg" />
+          <img th:unless="${i.intrImage != null and i.intrImage != ''}" src="/images/default_profile.jpg" alt="기본 프로필 이미지" class="card-bg" />
+		  
+          <!-- 기존 하단 고정 영역: 그대로 유지 -->
+          <div class="card-bottom">
+            <h3 class="name" th:text="${i.userName}">이름</h3>
+            <div class="categories">
+              <span th:each="cate, iterStat : ${#strings.arraySplit(i.intrCate, ',')}" th:if="${iterStat.index < 3}" th:with="categoryType=${T(com.example.demo.model.entity.CategoryType).valueOf(cate.trim())}" th:text="${categoryType}" class="category-tag"></span>
+            </div>
+          </div>
+
+          <!-- 슬라이드 오버레이 -->
+          <div class="card-hover">
+            <!-- 복제된 이름 + 카테고리 (슬라이드되게 위쪽에 표시) -->
+            <div class="slide-info">
+              <h3 class="name" th:text="${i.userName}">이름</h3>
+              <div class="categories">
+                <span th:each="cate, iterStat : ${#strings.arraySplit(i.intrCate, ',')}" th:if="${iterStat.index < 3}" th:with="categoryType=${T(com.example.demo.model.entity.CategoryType).valueOf(cate.trim())}" th:text="${categoryType}" class="category-tag"></span>
+              </div>
+            </div>
+            <p class="intro" th:text="${i.intrIntro != null ? i.intrIntro : '소개 없음'}">한줄소개</p>
+
+<!--             <button class="reserve-btn" th:onclick="'event.stopPropagation(); location.href=\'/reservation/book?intrId=' + ${i.intrId} + '\''">예약하기</button> -->
+	             <button class="reserve-btn" th:if="${role != 'intr'}" th:onclick="|event.stopPropagation(); location.href='@{/reservation/book(intrId=${i.userId})}'|">예약하기</button>
+			 	 <div th:if="${role == 'intr'}" style="text-align:center; margin:10px 0;">
+			     	<span style="color: gray; font-size: 13px;">(면접관은 예약할 수 없습니다)</span>
+			  	</div>
+          </div>
+          
+<!--           <div th:if="${session.user != null}"> -->
+<!-- 			  면접관인 경우 (role='intr') 안내멘트만 출력 -->
+			 
+<!-- 			  <div th:if="${role == 'intr'}" style="text-align:center; margin:10px 0;"> -->
+<!-- 			    <span style="color: gray; font-size: 13px;">(면접관은 예약할 수 없습니다)</span> -->
+<!-- 			  </div> -->
+			  
+<!-- 			  면접관이 아닌 경우 예약 버튼 출력 -->
+<!-- 			  <form th:if="${role != 'intr'}" -->
+<!-- 			        th:action="@{/reservation/book}" method="get" style="text-align:center; margin: 10px 0;"> -->
+<!-- 			    <input type="hidden" name="intrId" th:value="${i.userId}" /> -->
+<!-- 			    <button type="submit" class="reserve-btn">예약하기</button> -->
+<!-- 			  </form> -->
+<!-- 			</div> -->
+
+        
+
+   
+    </div>
+         <!-- 빈 박스 (9개 미만일 때) -->
+        <div class="empty-box"
+     th:each="i : ${#numbers.sequence(1, 9 - (#lists.size(interviewers) != null ? #lists.size(interviewers) : 0))}"
+     th:if="${#lists.size(interviewers) < 9}">
+  <div class="empty-content">
+    <span>면접관 없음</span>
+  </div>
+</div>
+  </div>
+</div>
+
+
+    <!-- 프로필 카드 만들기 버튼 (interviewer-grid 밖으로 이동) -->
+    <div class="create-profile-section" th:if="${role == 'intr'}" style="width: 100%; text-align: center; margin-top: 30px;">
+      <a href="/interviewer/form">
+        <button type="button" class="write-btn">➕ 프로필 카드 만들기</button>
+      </a>
+    </div>
+
+    <!-- 페이징 UI -->
+    <div class="paging">
+      <button class="disabled">&lt;&lt;</button>
+      <button class="disabled">&lt;</button>
+      <span class="active">1</span>
+      <button>2</button>
+      <button>3</button>
+      <button>4</button>
+      <button>&gt;</button>
+      <button>&gt;&gt;</button>
+    </div>
+
+    <!-- 하단 액션 영역 (기존 버튼 제거) -->
+    <div class="bottom-actions">
+      <div></div> <!-- 빈 공간 -->
+    </div>
+</div>
+  <!-- Footer -->
+  <div th:replace="fragments/footer :: footerFragment"></div>
+
+  <script>
+  function toggleTag(tagEl) {
+    tagEl.classList.toggle("selected");
+    const selected = Array.from(document.querySelectorAll(".tag.selected")).map(t => t.dataset.value);
+
+    if (selected.length > 3) {
+      tagEl.classList.remove("selected");
+      alert("최대 3개까지만 선택할 수 있습니다.");
+      return;
+    }
+
+    document.getElementById("intrCateHidden").value = selected.join(",");
+  }
+  </script>
+</body>
+</html>

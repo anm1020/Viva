@@ -1,0 +1,25 @@
+  <!-- Header -->
+ <div th:fragment="jasoList" class="jaso-card">
+ 
+  <div class="jaso-list-container">
+    <div class="jaso-header">
+      <h2>📄 나의 자소서</h2>
+      <a href="/mypage/jaso/write" class="btn-new">✍ 새 자소서 작성</a>
+    </div>
+    <div th:if="${jasoList.isEmpty()}">
+      <p>작성한 자소서가 없습니다.</p>
+    </div>
+    <div th:each="jaso : ${jasoList}" class="jaso-item">
+      <div class="jaso-item-header">
+        <a th:href="@{'/mypage/jaso/view/' + ${jaso.id}}" th:text="${jaso.title}" class="jaso-title-link">자소서 제목</a>
+      </div>
+      <div class="jaso-date"><strong>작성일:</strong> <span th:text="${jaso.createdDt}">2025-07-08</span></div>
+      <div class="actions">
+        <a th:href="@{'/mypage/jaso/delete/' + ${jaso.id}}"
+           onclick="return confirm('정말 삭제하시겠습니까?')">🗑 삭제</a>
+        <a th:href="@{'/mypage/jaso/view/' + ${jaso.id}}">🔍 보기</a>
+      </div>
+    </div>
+  </div>
+ </div>
+  <!-- Footer -->

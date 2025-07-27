@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 모의면접</title>
+  <link rel="stylesheet" th:href="@{/css/common.css}" />
+  <link rel="stylesheet" th:href="@{/css/main.css}" />
+  <link rel="stylesheet" th:href="@{/css/chat.css}" />
+  <link rel="stylesheet" th:href="@{/css/hero.css}" />
+  
+</head>
+<body>
+  <!-- Header -->
+  <div th:replace="fragments/header :: headerFragment"></div>
+
+ <section class="hero-banner">
+		<div class="text-area">
+			<h1>AI Chat</h1>
+			<p>Prepare for your interview</p>
+		</div>
+		<div class="img-area">
+			<!-- 이미지 숨김 처리됨 -->
+		</div>
+	</section>
+	<div class="board-footer">AI Chat</div>
+	
+  <!-- 커스텀 상단 -->
+  <div class="custom-header">
+    <button type="button" id="new-chat-btn">새로운 대화 생성</button>
+   <!-- <button type="button" id="load-sessions-btn">대화내역 불러오기</button>-->
+  </div>
+
+  <div class="container">
+    <!-- 🔹 대화방 목록 -->
+    <div class="session-list">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h3 style="margin:0;">내 대화방</h3>
+      </div>
+      <div th:if="${sessions != null and !sessions.empty}" th:each="aiSession : ${sessions}">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <a th:href="@{/ai/aichat(sessionId=${aiSession.sessionId})}"
+             th:text="${aiSession.title != null and !aiSession.title.empty ? aiSession.title : '제목 없음'}"
+             style="flex:1; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;"></a>
+          <button type="button" class="delete-session-btn" th:data-session-id="${aiSession.sessionId}" style="margin-left:8px;">삭제</button>
+        </div>
+      </div>
+      <div th:if="${sessions == null or sessions.empty}">
+        <p>대화방이 없습니다.</p>
+      </div>
+    </div>
+
+    <!-- 🔹 채팅 화면 -->
+    <div class="chat-area">
+      <input type="hidden" id="sessionId" th:value="${sessionId}" />
+
+      <div class="chat-container" id="chat-container">
+        <!-- 기존 채팅 메시지는 JS가 삽입 -->
+      </div>
+
+      <form id="prompt-form" class="input-form">
+        <input id="prompt-input" type="text" name="prompt" placeholder="면접 질문을 입력하세요..." required />
+        <button type="submit">전송</button>
+      </form>
+    </div>
+  </div>
+<!-- Footer -->
+  <div th:replace="fragments/footer :: footerFragment"></div>
+  <script th:inline="javascript">
+  const form = document.getElementById("prompt-form");
+  const input = document.getElementById("prompt-input");
+  const container = document.getElementById("chat-container");
+  const sessionId = document.getElementById("sessionId").value;
+  const messages = /*[[${messages}]]*/ [];
+  const sessionTitle = /*[[${sessionTitle}]]*/ "새로운 대화";
+
+  // 메시지 렌더링 함수
+  function renderMessages(msgs) {
+    container.innerHTML = "";
+    (msgs || []).forEach(msg => {
+      const groupDiv = document.createElement("div");
+      groupDiv.className = "chat-group";
+      const msgDiv = document.createElement("div");
+      msgDiv.className = "message " + msg.role;
+      msgDiv.innerHTML = msg.content.replace(/\n/g, "<br>");
+      groupDiv.appendChild(msgDiv);
+      container.appendChild(groupDiv);
+    });
+  }
+  renderMessages(messages);
+
+  // 전송 처리
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const prompt = input.value.trim();
+    if (!prompt) return;
+
+    // 사용자 메시지 출력
+    const userGroup = document.createElement("div");
+    userGroup.className = "chat-group";
+    const userDiv = document.createElement("div");
+    userDiv.className = "message user";
+    userDiv.innerHTML = prompt.replace(/\n/g, "<br>");
+    userGroup.appendChild(userDiv);
+    container.appendChild(userGroup);
+
+    input.value = "";
+
+    // AI 응답 준비 메시지
+    const assistantGroup = document.createElement("div");
+    assistantGroup.className = "chat-group";
+    const assistantDiv = document.createElement("div");
+    assistantDiv.className = "message assistant";
+    assistantDiv.textContent = "GPT 응답 중...";
+    assistantGroup.appendChild(assistantDiv);
+    container.appendChild(assistantGroup);
+
+    try {
+      const res = await fetch("/ai/sendAndReply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, prompt }),
+      });
+      const result = await res.json();
+      if (result && result.assistantMessage && result.assistantMessage.content) {
+        assistantDiv.innerHTML = result.assistantMessage.content.replace(/\n/g, "<br>");
+      } else {
+        assistantDiv.textContent = "응답이 비어있습니다.";
+      }
+
+      if (sessionTitle === "새로운 대화") {
+        await fetch(`/ai/session/updateTitle`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId, title: prompt })
+        });
+        location.reload();
+      }
+    } catch (err) {
+      assistantDiv.textContent = "GPT 응답 실패: " + err.message;
+      console.error(err);
+    }
+  });
+
+  // 대화방 삭제
+  document.querySelector('.session-list')?.addEventListener('click', async (e) => {
+    if (e.target.classList.contains('delete-session-btn')) {
+      const sid = e.target.getAttribute('data-session-id');
+      if (confirm('정말 삭제하시겠습니까?')) {
+        await fetch(`/ai/session/delete?sessionId=${sid}`, { method: 'DELETE' });
+        location.reload();
+      }
+    }
+  });
+
+  // 새로운 대화 생성 버튼 이벤트
+  document.getElementById('new-chat-btn').addEventListener('click', () => {
+    window.location.href = '/ai/aichat?new=1';
+  });
+
+  // 대화내역 불러오기 버튼 이벤트
+  document.getElementById('load-sessions-btn').addEventListener('click', () => {
+    window.location.reload();
+  });
+  </script>
+</body>
+</html>

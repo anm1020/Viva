@@ -1,0 +1,107 @@
+<!-- 결제내역.html -->
+<div th:fragment="paymentListFragment">
+  <div class="content-card">
+	<section class="payment-section">
+		<h3>결제 내역</h3>
+		<table class="reservation-table">
+			<!-- 여기 클래스 변경됨 -->
+			<thead>
+				<tr>
+					<th>결제번호</th>
+					<th>예약번호</th>
+					<th>결제일시</th>
+					<th>결제수단</th>
+					<th>결제금액</th>
+				</tr>
+			</thead>
+			<tbody>
+				<!-- 예약번호가 0이 아닌 결제 내역만 -->
+				<tr th:each="payment : ${payments}" th:if="${payment.resId != null}">
+					<td th:text="${payment.payId}">1</td>
+					<td th:text="${payment.resId}">5000</td>
+					<td
+						th:text="${#dates.format(payment.payCreateDt, 'yyyy-MM-dd HH:mm')}">2025-07-13
+						15:30</td>
+					<td th:text="${payment.payType}">CARD</td>
+					<td
+						th:text="${#numbers.formatDecimal(payment.payAmount, 0, 'COMMA', 0, 'POINT')} + '원'">5000원</td>
+
+
+				</tr>
+				<tr th:if="${#lists.isEmpty(payments)}">
+					<td colspan="6">결제 내역이 없습니다.</td>
+				</tr>
+			</tbody>
+		</table>
+	</section>
+
+	<section class="payment-section" style="margin-top: 40px;">
+		<h3>포인트 충전 내역</h3>
+		<table class="reservation-table">
+			<!-- 여기 클래스 변경됨 -->
+			<thead>
+				<tr>
+					<th>충전번호</th>
+					<th>충전일시</th>
+					<th>충전 금액</th>
+				</tr>
+			</thead>
+			<tbody>
+				<!-- 예약번호가 0인 충전 내역만 -->
+				<tr th:each="payment : ${payments}" th:if="${payment.resId == null}">
+					<td th:text="${payment.payId}">1</td>
+					<td
+						th:text="${#dates.format(payment.payCreateDt, 'yyyy-MM-dd HH:mm')}">2025-07-13
+						16:00</td>
+					<td
+						th:text="${#numbers.formatDecimal(payment.payAmount, 0, 'COMMA', 0, 'POINT')} + '원'">100원</td>
+
+				</tr>
+				<tr th:if="${#lists.isEmpty(payments)}">
+					<td colspan="4">포인트 충전 내역이 없습니다.</td>
+				</tr>
+			</tbody>
+		</table>
+	</section>
+
+	<div>
+		<h2>나의 환전 신청 내역</h2>
+		<p>
+			환전 신청 내역 개수: <span
+				th:text="${#lists.isEmpty(exchanges) ? 0 : exchanges.size()}">0</span>
+		</p>
+
+		<table class="reservation-table">
+			<thead>
+				<tr>
+					<th>신청 번호</th>
+					<th>환전자 이름</th>
+					<th>휴대폰 번호</th>
+					<th>은행명</th>
+					<th>계좌번호</th>
+					<th>신청 포인트</th>
+					<th>신청 시간</th>
+					<th>상태</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="exchange : ${exchanges}">
+					<td th:text="${exchange.id}">1</td>
+					<td th:text="${exchange.name}">홍길동</td>
+					<td th:text="${exchange.phone}">010-0000-0000</td>
+					<td th:text="${exchange.bank}">국민은행</td>
+					<td th:text="${exchange.account}">123-456-7890</td>
+					<td th:text="${exchange.amount}">10000</td>
+					<td
+						th:text="${#temporals.format(exchange.requestedAt, 'yyyy-MM-dd HH:mm')}">2025-07-15
+						13:45</td>
+					<td th:text="${exchange.status}">PENDING</td>
+				</tr>
+				<tr th:if="${#lists.isEmpty(exchanges)}">
+					<td colspan="8" style="text-align: center;">신청 내역이 없습니다.</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+  </div>
+</div>

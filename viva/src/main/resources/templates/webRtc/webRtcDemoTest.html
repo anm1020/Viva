@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<!-- 외부 라이브러리 -->
+<script
+	th:src="@{https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/6.4.0/adapter.min.js}"></script>
+<script
+	th:src="@{https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js}"></script>
+<script
+	th:src="@{https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js}"></script>
+<script
+	th:src="@{https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js}"></script>
+<script
+	th:src="@{https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.4.0/bootbox.min.js}"></script>
+<script
+	th:src="@{https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js}"></script>
+<script
+	th:src="@{https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js}"></script>
+
+
+<script th:src="@{/js/webRtc/janus.js}"></script>
+</head>
+<body>
+테스트용 페이지
+<script>
+var janus = null, textroom = null;
+
+Janus.init({
+  debug: "all",
+  callback: function() {
+    janus = new Janus({
+      server: "https://janus.conf.meetecho.com/janus",
+      success: function() {
+        janus.attach({
+          plugin: "janus.plugin.textroom",
+          opaqueId: "textroom-" + Janus.randomString(12),
+          media: false,  // 반드시 false
+          success: function(pluginHandle) {
+            textroom = pluginHandle;
+            console.log("✅ TextRoom attached");
+
+            // DataChannel 열기
+            const body = { request: "setup" };
+            textroom.send({ message: body });
+          },
+          
+       // ✅ 여기에서 JSEP 처리
+          onmessage: function(msg, jsep) {
+            if (jsep) {
+              console.log("📨 JSEP received:", jsep);
+              textroom.createAnswer({
+                jsep: jsep,
+                media: { audio: false, video: false, data: true },
+                success: function (jsep) {
+                  const body = { request: "ack" };
+                  textroom.send({ message: body, jsep: jsep });
+                },
+                error: function (err) {
+                  console.error("❌ JSEP createAnswer error", err);
+                }
+              });
+            }
+          },
+          
+          ondataopen: function() {
+        	console.log("✅ Data channel opened 🎉");
+          },
+          ondata: function(data) {
+            console.log("📩 Received:", data);
+          },
+          error: function(err) {
+            console.error("TextRoom attach error:", err);
+          }
+        });
+      },
+      error: function(err) {
+        console.error("Janus init error", err);
+      },
+      destroyed: function() {
+        console.log("Janus destroyed");
+      }
+    });
+  }
+});
+</script>
+
+</body>
+</html>

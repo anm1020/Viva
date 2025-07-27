@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>개발자 취업 사이트 모음</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <link rel="stylesheet" th:href="@{/css/common.css}">
+  
+  <style>
+    .jobsite-frame { max-width: 880px; margin: 40px auto; padding: 18px; }
+    .jobsite-title { text-align: center; font-size: 2.1rem; margin-bottom: 33px; color: #2d4373; }
+    .site-list { display: flex; flex-wrap: wrap; gap: 26px; justify-content: center; }
+    .site-card {
+      width: 218px; min-height: 220px;
+      padding: 22px 15px 16px 15px;
+      border: 1px solid #e0e0e0;
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 2px 12px rgba(32,48,127,0.06);
+      text-align: center;
+      transition: box-shadow 0.16s;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .site-card:hover { box-shadow: 0 8px 22px rgba(44,83,179,0.13);}
+    .site-card img { width: 65px; height: 65px; margin-bottom: 14px; object-fit: contain;}
+    .site-card h3 { font-size: 1.14rem; margin: 6px 0 9px 0; color: #243870;}
+    .site-card p { font-size: 0.97rem; color: #666; min-height: 44px;}
+    .go-btn {
+      margin-top: 13px; display: inline-block; padding: 8px 18px; border-radius: 7px;
+      background: #5c7cfa; color: #fff; font-weight: bold; text-decoration: none;
+      font-size: 1rem; transition: background 0.18s;
+    }
+    .go-btn:hover { background: #364fc7;}
+    @media (max-width: 700px) {
+      .site-list { flex-direction: column; align-items: center; }
+      .site-card { width: 98%; }
+    }
+  </style>
+</head>
+<body>
+<div th:replace="fragments/header :: header"></div>
+
+<div class="jobsite-frame">
+  <div class="jobsite-title">개발자 취업 사이트 모음</div>
+  <div class="site-list">
+    <div class="site-card">
+      <img src="/images/wanted_logo.png" alt="원티드" onerror="this.style.display='none'">
+      <h3>원티드 (Wanted)</h3>
+      <p>IT/개발자 채용, 기업 리뷰, 연봉 정보</p>
+      <a href="https://www.wanted.co.kr/" target="_blank" class="go-btn">바로가기</a>
+    </div>
+    <div class="site-card">
+      <img src="/images/rocketpunch_logo.png" alt="로켓펀치" onerror="this.style.display='none'">
+      <h3>로켓펀치 (RocketPunch)</h3>
+      <p>스타트업/IT 중심, 개발 포지션 특화</p>
+      <a href="https://www.rocketpunch.com/" target="_blank" class="go-btn">바로가기</a>
+    </div>
+    <div class="site-card">
+      <img src="/images/programmers_logo.png" alt="프로그래머스" onerror="this.style.display='none'">
+      <h3>프로그래머스 (Programmers)</h3>
+      <p>개발자 채용, 코딩 테스트, 경력 관리</p>
+      <a href="https://career.programmers.co.kr/" target="_blank" class="go-btn">바로가기</a>
+    </div>
+    <div class="site-card">
+      <img src="/images/jumpit_logo.png" alt="점핏" onerror="this.style.display='none'">
+      <h3>점핏 (Jumpit)</h3>
+      <p>IT/개발 전용, 최신 개발 채용 플랫폼</p>
+      <a href="https://www.jumpit.co.kr/" target="_blank" class="go-btn">바로가기</a>
+    </div>
+    <div class="site-card">
+      <img src="/images/jobplanet_logo.png" alt="잡플래닛" onerror="this.style.display='none'">
+      <h3>잡플래닛 (Jobplanet)</h3>
+      <p>채용정보, 기업리뷰, 연봉 정보</p>
+      <a href="https://www.jobplanet.co.kr/" target="_blank" class="go-btn">바로가기</a>
+    </div>
+    <div class="site-card">
+      <img src="/images/saramin_logo.png" alt="사람인" onerror="this.style.display='none'">
+      <h3>사람인 (Saramin)</h3>
+      <p>종합 채용포털, 개발자 채용관 운영</p>
+      <a href="https://www.saramin.co.kr/" target="_blank" class="go-btn">바로가기</a>
+    </div>
+    <div class="site-card">
+      <img src="/images/codingjob_logo.png" alt="코딩잡" onerror="this.style.display='none'">
+      <h3>코딩잡 (CodingJob)</h3>
+      <p>개발자 전용 구인구직, 스타트업 많음</p>
+      <a href="https://www.codingjob.co.kr/" target="_blank" class="go-btn">바로가기</a>
+    </div>
+    <div class="site-card">
+      <img src="/images/rallit_logo.png" alt="랠릿" onerror="this.style.display='none'">
+      <h3>랠릿 (Rallit)</h3>
+      <p>IT 경력직 채용, 개발자 중심 채용 플랫폼</p>
+      <a href="https://www.rallit.com/" target="_blank" class="go-btn">바로가기</a>
+    </div>
+  </div>
+  <div style="text-align:center; margin-top:32px; color:#777; font-size:14px;">
+    <span>더 추가하고 싶은 사이트가 있다면 관리자에게 문의해 주세요!</span>
+  </div>
+  
+  <!-- 뒤로가기 버튼 -->
+  <div style="text-align:center; margin-top:20px;">
+    <a th:if="${role=='mem' or role=='intr'}"
+   th:href="@{/mypage}"
+   class="go-btn">
+  마이페이지로 돌아가기
+</a>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<link rel="stylesheet" th:href="@{/css/notice.css}">
+<div id="noticeListContent" th:fragment="noticeListContent">
+  <h2>공지사항</h2>
+  <div style="text-align:right; margin-bottom:10px;">
+    <button id="writeNoticeBtn" class="btn btn-primary">글쓰기</button>
+  </div>
+
+  <!-- 1. 상단고정 공지글 3개 -->
+  <table class="notice-table">
+  <thead>
+    <tr>
+      <th>No</th>
+      <th>제목</th>
+      <th>작성자</th>
+      <th>등록일</th>
+      <th>조회수</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr th:each="notice : ${noticeList}"
+        th:classappend="${notice.isFixed == 'Y'} ? 'notice-fixed'">
+      <td th:text="${notice.noticeId}"></td>
+      <td>
+        <span th:if="${notice.isFixed == 'Y'}" class="notice-badge">공지</span>
+        <a href="#" class="notice-link"
+           th:data-id="${notice.noticeId}"
+           th:text="${notice.title}">제목</a>
+      </td>
+      <td th:text="${notice.user.userName}"></td>
+      <td th:text="${#temporals.format(notice.createdAt,'yyyy-MM-dd HH:mm')}"></td>
+      <td th:text="${notice.viewCount}"></td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(noticeList)}">
+      <td colspan="5" style="text-align:center;">등록된 공지사항이 없습니다.</td>
+    </tr>
+  </tbody>
+</table>
+
+
+  <!-- 2. 전체 공지사항 목록 -->
+  <!-- <table class="notice-table">
+    <caption style="caption-side: top; font-weight:bold; margin-bottom: 5px; text-align:left;">전체 공지사항</caption>
+    <thead>
+      <tr>
+        <th>No</th>
+        <th>제목</th>
+        <th>작성자</th>
+        <th>등록일</th>
+        <th>조회수</th>
+        <th>상단고정</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:each="notice : ${noticeList}">
+        <td th:text="${notice.noticeId}"></td>
+        <td>
+          <a href="#" class="notice-link"
+             th:data-id="${notice.noticeId}"
+             th:text="${notice.title}">제목</a>
+        </td>
+        <td th:text="${notice.user.userName}"></td>
+        <td th:text="${#temporals.format(notice.createdAt,'yyyy-MM-dd HH:mm')}"></td>
+        <td th:text="${notice.viewCount}"></td>
+        <td th:text="${notice.isFixed == 'Y' ? 'Y' : 'N'}"></td>
+      </tr>
+      <tr th:if="${#lists.isEmpty(noticeList)}">
+        <td colspan="6" style="text-align:center;">등록된 공지사항이 없습니다.</td>
+      </tr>
+    </tbody>
+  </table> -->
+</div>

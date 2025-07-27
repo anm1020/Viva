@@ -1,0 +1,236 @@
+@charset "UTF-8";
+
+.notice-table-wrap {
+    max-width: 1150px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(80,100,160,0.06);
+    padding: 30px 20px;
+}
+.notice-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+}
+.notice-table thead tr {
+    background: #f5f8fa;
+    border-bottom: 2px solid #e6e8ed;
+}
+.notice-table th, .notice-table td {
+    padding: 11px 0px;
+    text-align: center;
+}
+.notice-table tbody tr {
+    border-bottom: 1px solid #e6e8ed;
+}
+.notice-table a {
+    color: #0050b3;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* --- 공지 상세 한 줄씩 보기용 스타일 --- */
+.notice-detail-row td {
+    padding: none !important;  /* 모든 상세 row의 셀 패딩 제거 */
+    border: none !important;
+    background: none !important;
+}
+.notice-inline-detail {
+    background: none !important;
+    padding: 0;
+}
+.notice-detail-content {
+    font-size: 16px;
+    color: #222;
+    margin-bottom: 16px;
+    white-space: pre-line;
+}
+.notice-detail-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 10px;
+}
+.notice-detail-actions button {
+    background: #2d61e3;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 4px 15px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.notice-detail-actions button:hover {
+    background: #143ab7;
+}
+
+.btn.btn-primary {
+    background: #2d61e3;
+    color: #fff !important;
+    padding: 7px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    text-decoration: none;
+	/* margin-right: 20px; */
+	/* margin-bottum: 10px; */
+}
+.btn.btn-primary:hover {
+    background: #143ab7;
+}
+
+/* 공지사항 작성 폼 스타일 */
+.notice-form-wrap {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 30px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  font-family: 'Pretendard', sans-serif;
+}
+
+.notice-form-wrap h2 {
+  text-align: center;
+  font-size: 24px;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.notice-form-wrap .form-group {
+  margin-bottom: 20px;
+}
+
+.notice-form-wrap label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #222;
+}
+
+.notice-form-wrap input[type="text"],
+.notice-form-wrap textarea,
+.notice-form-wrap select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.notice-form-wrap input:focus,
+.notice-form-wrap textarea:focus,
+.notice-form-wrap select:focus {
+  outline: none;
+  border-color: #2a5bd7;
+}
+
+.notice-form-wrap textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.notice-form-wrap .form-buttons {
+  text-align: right;
+  margin-top: 20px;
+}
+
+.notice-form-wrap .btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.notice-form-wrap .btn-success {
+  background-color: #2a5bd7;
+  color: #fff;
+}
+
+.notice-form-wrap .btn-secondary {
+  background-color: #ccc;
+  color: #333;
+}
+
+.notice-form-wrap .btn:hover {
+  opacity: 0.9;
+}
+
+/* 공지 리스트에 상단 고정인 것 표시 */
+.notice-table .notice-fixed {
+  background: #fffbea;         /* 연노랑 배경 */
+  font-weight: bold;           /* 굵은 글씨 */
+  color: #ad7000;              /* 주황계열 텍스트 */
+}
+.notice-badge {
+  display: inline-block;
+  background: #F39C12;
+  color: #fff;
+  border-radius: 10px;
+  font-size: 12px;
+  padding: 2px 7px;
+  margin-right: 6px;
+  font-weight: bold;
+  vertical-align: middle;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;  /* 양쪽 정렬 */
+  align-items: center;
+  width: 100%;
+  margin-top: 30px;
+  gap: 0;
+}
+
+.left-btns {
+  display: flex;
+  gap: 12px;
+}
+
+.right-btns {
+  margin-left: auto;  /* 오른쪽 끝으로 */
+}
+
+.form-actions button,
+.btn-notice-list {
+  padding: 8px 22px;
+  border-radius: 8px;
+  border: none;
+  font-size: 1.05rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+  box-shadow: 0 2px 10px 0 rgba(170, 170, 170, 0.09);
+  outline: none;
+}
+
+#btnUpdateNotice {
+  background: #456afe;
+  color: #fff;
+}
+#btnUpdateNotice:hover {
+  background: #2346b2;
+}
+#btnDeleteNotice {
+  background: #ff6262;
+  color: #fff;
+}
+#btnDeleteNotice:hover {
+  background: #d53535;
+}
+.btn-notice-list {
+  background: #fafbff;
+  color: #2346b2;
+  border: 1.2px solid #d2e0ff;
+}
+.btn-notice-list:hover {
+  background: #e9f1ff;
+  color: #1d336e;
+}

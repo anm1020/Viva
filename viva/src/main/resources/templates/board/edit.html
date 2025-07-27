@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>게시글 수정</title>
+  <link rel="stylesheet" th:href="@{/css/board.css}" />
+  <link rel="stylesheet" th:href="@{/css/common.css}">
+ 
+</head>
+<body>
+  <!-- Header -->
+  <div th:replace="fragments/header :: headerFragment"></div>
+  <div style="text-align:center; font-family: 'Georgia', serif; font-weight: 700; margin-top: 30px;">
+	<h2>게시글 수정</h2>
+</div>
+<!-- 수정 폼 컨테이너 -->
+  <form th:action="@{/board/edit}" th:object="${board}" method="post" class="edit-form-container">
+    <input type="hidden" th:field="*{id}" />
+    
+    <label for="title">제목</label>
+    <input type="text" id="title" th:field="*{title}" required />
+
+    <label for="content">내용</label>
+    <textarea id="content" th:field="*{content}" rows="10" required></textarea>
+
+
+    <button type="submit">수정 완료</button>
+  </form>
+
+  <div style="text-align:center;">
+    <a th:href="@{/board/view/{id}(id=${board.id})}" class="edit-back-link">돌아가기</a>
+  </div>
+
+  <!-- Footer -->
+  <div th:replace="fragments/footer :: footerFragment"></div>
+</body>
+</html>

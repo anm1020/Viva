@@ -1,0 +1,49 @@
+<!-- templates/admin/boardDetail.html -->
+<!-- <div th:fragment="boardDetailContent">
+    <h3 th:text="${board.title}"></h3>
+    <div>
+        <p>작성자: <span th:text="${board.userId}"></span></p>
+        <p th:text="'작성일: ' + ${#temporals.format(board.createdAt, 'yyyy-MM-dd HH:mm')}"></p>
+        <p th:text="'조회수: ' + ${board.viewCount}"></p>
+        <p th:text="'추천수: ' + ${board.likeCount}"></p>
+    </div>
+    <div style="margin:24px 0;">
+        <pre th:text="${board.content}"></pre>
+    </div>
+    <button class="btn-delete-board" th:attr="data-id=${board.id}">삭제</button>
+    <button class="btn-back-boardlist">목록</button>
+</div>
+ -->
+ 
+ <div th:fragment="boardDetailContent" class="board-detail">
+  <h3 class="board-title" th:text="${board.title}">게시글 제목</h3>
+
+  <table class="board-meta">
+    <tr>
+      <th>작성자</th>
+      <td th:text="${board.userId}">userId</td>
+    </tr>
+    <tr>
+      <th>작성일</th>
+      <td th:text="${#temporals.format(board.createdAt, 'yyyy-MM-dd HH:mm')}">2025-07-24 15:00</td>
+    </tr>
+    <tr>
+      <th>조회수</th>
+      <td th:text="${board.viewCount}">123</td>
+    </tr>
+    <tr>
+      <th>추천수</th>
+      <td th:text="${board.likeCount}">45</td>
+    </tr>
+  </table>
+
+  <div class="board-content">
+    <pre th:text="${board.content}">게시글 내용</pre>
+  </div>
+
+  <div class="btn-group">
+    <button class="btn-delete" th:attr="data-id=${board.id}">삭제</button>
+    <button class="btn-back-boardlist">목록</button>
+  </div>
+</div>
+ 

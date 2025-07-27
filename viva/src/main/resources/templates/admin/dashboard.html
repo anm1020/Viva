@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>관리자 대시보드</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+<link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/users.css}">
+    <link rel="stylesheet" th:href="@{/css/notice.css}">
+    <link rel="stylesheet" th:href="@{/css/board.css}">
+    <link rel="stylesheet" th:href="@{/css/board.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-board.css}">
+</head>
+<body>
+<!-- 공통 헤더 -->
+<div th:replace="fragments/header :: header"></div>
+
+<div class="admin-dashboard-container">
+    <!-- 사이드바 -->
+    <aside class="admin-sidebar">
+        <div class="admin-title">관리자 대시보드</div>
+        <nav>
+            <a href="#" class="sidebar-link" data-url="/notice/noticeList">공지관리</a>
+            <a href="#" class="sidebar-link" data-url="/admin/users">회원관리</a>
+            <a href="#" class="sidebar-link" data-url="/admin/boardList">게시글관리</a>
+            <a href="#" class="sidebar-link" data-url="/admin/points1">포인트관리</a>
+        </nav>
+    </aside>
+
+    <!-- 본문(main) AJAX 영역 -->
+    <main class="admin-main-content">
+        <div id="adminMainContent">
+            <h2>관리자 대시보드</h2>
+            <div>
+			<div style="margin-top: 16px; font-size: 1.05rem; color: #444;">
+			  <p style="margin-bottom: 12px;">
+			    관리자 모드에 오신 것을 환영합니다.<br>
+			    이 공간은 서비스 운영과 사용자 활동을 전반적으로 관리하는 컨트롤 허브입니다.<br>
+			    아래 항목들을 정기적으로 확인하고 필요한 조치를 수행해 주세요.
+			  </p>
+			
+			  <ul style="line-height: 1.8; padding-left: 1.2rem;">
+			    <li>📢 신규 공지사항 등록 및 기존 공지 관리</li>
+			    <li>👤 회원가입 승인 및 계정 상태 확인</li>
+			    <li>📝 게시글 및 댓글 모니터링 · 삭제 처리</li>
+			    <li>💰 포인트 신청 요청 승인/거절 처리</li>
+			  </ul>
+			
+			  <p style="margin-top: 18px; color: #888; font-size: 0.95rem;">
+			    ※ 관리자 활동은 서비스 품질과 사용자 만족도에 직결됩니다.<br>
+			    주기적인 점검과 적극적인 대응을 부탁드립니다.
+			  </p>
+			</div>
+            </div>
+        </div>  
+    </main>
+</div>
+<!-- jQuery 및 AJAX 메뉴 클릭 처리 -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="/js/users.js"></script>
+<script src="/js/notice.js"></script>
+<script src="/js/points1.js"></script>
+<script src="/js/adminBoardlist.js"></script>
+
+<script> 
+$(document).on("click", ".sidebar-link", function(e) {
+    e.preventDefault();
+
+    // 1. 기존 active 제거
+    $(".sidebar-link").removeClass("active");
+
+    // 2. 현재 클릭한 메뉴에 active 추가
+    $(this).addClass("active");
+
+    // 3. 본문 콘텐츠 AJAX 로드
+    const url = $(this).data("url");
+    $("#adminMainContent").load(data-url, function(resp, status, xhr){
+      if (status !== "success") {
+        alert("페이지 로딩 실패: " + xhr.statusText);
+      }
+    });
+  });
+</script>
+
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

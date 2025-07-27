@@ -1,0 +1,490 @@
+<!-- resu/resume-write.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+  <title>이력서 작성</title>
+    <link rel="stylesheet" href="/css/resume.css">
+</head>
+<body>
+
+<div class="resume-container">
+    <div class="resume-header">
+        <div class="header-left">
+            <h1 class="resume-name">이력서 작성</h1>
+            <p class="resume-title">Web Backend Developer</p>
+        </div>
+        <div class="header-right">
+            <div class="photo-placeholder">
+                <span>사진</span>
+            </div>
+            <div class="resume-actions">
+                <button type="submit" form="resumeForm" class="edit-btn">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <form id="resumeForm" th:action="@{/resume/write}" method="post" th:object="${resume}">
+        <!-- 이력서 제목 -->
+        <div class="resume-section">
+            <h2 class="section-title">이력서 제목</h2>
+            <div class="section-content">
+                <input type="text" class="section-input" th:field="*{reTitle}" placeholder="이력서 제목을 입력하세요 (예: 웹 백엔드 개발자 이력서)">
+            </div>
+        </div>
+        
+        <!-- 개인정보 -->
+        <div class="info-section">
+            <div class="info-row">
+                <span class="info-label">Career</span>
+                <span class="info-value" th:text="${user.userCareer}">사무직 2년</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Birth</span>
+                <span class="info-value" th:text="${user.userBirth}">1997.06.25</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Address</span>
+                <span class="info-value" th:text="${user.userAdd}">광진구</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Phone</span>
+                <span class="info-value" th:text="${user.userNum}">1024632015</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">E-mail</span>
+                <span class="info-value" th:text="${user.userEmail}">wjdguspyo@gmail.com</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Git-Hub</span>
+                <input type="text" class="info-input" th:field="*{reGitHub}" placeholder="GitHub 주소를 입력하세요">
+            </div>
+            <div class="info-row">
+                <span class="info-label">Blog/Notion</span>
+                <input type="text" class="info-input" th:field="*{reBlogNotion}" placeholder="Blog/Notion 주소를 입력하세요">
+            </div>
+        </div>
+
+        <!-- 핵심역량 -->
+        <div class="resume-section">
+            <h2 class="section-title">핵심역량</h2>
+            <div class="section-content">
+                <textarea class="section-textarea" th:field="*{reStrengths}" placeholder="핵심역량을 입력하세요"></textarea>
+            </div>
+        </div>
+
+        <!-- 학력 -->
+        <div class="resume-section">
+            <h2 class="section-title">학력</h2>
+            <div id="education-container">
+                <div class="section-row">
+                    <input type="text" class="date-input" name="reEducationPeriod" placeholder="2000. 00. ~ 2000. 00.">
+                    <input type="text" class="org-input" name="reEducationSchool" placeholder="학교명">
+                    <input type="text" class="detail-input" name="reEducationDetail" placeholder="졸업여부, 학위, 전공">
+                    <button type="button" class="add-btn" onclick="addEducationRow()">+</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 교육 -->
+        <div class="resume-section">
+            <h2 class="section-title">교육</h2>
+            <div id="training-container">
+                <div class="section-row">
+                    <input type="text" class="date-input" name="reTrainingPeriod" placeholder="2000. 00. ~ 2000. 00.">
+                    <input type="text" class="org-input" name="reTrainingInstitution" placeholder="기관명">
+                    <input type="text" class="detail-input" name="reTrainingCourse" placeholder="교육과정명">
+                    <button type="button" class="add-btn" onclick="addTrainingRow()">+</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 주요경력 -->
+        <div class="resume-section">
+            <h2 class="section-title">주요경력</h2>
+            <div id="experience-container">
+                <div class="section-row">
+                    <input type="text" class="date-input" name="reExperiencePeriod" placeholder="2000. 00. ~ 2000. 00.">
+                    <input type="text" class="org-input" name="reExperienceCompany" placeholder="회사명">
+                    <input type="text" class="detail-input" name="reExperiencePosition" placeholder="직책">
+                    <button type="button" class="add-btn" onclick="addExperienceRow()">+</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 자격증 -->
+        <div class="resume-section">
+            <h2 class="section-title">자격증</h2>
+            <div id="certifications-container">
+                <div class="section-row">
+                    <input type="text" class="date-input" name="reCertificationsPeriod" placeholder="2000. 00. ~ 2000. 00.">
+                    <input type="text" class="org-input" name="reCertificationsInstitution" placeholder="발행기관">
+                    <input type="text" class="detail-input" name="reCertificationsName" placeholder="자격증명">
+                    <button type="button" class="add-btn" onclick="addCertificationRow()">+</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 어학능력 -->
+        <div class="resume-section">
+            <h2 class="section-title">어학능력</h2>
+            <div id="languages-container">
+                <div class="section-row">
+                    <input type="text" class="date-input" name="reLanguagesPeriod" placeholder="2000. 00. ~ 2000. 00.">
+                    <input type="text" class="org-input" name="reLanguagesLanguage" placeholder="언어">
+                    <input type="text" class="detail-input" name="reLanguagesLevel" placeholder="레벨, 점수, 사용 수준 등">
+                    <button type="button" class="add-btn" onclick="addLanguageRow()">+</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 병역사항 -->
+        <div class="resume-section">
+            <h2 class="section-title">병역사항</h2>
+            <div class="military-section">
+                <div class="military-buttons">
+                    <button type="button" class="military-btn" data-status="해당없음" onclick="selectMilitaryStatus(this)">해당없음</button>
+                    <button type="button" class="military-btn" data-status="군필" onclick="selectMilitaryStatus(this)">군필</button>
+                    <button type="button" class="military-btn" data-status="면제" onclick="selectMilitaryStatus(this)">면제</button>
+                </div>
+                <input type="hidden" name="reMilitaryStatus" id="militaryStatusInput">
+                <div class="military-detail" id="militaryDetailSection" style="display: none;">
+                    <input type="text" class="date-input" name="reMilitaryPeriod" placeholder="복무기간">
+                    <input type="text" class="detail-input" name="reMilitaryDetail" placeholder="예시) 육군 만기제대, 사회복무요원 소집해제, 의가사제대 등">
+                </div>
+            </div>
+        </div>
+
+        <!-- 프로젝트 -->
+        <div class="resume-section">
+            <h2 class="section-title">프로젝트</h2>
+            <div id="projects-container">
+                <div class="project-item">
+                    <div class="project-header">
+                        <input type="text" class="project-date-input" name="reProjectsPeriod" placeholder="2000. 00. ~ 2000. 00.">
+                        <input type="text" class="project-title-input" name="reProjectsTitle" placeholder="프로젝트 제목">
+                        <button type="button" class="add-btn" onclick="addProjectRow()">+</button>
+                    </div>
+                    <div class="project-content">
+                        <div class="project-link-input">
+                            <span class="link-label">링크:</span>
+                            <input type="text" class="link-input" name="reProjectsLink" placeholder="프로젝트 링크 주소">
+                        </div>
+                        <div class="project-description">
+                            <textarea class="section-textarea" name="reProjectsContent" placeholder="프로젝트 내용을 입력하세요"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Skill Set -->
+        <div class="resume-section">
+            <h2 class="section-title">Skill Set</h2>
+            <div class="skill-row">
+                <span class="skill-category">Language</span>
+                <input type="text" class="skill-input" placeholder="Java, HTML/CSS/JS, SQL, JSP, Thymeleaf">
+            </div>
+            <div class="skill-row">
+                <span class="skill-category">OS</span>
+                <input type="text" class="skill-input" placeholder="Mac OS, window">
+            </div>
+            <div class="skill-row">
+                <span class="skill-category">Framework+Library</span>
+                <input type="text" class="skill-input" placeholder="Spring Boot, MVC, Security, JPA, Mybatis, Lombok, OAuth2 Client, Whisper API, OpenAI GPT API">
+            </div>
+            <div class="skill-row">
+                <span class="skill-category">Database</span>
+                <input type="text" class="skill-input" placeholder="OracleDB, MySQL">
+            </div>
+            <div class="skill-row">
+                <span class="skill-category">Development Tool</span>
+                <input type="text" class="skill-input" placeholder="STS4, Git/GitHub, Figma">
+            </div>
+            <div class="skill-row">
+                <span class="skill-category">ETC</span>
+                <input type="text" class="skill-input" placeholder="">
+            </div>
+        </div>
+  </form>
+
+</div>
+
+<script>
+// 폼 제출 전 데이터 처리
+document.getElementById('resumeForm').addEventListener('submit', function(e) {
+    // 학력 데이터 처리
+    processMultipleRows('education-container', 'reEducationPeriod', 'reEducationSchool', 'reEducationDetail');
+    
+    // 교육 데이터 처리
+    processMultipleRows('training-container', 'reTrainingPeriod', 'reTrainingInstitution', 'reTrainingCourse');
+    
+    // 주요경력 데이터 처리
+    processMultipleRows('experience-container', 'reExperiencePeriod', 'reExperienceCompany', 'reExperiencePosition');
+    
+    // 자격증 데이터 처리
+    processMultipleRows('certifications-container', 'reCertificationsPeriod', 'reCertificationsInstitution', 'reCertificationsName');
+    
+    // 어학능력 데이터 처리
+    processMultipleRows('languages-container', 'reLanguagesPeriod', 'reLanguagesLanguage', 'reLanguagesLevel');
+    
+    // 프로젝트 데이터 처리
+    processProjects();
+});
+
+// 여러 행의 데이터를 하나의 필드로 결합
+function processMultipleRows(containerId, periodField, orgField, detailField) {
+    const container = document.getElementById(containerId);
+    const rows = container.querySelectorAll('.section-row');
+    
+    let periods = [];
+    let orgs = [];
+    let details = [];
+    
+    rows.forEach(row => {
+        const periodInput = row.querySelector('input[name="' + periodField + '"]');
+        const orgInput = row.querySelector('input[name="' + orgField + '"]');
+        const detailInput = row.querySelector('input[name="' + detailField + '"]');
+        
+        if (periodInput && orgInput && detailInput) {
+            if (periodInput.value.trim() || orgInput.value.trim() || detailInput.value.trim()) {
+                periods.push(periodInput.value.trim());
+                orgs.push(orgInput.value.trim());
+                details.push(detailInput.value.trim());
+            }
+        }
+    });
+    
+    // hidden input 생성 또는 업데이트
+    let periodHidden = document.getElementById(periodField + '_hidden');
+    let orgHidden = document.getElementById(orgField + '_hidden');
+    let detailHidden = document.getElementById(detailField + '_hidden');
+    
+    if (!periodHidden) {
+        periodHidden = document.createElement('input');
+        periodHidden.type = 'hidden';
+        periodHidden.name = periodField;
+        periodHidden.id = periodField + '_hidden';
+        document.getElementById('resumeForm').appendChild(periodHidden);
+    }
+    
+    if (!orgHidden) {
+        orgHidden = document.createElement('input');
+        orgHidden.type = 'hidden';
+        orgHidden.name = orgField;
+        orgHidden.id = orgField + '_hidden';
+        document.getElementById('resumeForm').appendChild(orgHidden);
+    }
+    
+    if (!detailHidden) {
+        detailHidden = document.createElement('input');
+        detailHidden.type = 'hidden';
+        detailHidden.name = detailField;
+        detailHidden.id = detailField + '_hidden';
+        document.getElementById('resumeForm').appendChild(detailHidden);
+    }
+    
+    periodHidden.value = periods.join('|');
+    orgHidden.value = orgs.join('|');
+    detailHidden.value = details.join('|');
+}
+
+// 교육 행 추가
+function addTrainingRow() {
+    const container = document.getElementById('training-container');
+    const newRow = document.createElement('div');
+    newRow.className = 'section-row';
+    newRow.innerHTML = `
+        <input type="text" class="date-input" name="reTrainingPeriod" placeholder="2000. 00. ~ 2000. 00.">
+        <input type="text" class="org-input" name="reTrainingInstitution" placeholder="기관명">
+        <input type="text" class="detail-input" name="reTrainingCourse" placeholder="교육과정명">
+        <button type="button" class="remove-btn" onclick="removeRow(this)">-</button>
+    `;
+    container.appendChild(newRow);
+}
+
+// 자격증 행 추가
+function addCertificationRow() {
+    const container = document.getElementById('certifications-container');
+    const newRow = document.createElement('div');
+    newRow.className = 'section-row';
+    newRow.innerHTML = `
+        <input type="text" class="date-input" name="reCertificationsPeriod" placeholder="2000. 00. ~ 2000. 00.">
+        <input type="text" class="org-input" name="reCertificationsInstitution" placeholder="발행기관">
+        <input type="text" class="detail-input" name="reCertificationsName" placeholder="자격증명">
+        <button type="button" class="remove-btn" onclick="removeRow(this)">-</button>
+    `;
+    container.appendChild(newRow);
+}
+
+// 어학능력 행 추가
+function addLanguageRow() {
+    const container = document.getElementById('languages-container');
+    const newRow = document.createElement('div');
+    newRow.className = 'section-row';
+    newRow.innerHTML = `
+        <input type="text" class="date-input" name="reLanguagesPeriod" placeholder="2000. 00. ~ 2000. 00.">
+        <input type="text" class="org-input" name="reLanguagesLanguage" placeholder="언어">
+        <input type="text" class="detail-input" name="reLanguagesLevel" placeholder="레벨, 점수, 사용 수준 등">
+        <button type="button" class="remove-btn" onclick="removeRow(this)">-</button>
+    `;
+    container.appendChild(newRow);
+}
+
+// 학력 행 추가
+function addEducationRow() {
+    const container = document.getElementById('education-container');
+    const newRow = document.createElement('div');
+    newRow.className = 'section-row';
+    newRow.innerHTML = `
+        <input type="text" class="date-input" name="reEducationPeriod" placeholder="2000. 00. ~ 2000. 00.">
+        <input type="text" class="org-input" name="reEducationSchool" placeholder="학교명">
+        <input type="text" class="detail-input" name="reEducationDetail" placeholder="졸업여부, 학위, 전공">
+        <button type="button" class="remove-btn" onclick="removeRow(this)">-</button>
+    `;
+    container.appendChild(newRow);
+}
+
+// 주요경력 행 추가
+function addExperienceRow() {
+    const container = document.getElementById('experience-container');
+    const newRow = document.createElement('div');
+    newRow.className = 'section-row';
+    newRow.innerHTML = `
+        <input type="text" class="date-input" name="reExperiencePeriod" placeholder="2000. 00. ~ 2000. 00.">
+        <input type="text" class="org-input" name="reExperienceCompany" placeholder="회사명">
+        <input type="text" class="detail-input" name="reExperiencePosition" placeholder="직책">
+        <button type="button" class="remove-btn" onclick="removeRow(this)">-</button>
+    `;
+    container.appendChild(newRow);
+}
+
+// 프로젝트 행 추가
+function addProjectRow() {
+    const container = document.getElementById('projects-container');
+    const newProject = document.createElement('div');
+    newProject.className = 'project-item';
+    newProject.innerHTML = `
+        <div class="project-header">
+            <input type="text" class="project-date-input" name="reProjectsPeriod" placeholder="2000. 00. ~ 2000. 00.">
+            <input type="text" class="project-title-input" name="reProjectsTitle" placeholder="프로젝트 제목">
+            <button type="button" class="remove-btn" onclick="removeProject(this)">-</button>
+        </div>
+        <div class="project-content">
+            <div class="project-link-input">
+                <span class="link-label">링크:</span>
+                <input type="text" class="link-input" name="reProjectsLink" placeholder="프로젝트 링크 주소">
+            </div>
+            <div class="project-description">
+                <textarea class="section-textarea" name="reProjectsContent" placeholder="프로젝트 내용을 입력하세요"></textarea>
+            </div>
+        </div>
+    `;
+    container.appendChild(newProject);
+}
+
+// 프로젝트 제거
+function removeProject(button) {
+    button.closest('.project-item').remove();
+}
+
+// 프로젝트 데이터 처리
+function processProjects() {
+    const container = document.getElementById('projects-container');
+    const projects = container.querySelectorAll('.project-item');
+    
+    let periods = [];
+    let titles = [];
+    let links = [];
+    let contents = [];
+    
+    projects.forEach(project => {
+        const periodInput = project.querySelector('input[name="reProjectsPeriod"]');
+        const titleInput = project.querySelector('input[name="reProjectsTitle"]');
+        const linkInput = project.querySelector('input[name="reProjectsLink"]');
+        const contentInput = project.querySelector('textarea[name="reProjectsContent"]');
+        
+        if (periodInput && titleInput && linkInput && contentInput) {
+            if (periodInput.value.trim() || titleInput.value.trim() || linkInput.value.trim() || contentInput.value.trim()) {
+                periods.push(periodInput.value.trim());
+                titles.push(titleInput.value.trim());
+                links.push(linkInput.value.trim());
+                contents.push(contentInput.value.trim());
+            }
+        }
+    });
+    
+    // hidden input 생성 또는 업데이트
+    let periodHidden = document.getElementById('reProjectsPeriod_hidden');
+    let titleHidden = document.getElementById('reProjectsTitle_hidden');
+    let linkHidden = document.getElementById('reProjectsLink_hidden');
+    let contentHidden = document.getElementById('reProjectsContent_hidden');
+    
+    if (!periodHidden) {
+        periodHidden = document.createElement('input');
+        periodHidden.type = 'hidden';
+        periodHidden.name = 'reProjectsPeriod';
+        periodHidden.id = 'reProjectsPeriod_hidden';
+        document.getElementById('resumeForm').appendChild(periodHidden);
+    }
+    
+    if (!titleHidden) {
+        titleHidden = document.createElement('input');
+        titleHidden.type = 'hidden';
+        titleHidden.name = 'reProjectsTitle';
+        titleHidden.id = 'reProjectsTitle_hidden';
+        document.getElementById('resumeForm').appendChild(titleHidden);
+    }
+    
+    if (!linkHidden) {
+        linkHidden = document.createElement('input');
+        linkHidden.type = 'hidden';
+        linkHidden.name = 'reProjectsLink';
+        linkHidden.id = 'reProjectsLink_hidden';
+        document.getElementById('resumeForm').appendChild(linkHidden);
+    }
+    
+    if (!contentHidden) {
+        contentHidden = document.createElement('input');
+        contentHidden.type = 'hidden';
+        contentHidden.name = 'reProjectsContent';
+        contentHidden.id = 'reProjectsContent_hidden';
+        document.getElementById('resumeForm').appendChild(contentHidden);
+    }
+    
+    periodHidden.value = periods.join('|');
+    titleHidden.value = titles.join('|');
+    linkHidden.value = links.join('|');
+    contentHidden.value = contents.join('|');
+}
+
+// 행 제거
+function removeRow(button) {
+    button.parentElement.remove();
+}
+
+// 병역사항 선택
+function selectMilitaryStatus(button) {
+    // 모든 버튼에서 선택 상태 제거
+    document.querySelectorAll('.military-btn').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+    
+    // 클릭된 버튼에 선택 상태 추가
+    button.classList.add('selected');
+    
+    // hidden input에 값 설정
+    document.getElementById('militaryStatusInput').value = button.dataset.status;
+    
+    // 상세 정보 섹션 표시/숨김
+    const detailSection = document.getElementById('militaryDetailSection');
+    if (button.dataset.status === '해당없음') {
+        detailSection.style.display = 'none';
+    } else {
+        detailSection.style.display = 'flex';
+    }
+}
+</script>
+
+</body>
+</html>

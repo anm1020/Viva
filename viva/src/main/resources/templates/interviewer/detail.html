@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+
+<meta charset="UTF-8">
+<title>면접관 상세</title>
+<link rel="stylesheet" th:href="@{/css/common.css}">
+<link rel="stylesheet" th:href="@{/css/interviewer.css}">
+<link rel="stylesheet" th:href="@{/css/reservation.css}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://code.jquery.com/jquery-latest.js"></script>
+</head>
+<body>
+ <!-- Header -->
+  <div th:replace="fragments/header :: headerFragment"></div>
+
+<div class="profile-layered">
+  <div class="profile-container">
+    <!-- 면접관 본인만 보이는 수정/삭제 버튼 (우측 상단으로 이동) -->
+    <div class="profile-actions-top" th:if="${role == 'intr' and #authentication.name == interviewer.userId}">
+      <a class="edit-btn" th:href="@{'/interviewer/edit/' + ${interviewer.intrId}}">
+        수정
+      </a>
+      <button class="delete-btn" th:onclick="'deleteInterviewer(' + ${interviewer.intrId} + ')'">
+        삭제
+      </button>
+    </div>
+    
+    <div class="profile-top">
+      <div class="profile-photo">
+        <img th:src="@{${interviewer.intrImage}}" alt="프로필 사진" style="width:100%;height:100%;object-fit:cover;"/>
+      </div>
+      <div class="profile-info">
+        <div class="profile-actions">
+          <!-- 회원만 예약 버튼 이슬 -->
+          <div th:if="${session.user != null and session.user.userRole != 'intr'}">
+            <div style="margin-top: 40px; text-align: center;">
+              <button type="button" id="btn-open-popup" class="reserve-btn">👉
+                예약하러 가기</button>
+            </div>
+
+            <!-- ✅ 예약 폼 fragment 삽입 -->
+            <!-- ✅ 예약 폼: 처음엔 안 보이도록 숨김 -->
+            <div id="reservation-box" style="display: none; margin-top: 30px;">
+              <input type="hidden" id="intrUserId" th:value="${intrUserId}" />
+              <div th:replace="interviewer/reservationform :: reservationForm"></div>
+            </div>
+          </div>
+
+          <!-- ✅ 면접관은 안내 메시지만 출력 -->
+          <div
+            th:if="${session.user != null and session.user.userRole == 'intr'}"
+            style="margin-top: 40px; text-align: center;">
+            <span style="color: gray; font-size: 13px;">(면접관은 예약할 수 없습니다)</span>
+          </div>
+        </div>
+        
+        <div><span class="profile-label">이름 :</span> <span th:text="${interviewer.userName}">이름</span></div>
+        <div><span class="profile-label">경력 :</span> <span th:text="${interviewer.userCareer}">경력</span></div>
+        <div><span class="profile-label">직무 :</span> <span th:text="${interviewer.intrCate}">직무</span></div>
+        <div><span class="profile-label">보유 스킬 :</span> <span th:text="${interviewer.userSkill}">스킬</span></div>
+      </div>
+    </div>
+  </div>
+		<!-- ✅ 자기소개 영역 -->
+		<div class="detail-content-section">
+			<h3>자기소개</h3>
+			<div class="detail-content-box">
+				<p th:text="${interviewer.intrContent}">상담 방식, 강점, 이력 등을 작성해주세요.
+				</p>
+			</div>
+		</div>
+  <!-- ✅ 후기 섹션 -->
+  <hr>
+  <div class="review-section">
+    <div class="review-header">
+      <span>리뷰 작성</span>
+    </div>
+    <!-- 리뷰 등록 폼 -->
+    <form th:action="@{'/interviewer/' + ${interviewer.intrId} + '/review'}" method="post" class="review-form">
+      <div class="star-rating">
+        <span class="star" data-value="1">★</span>
+        <span class="star" data-value="2">★</span>
+        <span class="star" data-value="3">★</span>
+        <span class="star" data-value="4">★</span>
+        <span class="star" data-value="5">★</span>
+        <input type="hidden" name="score" id="starScore" value="0" required>
+      </div>
+      <input type="text" name="content" maxlength="300" required placeholder="리뷰를 입력하세요" class="review-input">
+      <button type="submit" class="review-submit-btn">등록</button>
+    </form>
+    <div class="review-list">
+      <div class="review-item" th:each="r : ${reviews}">
+        <div class="review-id" th:text="${r.userId}">아이디</div>
+        <div class="review-score">
+          <span th:each="i : ${#numbers.sequence(1, 5)}">
+            <span th:if="${i <= r.score}" class="star filled">★</span>
+            <span th:if="${i > r.score}" class="star">★</span>
+          </span>
+        </div>
+        <div class="review-content" th:text="${r.content}">리뷰 내용</div>
+        <div class="review-actions">
+          <!-- 삭제: 본인 또는 관리자 -->
+          <form th:if="${#authentication != null and (#authentication.name == r.userId or role == 'admin')}"
+                th:action="@{'/interviewer/' + ${interviewer.intrId} + '/review/' + ${r.reviewNo} + '/delete'}" method="post" style="display:inline;">
+            <button type="submit" onclick="return confirm('정말 삭제하시겠습니까?')">삭제</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script th:inline="javascript">
+  // 서버에서 내려오는 JSON이 null일 경우 빈 객체로 초기화
+  var reservedSlots = /*[[${reservedSlotsJson}]]*/ null;
+  var disabledSlots = /*[[${disabledSlotsJson}]]*/ null;
+  var intrId = /*[[${intrUserId}]]*/ null;
+
+  reservedSlots = reservedSlots || {};
+  disabledSlots = disabledSlots || {};
+</script>
+
+<script th:inline="javascript">
+  var reservedSlots = /*[[${reservedSlotsJson}]]*/ '{}';
+  var disabledSlots = /*[[${disabledSlotsJson}]]*/ '{}';
+
+  reservedSlots = JSON.parse(reservedSlots);
+  disabledSlots = JSON.parse(disabledSlots);
+</script>
+
+<script>
+  $(document).ready(function () {
+    let selectedDate = null;
+    let selectedTime = null;
+
+    $('#btn-open-popup').on('click', function () {
+      $('#reservation-box').slideDown();
+      $(this).hide(); // ✅ 이 줄 추가! 버튼 숨김
+      
+
+      flatpickr("#calendar", {
+        inline: true,
+        dateFormat: "Y-m-d",
+        minDate: "today",
+        onChange: function (_, dateStr) {
+          selectedDate = dateStr;
+
+          const label = document.getElementById('selected-date-label');
+          const koreanDate = new Date(dateStr).toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            weekday: 'short'
+          });
+          label.textContent = `${koreanDate} 시간 선택`;
+
+          document.getElementById('summary-date').textContent = koreanDate;
+
+          // Step 2 시간 선택 영역 보이기
+          $('#step-time').show();
+
+          // Step 3 예약 요약 영역 숨기기 (시간 선택 전)
+          $('#step-summary').hide();
+
+          renderTimes();
+        }
+      });
+    });
+
+    function renderTimes() {
+      console.log('renderTimes called, selectedDate:', selectedDate);
+      const grid = $('#times-grid').empty();
+      if (!selectedDate) return;
+
+      const reserved = (reservedSlots && reservedSlots[selectedDate]) || [];
+      console.log('reserved:', reserved);
+
+      const disabled = (disabledSlots && disabledSlots[selectedDate]) || [];
+      console.log('disabled:', disabled);
+
+      const blocked = [...reserved, ...disabled];
+      console.log('blocked:', blocked);
+
+      for (let h = 9; h <= 18; h++) {
+        const t = (h < 10 ? '0' : '') + h + ':00';
+        const isDisabled = blocked.includes(t);
+        console.log('time:', t, 'isDisabled:', isDisabled);
+
+        $('<button>')
+          .text(t)
+          .addClass(isDisabled ? 'disabled' : '')
+          .prop('disabled', isDisabled)
+          .on('click', function () {
+            if (isDisabled) return;
+
+            $('.times-grid button').removeClass('selected');
+            $(this).addClass('selected');
+            selectedTime = t;
+
+            document.getElementById('summary-time').textContent = t;
+
+            // Step 3 예약 요약 영역 보이기
+            $('#step-summary').show();
+          })
+          .appendTo(grid);
+      }
+    }
+
+    $('#btn-confirm').on('click', function () {
+      if (!selectedDate || !selectedTime) {
+        return alert('날짜와 시간을 모두 선택해주세요.');
+      }
+
+      const payload = {
+        intrId: intrId,
+        reservedDate: selectedDate,
+        reservedTime: selectedTime
+      };
+      console.log('예약할 intrId:', intrId);
+      $.ajax({
+        type: 'POST',
+        url: '/reservation/save',
+        contentType: 'application/json',
+        data: JSON.stringify(payload),
+        success: function (resId) {
+          window.location.href = `/reservation/result?resId=${resId}`;
+        },
+        error: function (xhr) {
+          alert('예약 저장 중 오류: ' + xhr.responseText);
+        }
+      });
+    });
+  });
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // 별점 기능 (토글형)
+  const stars = document.querySelectorAll('.star-rating .star');
+  const scoreInput = document.getElementById('starScore');
+  const starInfo = document.querySelector('.star-info');
+  let selected = 0; // 초기값을 0으로 설정
+
+  function updateStars(rating) {
+    stars.forEach((star, idx) => {
+      if (idx < rating) {
+        star.classList.add('selected');
+      } else {
+        star.classList.remove('selected');
+      }
+    });
+    
+    // 별점 정보 업데이트
+    if (rating > 0) {
+      starInfo.textContent = `선택된 별점: ${rating}점`;
+      starInfo.style.color = '#007bff';
+    } else {
+      starInfo.textContent = '별점을 선택해주세요 (1-5점)';
+      starInfo.style.color = '#666';
+    }
+  }
+
+  stars.forEach((star, idx) => {
+    star.addEventListener('mouseenter', function() {
+      if (selected === 0) { // 선택된 별점이 없을 때만 호버 효과
+        updateStars(idx + 1);
+        stars.forEach((s, i) => s.classList.toggle('hovered', i <= idx));
+      }
+    });
+    
+    star.addEventListener('mouseleave', function() {
+      if (selected === 0) { // 선택된 별점이 없을 때만 호버 효과 제거
+        updateStars(0);
+        stars.forEach(s => s.classList.remove('hovered'));
+      } else {
+        updateStars(selected);
+        stars.forEach(s => s.classList.remove('hovered'));
+      }
+    });
+    
+    star.addEventListener('click', function() {
+      const clickedValue = idx + 1;
+      
+      // 토글 로직: 같은 별점을 다시 클릭하면 선택 해제
+      if (selected === clickedValue) {
+        selected = 0;
+        scoreInput.value = 0;
+        updateStars(0);
+        stars.forEach(s => s.classList.remove('hovered'));
+      } else {
+        // 다른 별점을 클릭하면 해당 별점으로 선택
+        selected = clickedValue;
+        scoreInput.value = selected;
+        updateStars(selected);
+        stars.forEach(s => s.classList.remove('hovered'));
+      }
+      
+      console.log('별점 선택됨:', selected); // 디버깅 로그
+    });
+  });
+
+  // 초기 상태: 별점이 선택되지 않은 상태
+  updateStars(0);
+
+  // 폼 제출 시 별점 값 확인
+  document.querySelector('.review-form').addEventListener('submit', function(e) {
+    const currentScore = document.getElementById('starScore').value;
+    console.log('폼 제출 시 별점:', currentScore); // 디버깅 로그
+    if (!currentScore || currentScore < 1 || currentScore > 5) {
+      e.preventDefault();
+      alert('별점을 선택해주세요 (1-5점)');
+      return false;
+    }
+  });
+});
+
+// 면접관 프로필 삭제 함수
+function deleteInterviewer(intrId) {
+  if (confirm('정말로 프로필 카드를 삭제하시겠습니까?')) {
+    fetch('/interviewer/delete/' + intrId, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        alert('프로필 카드가 삭제되었습니다.');
+        location.href = '/interviewer'; // 면접관 리스트로 이동
+      } else {
+        alert('삭제 중 오류가 발생했습니다.');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('삭제 중 오류가 발생했습니다.');
+    });
+  }
+}
+</script>
+<!-- Footer -->
+  <div th:replace="fragments/footer :: footerFragment"></div>
+  </body>
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>자소서 상세</title>
+  <link rel="stylesheet" th:href="@{/css/common.css}">
+  <style>
+    .jaso-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 30px;
+    }
+    .jaso-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #2c3e50;
+      border-bottom: 3px solid #3498db;
+      padding-bottom: 10px;
+    }
+    .jaso-content {
+      white-space: pre-wrap;
+      line-height: 1.8;
+      font-family: 'Malgun Gothic', sans-serif;
+      font-size: 15px;
+    }
+    .section {
+      margin-bottom: 30px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 20px;
+      background: #fafafa;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 15px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #3498db;
+    }
+    .section-content {
+      white-space: pre-wrap;
+      line-height: 1.6;
+      color: #333;
+    }
+    .feedback-section {
+      background-color: #f9f9f9;
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 30px;
+    }
+    .feedback-item {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: white;
+      border-radius: 6px;
+      border-left: 4px solid #3498db;
+    }
+    .feedback-date {
+      font-size: 13px;
+      color: #7f8c8d;
+      margin-bottom: 8px;
+    }
+    .feedback-content {
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+    .action-buttons {
+      margin-top: 20px;
+      padding: 15px;
+      background: #ecf0f1;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .action-buttons a, .action-buttons button {
+      margin: 0 10px;
+      padding: 8px 16px;
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .btn-primary {
+      background: #3498db;
+      color: white;
+      border: none;
+    }
+    .btn-secondary {
+      background: #95a5a6;
+      color: white;
+    }
+    .btn-danger {
+      background: #e74c3c;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div th:replace="fragments/header :: headerFragment"></div>
+
+  <div class="jaso-container">
+    <div class="jaso-title" th:text="${jaso.title}">자소서 제목</div>
+    
+    <!-- 섹션별 반복 출력 -->
+    <div th:if="${sectionMap != null}">
+      <div th:each="entry, iter : ${sectionMap}">
+        <div class="section" th:attr="data-section=${entry.key}">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div class="section-title" th:text="'【' + ${entry.key} + '】'"></div>
+            <button type="button" class="edit-btn" th:attr="data-section=${entry.key}" style="margin-left: 10px;">수정</button>
+          </div>
+          <div class="section-content" th:text="${entry.value}"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI 피드백 요청, 목록, 삭제 버튼 등 기존 코드 유지 -->
+    <div class="action-buttons">
+      <form th:action="@{/mypage/jaso/feedback/{id}(id=${jaso.id})}" method="post" style="display: inline;">
+        <button type="submit" class="btn-primary">🤖 AI 피드백 요청</button> 
+      </form>
+      <a href="#" 
+   th:onclick="|$('#loadJaso').trigger('click'); return false;|" 
+   class="btn-secondary">
+  ← 목록으로
+</a>
+      <a th:href="@{/mypage/jaso/delete/{id}(id=${jaso.id})}"
+         onclick="return confirm('정말 삭제하시겠습니까?')"
+         class="btn-danger">🗑 삭제</a>
+    </div>
+    
+    <!-- AI 피드백 목록 -->
+    <div class="feedback-section">
+      <h3>💬 AI 피드백</h3>
+      <div th:if="${#lists.isEmpty(feedbackList)}">
+        <p style="text-align: center; color: #7f8c8d;">아직 피드백이 없습니다. AI 피드백을 요청해보세요!</p>
+      </div>
+      <div th:each="fb : ${feedbackList}" class="feedback-item">
+        <div class="feedback-date" th:text="${fb.createdDt}">작성일자</div>
+        <div class="feedback-content" th:text="${fb.feedbackContent}">피드백 내용</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div th:replace="fragments/footer :: footerFragment"></div>
+
+  <script>
+  // 인라인 섹션 수정 UX
+  let editingSection = null;
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.edit-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        if (editingSection) return; // 한 번에 하나만
+        const section = btn.getAttribute('data-section');
+        const sectionDiv = btn.closest('.section');
+        const contentDiv = sectionDiv.querySelector('.section-content');
+        const oldValue = contentDiv.textContent;
+        editingSection = section;
+        // textarea + 저장/취소 버튼 생성
+        const textarea = document.createElement('textarea');
+        textarea.style.width = '100%';
+        textarea.style.height = '120px';
+        textarea.value = oldValue;
+        textarea.name = 'value';
+        textarea.required = true;
+        const saveBtn = document.createElement('button');
+        saveBtn.textContent = '저장';
+        saveBtn.type = 'submit';
+        saveBtn.className = 'btn-primary';
+        saveBtn.style.marginRight = '8px';
+        const cancelBtn = document.createElement('button');
+        cancelBtn.textContent = '취소';
+        cancelBtn.type = 'button';
+        cancelBtn.className = 'btn-secondary';
+        // 폼 생성
+        const form = document.createElement('form');
+        form.method = 'post';
+        form.action = window.location.pathname.replace(/\/view\//, '/update-section/');
+        // section hidden
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = 'section';
+        hidden.value = section;
+        form.appendChild(hidden);
+        form.appendChild(textarea);
+        form.appendChild(saveBtn);
+        form.appendChild(cancelBtn);
+        // 기존 내용 숨기고 폼 삽입
+        contentDiv.style.display = 'none';
+        sectionDiv.appendChild(form);
+        textarea.focus();
+        // 취소
+        cancelBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          form.remove();
+          contentDiv.style.display = '';
+          editingSection = null;
+        });
+        // 저장(서브밋)
+        form.addEventListener('submit', function(e) {
+          if (!textarea.value.trim()) {
+            alert('내용을 입력하세요.');
+            textarea.focus();
+            e.preventDefault();
+          }
+        });
+      });
+    });
+  });
+  </script>
+<script>
+  $(function(){
+    $(document).on('click', '.back-to-jaso', function(e){
+      e.preventDefault();
+
+      // 1) 사이드바 탭 active 상태 토글
+      $('.sidebar-menu a').removeClass('active');
+      $('#loadJaso').addClass('active');
+
+      // 2) 기존 화면 모두 숨기기
+      if (typeof hideAllFragments === 'function') {
+        hideAllFragments();
+      } else {
+        // hideAllFragments 함수가 없으면 직접 숨기기
+        $('#reservationContainer, #editContainer, #activityContainer, #jasoContainer, #paymentListContainer').hide();
+        $('.member-info, .stat-info').hide();
+      }
+
+      // 3) 자소서 리스트 fragment 로드
+      $('#jasoContainer')
+        .show()
+        .load('/mypage/jaso/fragment', function(resp, status, xhr){
+          if (status !== 'success') {
+            alert('자소서 목록 로드 실패: ' + (xhr.statusText || status));
+          }
+        });
+    });
+  });
+</script>
+</body>
+</html>

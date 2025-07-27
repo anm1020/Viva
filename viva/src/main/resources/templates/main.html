@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>AI 면접 플랫폼</title>
+<link rel="stylesheet" th:href="@{/css/common.css}">
+<link rel="stylesheet" th:href="@{/css/main.css}">
+
+</head>
+<body>
+	<!-- Header -->
+	<div th:replace="fragments/header :: headerFragment"></div>
+
+
+  <!-- Hero Section -->
+ <section class="hero">
+  <div class="hero-content">
+
+   <h1>YOU CAN DO IT!<br>AI 면접으로 준비 완료!</h1>
+<p>
+  지금 바로 <strong>AI 면접</strong> 연습하고,<br>
+  <strong>실시간 화상 모의면접</strong>까지 경험해보세요!<br>
+  면접 걱정은 이제 끝!
+</p>
+
+
+    <a href="/ai/aivoice" class="cta-button">AI 모의 면접</a>
+  </div>
+
+  <div class="hero-video">
+    <video autoplay muted loop playsinline>
+      <source th:src="@{/images/1.mp4}" type="video/mp4">
+      이 브라우저는 video 태그를 지원하지 않습니다.
+    </video>
+  </div>
+</section>
+
+
+<section class="features-section">
+  <div class="features-wrapper">
+    <h2 class="features-title">Your Job Prep, Smarter & Stronger</h2>
+<p class="features-desc">
+  AI 모의면접부터 화상 채팅, 멘토 탐색, 커뮤니티까지!취업 준비의 모든 것을 이곳에서 경험해보세요.
+</p>
+    <div class="feature-grid">
+      <!-- ✅ 카드 1 -->
+      <a href="/ai/aichat" class="feature-box">
+        <img src="/images/a.jpg" alt="English">
+        <div class="overlay">
+          <span class="badge">Featured</span>
+
+          <h3>취준AI</h3>
+          <p>AI를 통해 면접 연습 및 이력서 작성 도움</p>
+        </div>
+      </a>
+
+      <!-- ✅ 카드 2 -->
+      <a href="/interviewPage" class="feature-box">
+        <img src="/images/b.jpg" alt="Science">
+        <div class="overlay">
+          <span class="badge">Featured</span>
+          <h3>채팅</h3>
+          <p>화상/음성/텍스트 채팅 기능 제공</p>
+        </div>
+      </a>
+
+      <!-- ✅ 카드 3 -->
+      <a href="/interviewer" class="feature-box">
+        <img src="/images/c.jpg" alt="History">
+        <div class="overlay">
+          <span class="badge">Featured</span>
+          <h3>면접관 목록</h3>
+          <p>전문 면접관 프로필 열람 가능</p>
+        </div>
+      </a>
+
+      <!-- ✅ 카드 4 -->
+      <a href="/board/list" class="feature-box">
+        <img src="/images/d.jpg" alt="Math">
+        <div class="overlay">
+          <span class="badge">Featured</span>
+          <h3>자유게시판</h3>
+          <p>취업 고민, 소통을 위한 공간</p>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- 면접관 슬라이더 섹션 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+<section class="interviewer-slider-section">
+  <h2 class="slider-title">Our Best Mentors</h2>
+  <p class="features-desc">
+다양한 분야의 실무 전문가들과 함께 실전 면접을 연습하고 커리어 방향을 설정해보세요.
+</p><div class="swiper interviewer-swiper">
+    <div class="swiper-wrapper">
+      <div class="swiper-slide" th:each="i : ${interviewerList}">
+        <div class="interviewer-card" th:onclick="'location.href=\'/interviewer/' + ${i.intrId} + '\''">
+          <img th:if="${i.intrImage != null and i.intrImage != ''}" th:src="${i.intrImage}" alt="프로필 이미지" class="card-bg" />
+          <img th:unless="${i.intrImage != null and i.intrImage != ''}" src="/images/default_profile.jpg" alt="기본 프로필 이미지" class="card-bg" />
+
+          <!-- 하단 고정 영역: 이름과 카테고리 -->
+          <div class="card-bottom">
+            <h3 class="name" th:text="${i.userName}">이름</h3>
+            <div class="categories">
+              <span th:each="cate, iterStat : ${#strings.arraySplit(i.intrCate, ',')}" th:if="${iterStat.index < 3}" th:with="categoryType=${T(com.example.demo.model.entity.CategoryType).valueOf(cate.trim())}" th:text="${categoryType}" class="category-tag"></span>
+            </div>
+          </div>
+
+          <!-- 슬라이드 오버레이 -->
+          <div class="card-hover">
+            <!-- 복제된 이름 + 카테고리 (슬라이드되게 위쪽에 표시) -->
+            <div class="slide-info">
+              <h3 class="name" th:text="${i.userName}">이름</h3>
+              <div class="categories">
+                <span th:each="cate, iterStat : ${#strings.arraySplit(i.intrCate, ',')}" th:if="${iterStat.index < 3}" th:with="categoryType=${T(com.example.demo.model.entity.CategoryType).valueOf(cate.trim())}" th:text="${categoryType}" class="category-tag"></span>
+              </div>
+            </div>
+            <p class="intro" th:text="${i.intrIntro != null ? i.intrIntro : '소개 없음'}">한줄소개</p>
+            <button class="reserve-btn" th:onclick="'event.stopPropagation(); location.href=\'/interviewer/' + ${i.intrId} + '\''">상세보기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="swiper-button-next"></div>
+    <div class="swiper-button-prev"></div>
+    <div class="swiper-pagination"></div>
+  </div>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  new Swiper('.interviewer-swiper', {
+    slidesPerView: 4,
+    spaceBetween: 16, // ✅ 간격 조정 여기서!
+    loop: true,
+    navigation: {
+      nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev'
+    },
+    pagination: {
+      el: '.swiper-pagination',
+      clickable: true
+    },
+    breakpoints: {
+      1400: { slidesPerView: 4, spaceBetween: 16 },
+      1200: { slidesPerView: 3, spaceBetween: 12 },
+      900:  { slidesPerView: 2, spaceBetween: 10 },
+      600:  { slidesPerView: 1, spaceBetween: 8 }
+    }
+  });
+});
+</script>
+
+
+	<section id="review-section">
+		<div class="review-layout">
+			<div class="review-left">
+				<h2>Reviews</h2>
+				<p>사용자들이 남긴 생생한 후기를 만나보세요.</p>
+			</div>
+			<div class="review-right">
+				<div class="carousel-wrapper">
+					<div class="carousel-track">
+						<!-- 리뷰마다 슬라이드 한 개씩 생성 -->
+						<div class="carousel-slide" th:each="review : ${allReviews}">
+						<blockquote th:utext="'&quot;' + ${review.content} + '&quot;'">리뷰 내용</blockquote>
+							<cite th:text="${review.user.userName}"> 작성자명</cite>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+  </section>
+
+
+
+
+	<!-- Footer -->
+	<div th:replace="fragments/footer :: footerFragment"></div>
+
+	<!-- 슬라이드 동작 Script -->
+	<script th:inline="javascript">
+    /*<![CDATA[*/
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // Thymeleaf 파라미터를 JS 변수로 바인딩 (true/false)
+    const loginSuccess = /*[[${param.loginSuccess}]]*/ false;
+    const logoutSuccess = /*[[${param.logoutSuccess}]]*/ false;
+
+    if (loginSuccess) {
+        alert('로그인에 성공했습니다!');
+    } else if (logoutSuccess) {
+        alert('로그아웃 되었습니다.');
+    } else if (urlParams.get('adminLogin') === 'true') {
+        alert('관리자 모드입니다');
+    }
+    /*]]>*/
+  </script>
+
+	<!-- 	<!--   <script> -->
+	<!-- 	// document.addEventListener("DOMContentLoaded", () => { // const track -->
+	<!-- 	= document.querySelector(".carousel-track"); // const slides = -->
+	<!-- 	document.querySelectorAll(".carousel-slide"); // const dots = -->
+	<!-- 	document.querySelectorAll(".carousel-dots .dot"); // let current = 0; -->
+	<!-- 	// const total = slides.length; // function goToSlide(index) { // -->
+	<!-- 	track.style.transform = `translateX(-${index * 100}%)`; // -->
+	<!-- 	dots.forEach((d, i) => d.classList.toggle("active", i === index)); // } -->
+
+	<!-- 	// function nextSlide() { // current = (current + 1) % total; // -->
+	<!-- 	goToSlide(current); // } // setInterval(nextSlide, 3000); // }); -->
+	<!-- 	<!--   </script> -->
+	<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const track = document.querySelector(".carousel-track");
+  const slides = document.querySelectorAll(".carousel-slide");
+  const dots = document.querySelectorAll(".carousel-dots .dot");
+
+  if (slides.length === 0) return; // 슬라이드 없으면 종료
+
+  let current = 0;
+
+  function goToSlide(index) {
+    track.style.transform = `translateX(-${index * 100}%)`;
+    dots.forEach((d, i) => d.classList.toggle("active", i === index));
+  }
+
+  function nextSlide() {
+    current = (current + 1) % slides.length;
+    goToSlide(current);
+  }
+
+  dots.forEach((dot, idx) => {
+    dot.addEventListener("click", () => {
+      current = idx;
+      goToSlide(current);
+    });
+  });
+
+  goToSlide(0);
+  setInterval(nextSlide, 3000);
+});
+</script>
+
+</body>
+</html>

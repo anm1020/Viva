@@ -1,0 +1,297 @@
+<div th:fragment="fragment" class="reservation-list">
+	<!-- ✅ 1. 받은 예약 일정 -->
+	<h2 class="reservation-title">예약 일정</h2>
+	<table class="reservation-table">
+		<thead>
+			<tr>
+				<th>예약번호</th>
+				<th>회원 이름</th>
+				<th>예약일</th>
+				<th>예약시간</th>
+				<th>예약 생성일</th>
+				<th>상태</th>
+				<th>생성</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr th:each="r : ${reservations}">
+				<td th:text="${r.resId}">1</td>
+				<td th:text="${memNames[r.memId]} ?: '알 수 없음'">예약자 이름</td>
+				<td th:text="${r.reservedDate}">2025-07-09</td>
+				<td th:text="${r.reservedTime}">12:00</td>
+				<td th:text="${#dates.format(r.resCreateDt, 'yyyy-MM-dd HH:mm')}">2025-07-06
+					17:00</td>
+				<td><span class="status"
+					th:classappend="${r.resStatus=='pending'?'pending':r.resStatus=='confirmed'?'confirmed':r.resStatus=='cancelled'?'cancelled':''}"
+					th:text="${r.resStatus=='pending'?'결제 전':r.resStatus=='confirmed'?'결제 완료':r.resStatus=='cancelled'?'취소됨':'알 수 없음'}">
+				</span></td>
+				<td>
+					<button class="creation" id="creationBtn-[[${resId}]]"
+							th:attr="data-resid=${r.resId}, 
+						             data-reserved-date=${r.reservedDate}, 
+						             data-reserved-time=${r.reservedTime}">생성</button>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	<!-- 현진 추가 -->
+	<div id="createRoomModal" class="modal" style="display:none;">
+		<div class="modal-content">
+		    <h2>면접 방 생성</h2>
+		    <input type="hidden" id="res_id" name="res_id" />
+		    <input type="hidden" id="reserved_date" name="reserved_date" />
+		    <input type="hidden" id="reserved_time" name="reserved_time" />
+		    
+		    <label for="intrRoomTitle">방 제목:</label> 
+		    <input type="text" id="intrRoomTitle" name="intrRoomTitle" /></label><br>
+		    <label for="roomPw">비밀번호:</label>
+		    <input type="password" id="roomPw" name="roomPw" /></label><br>
+		    <label for="participantCount">최대 참가 인원:</label>
+		    <input type="number" id="participantCount" name="participantCount" min="2" max="6" value="2" /></label><br>
+		    <input type="hidden" id="host_id" name="host_id" th:value=${users.userId}>
+		    <button id="btn-createRoom" class="btn-createRoom">방 생성</button>
+		    <button id="btn-close" class="btn-close">취소</button>
+		</div>
+	</div>
+	<!-- 현진 끝 -->
+
+	<!-- ✅ 2. 비활성화된 날짜/시간 -->
+	<h2>비활성화한 시간</h2>
+	<table class="reservation-table">
+		<thead>
+			<tr>
+				<th>날짜</th>
+				<th>시간</th>
+				<th>삭제</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr th:if="${#lists.isEmpty(disabledList)}">
+				<td colspan="2">비활성화된 시간 없음</td>
+			</tr>
+			<tr th:each="d : ${disabledList}">
+				<td th:text="${d.disabledDate}">2025-07-11</td>
+				<td th:text="${d.disabledTime}">13:00</td>
+				<td>
+				<button type="button" class="btn-delete" th:data-id="${d.disId}">삭제</button>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<!-- ✅ 3. 비활성화 등록 폼 (달력) -->
+	<h2>날짜/시간 비활성화 등록</h2>
+	<form id="disableForm" th:action="@{/reservation/blockDate}"
+		method="post">
+		<label> 날짜: <input type="text" id="datePicker" name="date"
+			required>
+		</label> <label> 시간: <select name="time" required>
+				<option value="">-- 시간 선택 --</option>
+				<option value="09:00">09:00</option>
+				<option value="10:00">10:00</option>
+				<option value="11:00">11:00</option>
+				<option value="11:00">12:00</option>
+				<option value="13:00">13:00</option>
+				<option value="14:00">14:00</option>
+				<option value="15:00">15:00</option>
+				<option value="15:00">16:00</option>
+				<option value="15:00">17:00</option>
+				<option value="15:00">18:00</option>
+		</select>
+		</label>
+		<button type="submit" class="btn-register">비활성화 등록</button>
+	</form>
+
+	<!--등록 -->
+	<script>
+	$(document).off("submit", "#disableForm").on("submit", "#disableForm", function(e) {
+		  e.preventDefault();
+
+		  const form = $(this);
+		  const date = form.find("input[name='date']").val();
+		  const time = form.find("select[name='time']").val();
+
+		  $.ajax({
+		    url: "/reservation/blockDate",
+		    method: "POST",
+		    data: { date, time },
+		    success: function() {
+		      // 등록 성공 시 다시 fragment 로드
+		      $("#contentArea").load("/reservation/intrmypage", function() {
+		        // flatpickr 다시 초기화
+		        flatpickr("#datePicker", {
+		          dateFormat: "Y-m-d",
+		          minDate: "today"
+		        });
+		      });
+		    },
+		    error: function(xhr) {
+		      if (xhr.status === 409) {
+		        alert("이미 등록된 날짜+시간입니다!");
+		      } else {
+		        alert("등록 실패!");
+		      }
+		    }
+		  });
+		});
+
+	</script>
+	<script>
+	$(document).off("click", ".btn-delete").on("click", ".btn-delete", function () {
+		  const id = $(this).data("id");
+
+		  if (!confirm("정말 삭제하시겠습니까?")) return;
+
+		  $.ajax({
+		    type: "POST",
+		    url: "/reservation/deleteDisabled",
+		    data: { id: id },
+		    success: function () {
+		      // fragment 다시 로드
+		      $("#contentArea").load("/reservation/intrmypage", function () {
+		        flatpickr("#datePicker", {
+		          dateFormat: "Y-m-d",
+		          minDate: "today"
+		        });
+		      });
+		    },
+		    error: function () {
+		      alert("삭제 실패!");
+		    }
+		  });
+		});
+
+</script>
+
+<!-- 현진 추가 -->
+<script>
+	$(document).off("click", ".creation").on("click", ".creation", function () {
+		const resId = $(this).data("resid");
+		const reservedDate = $(this).data("reservedDate");
+		const reservedTime = $(this).data("reservedTime");
+		$("#createRoomModal").show();
+	    $("#res_id").val(resId);
+	    $("#reserved_date").val(reservedDate);
+	    $("#reserved_time").val(reservedTime);
+	    $("#intrRoomTitle").val("");
+	    $("#roomPw").val("");
+	    $("#participantCount").val("2");
+	});
+	
+	// 모달 닫기
+	$(document).off("click", ".modal .btn-close").on("click", ".modal .btn-close", function () {
+	    $("#createRoomModal").hide();
+	});
+		
+	// 바깥 영역 클릭시 닫기 (선택)
+	$(document).off("mousedown", ".modal").on("mousedown", ".modal", function (e) {
+	    if ($(e.target).is(".modal")) $("#createRoomModal").fadeOut(100);
+	});
+		
+	// 방 생성 
+	$(document).off("click", "#btn-createRoom").on("click", "#btn-createRoom", function () {
+	    const title = $("#intrRoomTitle").val();
+	    const host_id = $("#host_id").val();
+	    const roomPw = $("#roomPw").val();
+	    const participantCount = $("#participantCount").val();
+	    const res_id = $("#res_id").val();
+	    const reserved_date = $("#reserved_date").val();
+	    const reserved_time = $("#reserved_time").val();
+
+	    // 간단 유효성
+	    if (!title) return alert("방 제목을 입력하세요.");
+	    fetch("/api/meeting/roomcreate", {
+	        method: "POST",
+	        headers: { "Content-Type": "application/json" },
+	        body: JSON.stringify({
+	        	resId: res_id,
+	        	reservedDate: reserved_date,
+	        	reservedTime: reserved_time,
+	        	intrRoomTitle: title,
+	            roomPw: roomPw,
+	            hostId: host_id,
+	            participantCount: participantCount
+	        })
+	    })
+	    .then(async res => {
+	        if (!res.ok) {
+	            const errorText = await res.text();
+	            throw new Error(errorText);  // catch(err)에서 message로 전달됨
+	        }
+	        return res.json();
+	    })
+	    .then(data => {
+	        alert(`방 생성 완료: ${data.intrRoomTitle}`);
+
+	        const roomId = data.intrRoomId;
+	        const hostId = data.hostId;
+	        
+	        // Janus 세션 생성(아래 함수 참고)
+	        return createRoomsOnJanus(roomId, hostId, participantCount);
+	    })
+	    .then(() => {
+	        // 모두 완료 후
+	        $("#createRoomModal").hide();
+	        $("#contentArea").load("/reservation/intrmypage"); // 목록 새로고침(SPA)
+	    })
+	    .catch(err => {
+	        alert("방 생성 실패: " + err.message);
+	        resolve();
+	        
+	    });
+	});
+
+	var version = 1.2;
+	var server = null;
+	server = "https://janus.jsflux.co.kr/janus";
+	var janus = null;
+	var sfutest = null;
+	var mypvtid = null;
+	var opaqueId = "videoroom-" + Janus.randomString(12);
+	var selectedRoomId = null;
+	var displayName = null;
+	
+	function createRoomsOnJanus(roomId, hostId, participantCount) {
+		return new Promise((resolve, reject) => {
+			Janus.init({
+	            debug: "all",
+	            callback: function () {
+	                janus = new Janus({
+	                    server: server, // Janus 서버 주소
+	                    success: function () {
+	                        janus.attach({
+	                        	// 비디오룸 플러그인 attach
+	                            plugin: "janus.plugin.videoroom",
+	                            success: function (videohandle) {
+	                                videohandle.send({
+	                                    message: {
+	                                        request: "create",
+	                                        room: roomId,
+	                                        description: `Room for host ${hostId}`,
+	                                        publishers: 6,
+	                                        data: true
+	                                    }
+	                                });
+	                                
+	                                resolve();
+	                            },
+		        	            error: function (err) {
+		        	              console.error("Video plugin attach error", err);
+		        	              janus.destroy(); reject(err);
+		        	            }
+	        	           });
+	        	        },
+	        	        error: function (err) {
+	        	          console.error("Janus session error", err);
+	        	        },
+	        	        
+	      	      });
+	      	    }
+	      	  });
+		});
+	}
+</script>
+<!-- 현진 끝 -->
+
+
+</div>

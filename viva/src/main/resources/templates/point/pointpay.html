@@ -1,0 +1,44 @@
+<!-- templates/point/pointpay.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>포인트 결제</title>
+  <script src="https://code.jquery.com/jquery-latest.js"></script>
+</head>
+<body>
+  <h2>포인트로 결제하기</h2>
+  
+  <p>현재 포인트: <span id="myPoint">-</span>원</p>
+  <p>결제 금액: <input type="number" id="amount" value="5000" />원</p>
+
+  <button id="btn-use-point">포인트로 결제</button>
+
+  <!-- 예시로 예약 ID를 숨겨둔 input 추가 -->
+<input type="hidden" id="resId" value="31" />
+
+<script>
+  $.get('/point/balance', function(point) {
+      $('#myPoint').text(point);
+    }).fail(function() {
+      $('#myPoint').text('정보를 불러올 수 없습니다.');
+    });
+
+    $('#btn-use-point').on('click', function() {
+      const amount = $('#amount').val();
+      const resId = $('#resId').val();  // 추가: 예약 ID 받아오기
+
+      $.post('/point/use', { amount: amount, resId: resId })  // resId 함께 전송
+        .done(function(res) {
+          alert(res);
+          console.log('이동 직전');
+          location.href = "/mypage?tab=schedule";  // 포인트 결제 완료 후 마이페이지 일정관리 탭으로 이동
+        })
+        .fail(function(xhr) {
+          alert('포인트 부족 또는 오류: ' + xhr.responseText);
+        });
+    });
+</script>
+
+</body>
+</html>

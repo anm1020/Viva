@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>카드결제</title>
+  <script src="https://code.jquery.com/jquery-latest.js"></script>
+  <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
+</head>
+<body>
+
+  <button id="btn-pay">카카오페이 결제하기</button>
+ 
+
+  <script th:inline="javascript">
+    $('#btn-pay').on('click', function() {
+    	
+    	
+      // 1) SDK 초기화
+      IMP.init("imp14397622");
+
+      // 2) 결제 요청
+      
+      IMP.request_pay({
+        channelKey : "channel-key-01764171-b249-4c16-9d18-e9174fa8e611",
+        pay_method:   'card',
+        merchant_uid: 'order_' + new Date().getTime(),
+        name:         '테스트 결제',
+        amount:       5000,
+        buyer_tel:    '010-0000-0000'
+      }, function(rsp) {
+        console.log('IAMPORT response:', rsp);
+
+        if (!rsp.success) {
+          return alert('결제 실패: ' + rsp.error_msg);
+        }
+
+        var userId = /*[[${session.userId}]]*/ 'UNKNOWN';
+        var resId = /*[[${resId}]]*/ 'UNKNOWN';
+        console.log("예약번호(resId):", resId);
+        // 3) 결제 성공하면 AJAX 호출로 imp_uid 등 전송
+        $.ajax({
+          type: 'POST',
+          url: '/payment/save',
+          contentType: 'application/json',
+          data: JSON.stringify({
+            "payResno": rsp.merchant_uid,
+            "payAmount": rsp.paid_amount,
+            "payStatus": rsp.status,
+            "resId": resId,
+            "userId": userId,
+            "payType": "CARD"
+            	 
+          }),
+         
+          success: function(data) {
+            if (data==1) {
+              alert('카드결제 완료');
+             // location.href = "result?amount="+rsp.paid_amount
+              location.href = "/mypage?tab=schedule";
+            } else {
+              alert('검증 실패: ' + data.message);
+            }
+          },
+          error: function(xhr, status, err) {
+            console.error('AJAX error', status, err);
+            alert('서버 통신 중 오류가 발생했습니다.');
+          }
+        });
+      });
+    });
+    function refreshReservationList() {
+        $('#reservation-list').load('/reservation/mylist #reservation-list > *');
+      }
+  </script>
+</body>
+</html>
+
+

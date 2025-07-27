@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>AI 음성 면접</title>
+  <link rel="stylesheet" th:href="@{/css/common.css}" />
+  <link rel="stylesheet" th:href="@{/css/main.css}" />
+  <link rel="stylesheet" th:href="@{/css/hero.css}" />
+    <style>
+ body {
+  font-family: "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  background-color: #f9f9f9;
+  margin: 0;
+  padding: 20px;
+}
+
+/* ---- 카드 2단 메인 레이아웃 ---- */
+.main-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 40px;
+  max-width: 1200px;
+  margin: 40px auto 0 auto;
+  padding: 0 20px;
+}
+
+/* ---- 카드 공통 ---- */
+.feedback-sidebar,
+.main-content {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(31,77,227,0.04);
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+/* ---- 왼쪽(피드백) 카드 ---- */
+.feedback-sidebar {
+  width: 380px;
+  padding: 32px 24px 24px 24px;
+}
+
+.sidebar-title {
+  font-size: 1.4rem;
+  margin-bottom: 20px;
+  color: #1f4de3;
+  text-align: center;
+}
+
+.feedback-list {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.feedback-item {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  background: #fafafa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.feedback-item:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transform: translateY(-1px);
+}
+
+.feedback-item.selected {
+  border-color: #1f4de3;
+  background: #e3f2fd;
+}
+
+.feedback-date {
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.feedback-title {
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.feedback-summary {
+  font-size: 0.9rem;
+  color: #555;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.empty-feedback {
+  text-align: center;
+  color: #666;
+  padding: 40px 20px;
+}
+
+/* ---- 오른쪽(음성면접) 카드 ---- */
+.main-content {
+  width: 480px;
+  padding: 32px 32px 24px 32px;
+  /* 위에서 중복 선언된 부분은 이쪽에서 덮어써짐 */
+}
+
+.main-content h2 {
+  font-size: 1.8rem;
+  margin-bottom: 16px;
+  color: #1f4de3;
+}
+
+.main-content h3 {
+  font-size: 1.2rem;
+  color: #333;
+  margin-top: 24px;
+  margin-bottom: 8px;
+}
+
+.main-content p, .main-content li {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #444;
+}
+
+.main-content ul {
+  list-style: disc;
+  padding-left: 20px;
+}
+
+.main-content blockquote {
+  background-color: #f4f6fa;
+  border-left: 4px solid #1f4de3;
+  padding: 12px 16px;
+  font-style: italic;
+  margin: 12px 0;
+}
+
+#mic-btn {
+  padding: 10px 20px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  background-color: #1f4de3;
+  color: white;
+  cursor: pointer;
+}
+
+#mic-btn:hover {
+  background-color: #173eb0;
+}
+
+#save-btn {
+  padding: 10px 20px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  background-color: #28a745;
+  color: white;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+#save-btn:hover {
+  background-color: #218838;
+}
+
+#save-btn:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+#status {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+  </style>
+</head>
+<body>
+ <!-- Header -->
+  <div th:replace="fragments/header :: headerFragment"></div>
+
+ <section class="hero-banner">
+		<div class="text-area">
+			<h1>AI Chat</h1>
+			<p>Prepare for your interview</p>
+		</div>
+		<div class="img-area">
+			<!-- 이미지 숨김 처리됨 -->
+		</div>
+	</section>
+	<div class="board-footer">AI Chat</div>
+  <div class="main-container">
+    <!-- 왼쪽 피드백 목록 -->
+    <div class="feedback-sidebar">
+      <h3 class="sidebar-title">📋 저장된 피드백</h3>
+      <button id="new-voice-session-btn" style="width:100%;margin-bottom:16px;padding:10px 0;background:#1f4de3;color:white;border:none;border-radius:6px;cursor:pointer;font-size:1rem;">+ 새로운 음성면접</button>
+      <div id="feedback-list" class="feedback-list">
+        <div class="empty-feedback">
+          <p>아직 저장된 피드백이 없습니다.</p>
+          <p>녹음 후 저장해보세요!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 오른쪽 메인 영역 -->
+    <div class="main-content">
+      <h2>🎤 AI 음성 면접</h2>
+
+      <!-- 녹음 버튼 -->
+      <div class="button-group">
+        <button id="mic-btn">🎙 녹음 시작</button>
+        <button id="save-btn" disabled>💾 피드백 저장</button>
+      </div>
+      <p id="status">녹음 대기 중</p>
+
+      <!-- 텍스트 및 피드백 결과 -->
+      <div id="result-box" style="display:none;">
+        <h3>📝 텍스트 변환 결과</h3>
+        <p id="transcript"></p>
+
+        <h3>📋 AI 피드백 </h3>
+        <p id="summary"></p>
+
+        <h3>🔍 상세 피드백</h3>
+        <ul id="detail-list"></ul>
+
+        <h3>📈 분석 요약</h3>
+        <ul>
+          <li><strong>말속도:</strong> <span id="speech-speed"></span></li>
+          <li><strong>발음:</strong> <span id="pronunciation"></span></li>
+          <li><strong>장점:</strong> <span id="strengths"></span></li>
+          <li><strong>단점:</strong> <span id="weaknesses"></span></li>
+        </ul>
+
+        <h3>✅ 예시 문장</h3>
+        <blockquote id="exampleSentence"></blockquote>
+
+        <h3>📬 다음 단계 제안</h3>
+        <ul id="suggestionsJson"></ul>
+
+        <!-- 상세 피드백 삭제 버튼 -->
+        <div id="delete-feedback-box" style="display:none; margin-top: 24px; text-align: right;">
+          <button id="delete-feedback-btn" style="background:#e74c3c;color:white;padding:8px 18px;border:none;border-radius:6px;cursor:pointer;font-size:1rem;">🗑 삭제</button>
+        </div>
+      </div>
+   
+    </div>
+  </div>
+<!-- Footer -->
+  <div th:replace="fragments/footer :: footerFragment"></div>
+  <script>
+    const micBtn = document.getElementById("mic-btn");
+    const saveBtn = document.getElementById("save-btn");
+    const status = document.getElementById("status");
+    const transcriptEl = document.getElementById("transcript");
+    const resultBox = document.getElementById("result-box");
+    const summaryEl = document.getElementById("summary");
+    const detailList = document.getElementById("detail-list");
+    const exampleEl = document.getElementById("exampleSentence");
+    const suggestionsEl = document.getElementById("suggestionsJson");
+    const feedbackList = document.getElementById("feedback-list");
+    const newVoiceSessionBtn = document.getElementById("new-voice-session-btn");
+
+    let mediaRecorder;
+    let chunks = [];
+    let isRecording = false;
+    let currentFeedbackData = null;
+    let currentSessionId = null;
+    let currentDetailFeedbackId = null;
+
+    // 음성 세션 생성 함수
+    async function createVoiceSession() {
+      const res = await fetch('/ai/voice/session/new', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ title: '음성면접' })
+      });
+      const data = await res.json();
+      if (data.sessionId) {
+        currentSessionId = data.sessionId;
+      } else {
+        alert('세션 생성 실패: ' + (data.error || '알 수 없는 오류'));
+      }
+    }
+
+    // 페이지 로드 시 세션 생성
+    window.addEventListener('load', async () => {
+      await createVoiceSession();
+      loadFeedbackList();
+    });
+
+    // 저장된 피드백 목록 불러오기
+    async function loadFeedbackList() {
+      try {
+        const response = await fetch('/ai/voice/feedback-list');
+        const feedbacks = await response.json();
+        
+        if (feedbacks.length === 0) {
+          feedbackList.innerHTML = `
+            <div class="empty-feedback">
+              <p>아직 저장된 피드백이 없습니다.</p>
+              <p>녹음 후 저장해보세요!</p>
+            </div>
+          `;
+        } else {
+          feedbackList.innerHTML = feedbacks.map(feedback => `
+            <div class="feedback-item" data-id="${feedback.id}">
+              <div class="feedback-date">${new Date(feedback.createdAt).toLocaleString()}</div>
+              <div class="feedback-title">${feedback.sessionId}</div>
+              <div class="feedback-summary">${feedback.summary || '피드백 요약'}</div>
+            </div>
+          `).join('');
+        }
+      } catch (error) {
+        console.error('피드백 목록 로드 실패:', error);
+      }
+    }
+
+    // 피드백 저장 버튼 이벤트
+    saveBtn.addEventListener("click", async () => {
+      if (!currentFeedbackData) {
+        status.textContent = "❌ 저장할 피드백이 없습니다.";
+        return;
+      }
+
+      try {
+        status.textContent = "💾 저장 중...";
+        saveBtn.disabled = true;
+
+        const response = await fetch("/ai/voice/save-feedback", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(currentFeedbackData)
+        });
+
+        const result = await response.json();
+        
+        if (response.ok) {
+          status.textContent = "✅ 피드백이 성공적으로 저장되었습니다!";
+          saveBtn.textContent = "✅ 저장 완료";
+          // 피드백 목록 새로고침
+          loadFeedbackList();
+        } else {
+          status.textContent = "❌ 저장 실패: " + (result.error || "알 수 없는 오류");
+        }
+      } catch (error) {
+        status.textContent = "❌ 저장 중 오류 발생: " + error.message;
+      } finally {
+        saveBtn.disabled = false;
+      }
+    });
+
+    micBtn.addEventListener("click", async () => {
+      if (!isRecording) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        chunks = [];
+
+        mediaRecorder.ondataavailable = e => chunks.push(e.data);
+        mediaRecorder.onstop = async () => {
+          const blob = new Blob(chunks, { type: 'audio/webm' });
+          const formData = new FormData();
+          formData.append("file", blob, "recording.webm");
+          formData.append("sessionId", currentSessionId);
+
+          status.textContent = "🎧 찌삐띠 분석 중...";
+          const res = await fetch("/ai/voice/interview", {
+            method: "POST",
+            body: formData
+          });
+
+          const result = await res.json();
+
+          if (result && result.transcript) {
+            resultBox.style.display = "block";
+            transcriptEl.textContent = result.transcript;
+            summaryEl.textContent = result.summary;
+            document.getElementById("speech-speed").textContent = result.speechSpeed;
+            document.getElementById("pronunciation").textContent = result.pronunciation;
+            document.getElementById("strengths").textContent = result.strengths;
+            document.getElementById("weaknesses").textContent = result.weaknesses;
+
+            // 상세 피드백 배열 출력
+            detailList.innerHTML = "";
+            if (Array.isArray(result.details)) {
+              result.details.forEach(item => {
+                const li = document.createElement("li");
+                li.innerHTML = `<strong>${item.title}</strong><br>${item.comment}`;
+                detailList.appendChild(li);
+              });
+            }
+
+            // 예시 문장  
+            exampleEl.textContent = result.example || "";
+
+            // 다음 단계 제안
+            suggestionsEl.innerHTML = "";
+            if (Array.isArray(result.suggestions)) {
+              result.suggestions.forEach(sug => {
+                const li = document.createElement("li");
+                li.textContent = sug;
+                suggestionsEl.appendChild(li);
+              });
+            }
+
+            // 피드백 데이터 저장
+            currentFeedbackData = {
+              transcript: result.transcript,
+              summary: result.summary,
+              speechSpeed: result.speechSpeed,
+              pronunciation: result.pronunciation,
+              strengths: result.strengths,
+              weaknesses: result.weaknesses,
+              details: result.details,
+              example: result.example,
+              suggestions: result.suggestions,
+              sessionId: currentSessionId
+            };
+
+            // 저장 버튼 활성화
+            saveBtn.disabled = false;
+            saveBtn.textContent = "💾 피드백 저장";
+
+            status.textContent = "✅ 피드백 완료 - 저장 버튼을 눌러 저장하세요!";
+          } else {
+            status.textContent = "❌ 분석 실패";
+          }
+        };
+
+        mediaRecorder.start();
+        status.textContent = "🔴 녹음 중 (다시 클릭 시 종료)";
+        micBtn.textContent = "⏹ 녹음 종료";
+        isRecording = true;
+      } else {
+        mediaRecorder.stop();
+        micBtn.textContent = "🎙 녹음 시작";
+        isRecording = false;
+      }
+    });
+
+    // 오른쪽 영역 초기화 함수
+    function showVoiceInterviewUI() {
+      resultBox.style.display = "none";
+      transcriptEl.textContent = "";
+      summaryEl.textContent = "";
+      detailList.innerHTML = "";
+      exampleEl.textContent = "";
+      suggestionsEl.innerHTML = "";
+      status.textContent = "녹음 대기 중";
+      saveBtn.disabled = true;
+      saveBtn.textContent = "💾 피드백 저장";
+      document.querySelector('.main-content h2').textContent = '🎤 AI 음성 면접';
+      document.getElementById('mic-btn').style.display = '';
+      saveBtn.style.display = '';
+      document.getElementById('delete-feedback-box').style.display = 'none';
+      currentDetailFeedbackId = null;
+    }
+
+    // 피드백 상세 표시 함수
+    function showFeedbackDetail(feedback) {
+      document.querySelector('.main-content h2').textContent = '📝 저장된 피드백 상세';
+      resultBox.style.display = "block";
+      transcriptEl.textContent = feedback.transcript || '';
+      summaryEl.textContent = feedback.summary || '';
+      document.getElementById("speech-speed").textContent = feedback.speechSpeed || '';
+      document.getElementById("pronunciation").textContent = feedback.pronunciation || '';
+      document.getElementById("strengths").textContent = feedback.strengths || '';
+      document.getElementById("weaknesses").textContent = feedback.weaknesses || '';
+      // 상세 피드백
+      detailList.innerHTML = '';
+      try {
+        const details = feedback.detailsJson ? JSON.parse(feedback.detailsJson) : [];
+        if (Array.isArray(details)) {
+          details.forEach(item => {
+            const li = document.createElement("li");
+            li.innerHTML = `<strong>${item.title}</strong><br>${item.comment}`;
+            detailList.appendChild(li);
+          });
+        }
+      } catch {}
+      // 예시 문장
+      exampleEl.textContent = feedback.exampleSentence || '';
+      // 제안
+      suggestionsEl.innerHTML = '';
+      try {
+        const suggestions = feedback.suggestionsJson ? JSON.parse(feedback.suggestionsJson) : [];
+        if (Array.isArray(suggestions)) {
+          suggestions.forEach(sug => {
+            const li = document.createElement("li");
+            li.textContent = sug;
+            suggestionsEl.appendChild(li);
+          });
+        }
+      } catch {}
+      status.textContent = `작성일: ${(feedback.createdAt || '').replace('T', ' ').substring(0, 19)}`;
+      // 녹음/저장 버튼 숨김
+      document.getElementById('mic-btn').style.display = 'none';
+      saveBtn.style.display = 'none';
+      // 삭제 버튼 표시
+      currentDetailFeedbackId = feedback.id;
+      document.getElementById('delete-feedback-box').style.display = '';
+    }
+
+    // 삭제 버튼 이벤트
+    document.getElementById('delete-feedback-btn').addEventListener('click', async () => {
+      if (!currentDetailFeedbackId) return;
+      if (!confirm('정말 삭제하시겠습니까?')) return;
+      try {
+        const res = await fetch(`/ai/voice/feedback/${currentDetailFeedbackId}`, { method: 'DELETE' });
+        if (res.ok) {
+          alert('삭제되었습니다.');
+          showVoiceInterviewUI();
+          loadFeedbackList();
+        } else {
+          alert('삭제 실패');
+        }
+      } catch (err) {
+        alert('삭제 중 오류: ' + err.message);
+      }
+    });
+
+    // 목록 클릭 이벤트
+    feedbackList.addEventListener('click', async (e) => {
+      const item = e.target.closest('.feedback-item');
+      if (item) {
+        const id = item.getAttribute('data-id');
+        try {
+          const res = await fetch(`/ai/voice/feedback-detail/${id}`);
+          const feedback = await res.json();
+          if (feedback && !feedback.error) {
+            showFeedbackDetail(feedback);
+          } else {
+            alert(feedback.error || '피드백 상세 조회 실패');
+          }
+        } catch (err) {
+          alert('피드백 상세 조회 오류: ' + err.message);
+        }
+      }
+    });
+
+    // 새로운 음성면접 버튼 클릭 시 기존 UI로 복귀
+    newVoiceSessionBtn.addEventListener("click", async () => {
+      await createVoiceSession();
+      showVoiceInterviewUI();
+      loadFeedbackList();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>자소서 작성</title>
+  <link rel="stylesheet" th:href="@{/css/common.css}">
+  <style>
+    .jaso-write-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 30px;
+    }
+    .jaso-section {
+      margin-bottom: 30px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 20px;
+      background: #fafafa;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 15px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #3498db;
+    }
+    .section-description {
+      font-size: 14px;
+      color: #7f8c8d;
+      margin-bottom: 15px;
+      font-style: italic;
+    }
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+    }
+    textarea {
+      height: 120px;
+      resize: vertical;
+      font-family: 'Malgun Gothic', sans-serif;
+      line-height: 1.6;
+    }
+    .submit-btn {
+      padding: 12px 30px;
+      border: none;
+      background-color: #3498db;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .submit-btn:hover {
+      background-color: #2980b9;
+    }
+    .word-count {
+      font-size: 12px;
+      color: #7f8c8d;
+      text-align: right;
+      margin-top: 5px;
+    }
+    .required {
+      color: #e74c3c;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div th:replace="fragments/header :: headerFragment"></div>
+
+  <div class="jaso-write-container">
+    <h2>✍ 자소서 작성</h2>
+    <form th:action="@{/mypage/jaso/write}" method="post">
+      
+      <!-- 제목 섹션 -->
+      <div class="jaso-section">
+        <div class="section-title">📝 자소서 제목</div>
+        <div class="section-description">지원하는 회사와 직무를 포함한 명확한 제목을 작성해주세요.</div>
+        <input type="text" id="title" name="title" placeholder="예: [회사명] [직무] 지원 자소서" required>
+      </div>
+
+      <!-- 성장과정 섹션 -->
+      <div class="jaso-section">
+        <div class="section-title">🌱 성장과정</div>
+        <div class="section-description">어린 시절부터 현재까지의 성장 과정을 구체적으로 작성해주세요. (500자 내외)</div>
+        <textarea id="jaso_growth" name="jaso_growth" placeholder="어린 시절부터 현재까지의 성장 과정을 구체적으로 작성해주세요..."></textarea>
+        <div class="word-count"><span id="growth-count">0</span>/500자</div>
+      </div>
+
+      <!-- 성격의 장단점 섹션 -->
+      <div class="jaso-section">
+        <div class="section-title">💪 성격의 장단점</div>
+        <div class="section-description">본인의 성격 중 장점과 단점을 구체적인 사례와 함께 작성해주세요. (400자 내외)</div>
+        <textarea id="jaso_personality" name="jaso_personality" placeholder="본인의 성격 중 장점과 단점을 구체적인 사례와 함께 작성해주세요..."></textarea>
+        <div class="word-count"><span id="personality-count">0</span>/400자</div>
+      </div>
+
+      <!-- 직무역량 섹션 -->
+      <div class="jaso-section">
+        <div class="section-title">💼 직무역량</div>
+        <div class="section-description">지원 직무와 관련된 주요 경험과 역량을 구체적으로 작성해주세요. (400자 내외)</div>
+        <textarea id="jaso_school" name="jaso_school" placeholder="지원 직무와 관련된 주요 경험과 역량을 구체적으로 작성해주세요..."></textarea>
+        <div class="word-count"><span id="school-count">0</span>/400자</div>
+      </div>
+
+      <!-- 지원동기 섹션 -->
+      <div class="jaso-section">
+        <div class="section-title">🎯 지원동기</div>
+        <div class="section-description">해당 회사와 직무를 선택한 이유를 구체적으로 작성해주세요. (400자 내외)</div>
+        <textarea id="jaso_motivation" name="jaso_motivation" placeholder="해당 회사와 직무를 선택한 이유를 구체적으로 작성해주세요..."></textarea>
+        <div class="word-count"><span id="motivation-count">0</span>/400자</div>
+      </div>
+
+      <!-- 입사 후 포부 섹션 -->
+      <div class="jaso-section">
+        <div class="section-title">🚀 입사 후 포부</div>
+        <div class="section-description">입사 후 본인이 하고 싶은 일과 목표를 구체적으로 작성해주세요. (300자 내외)</div>
+        <textarea id="jaso_future" name="jaso_future" placeholder="입사 후 본인이 하고 싶은 일과 목표를 구체적으로 작성해주세요..."></textarea>
+        <div class="word-count"><span id="future-count">0</span>/300자</div>
+      </div>
+
+      <!-- 기타 특별한 경험 섹션 -->
+      <div class="jaso-section">
+        <div class="section-title">⭐ 기타 특별한 경험</div>
+        <div class="section-description">본인만의 특별한 경험이나 성과가 있다면 자유롭게 작성해주세요. (선택사항)</div>
+        <textarea id="jaso_experience" name="jaso_experience" placeholder="본인만의 특별한 경험이나 성과가 있다면 자유롭게 작성해주세요..."></textarea>
+        <div class="word-count"><span id="experience-count">0</span>/자유</div>
+      </div>
+
+      <button type="submit" class="submit-btn">💾 자소서 저장</button>
+    </form>
+  </div>
+
+  <!-- Footer -->
+  <div th:replace="fragments/footer :: footerFragment"></div>
+
+  <script>
+    // 글자 수 카운트 함수
+    function countWords(textareaId, countId, maxLength) {
+      const textarea = document.getElementById(textareaId);
+      const countSpan = document.getElementById(countId);
+      
+      textarea.addEventListener('input', function() {
+        const text = this.value;
+        const count = text.length;
+        countSpan.textContent = count;
+        
+        // 글자 수 제한 시 색상 변경
+        if (maxLength && count > maxLength) {
+          countSpan.style.color = '#e74c3c';
+        } else {
+          countSpan.style.color = '#7f8c8d';
+        }
+      });
+    }
+
+    // 각 섹션별 글자 수 카운트 설정
+    countWords('jaso_growth', 'growth-count', 500);
+    countWords('jaso_personality', 'personality-count', 400);
+    countWords('jaso_school', 'school-count', 400);
+    countWords('jaso_motivation', 'motivation-count', 400);
+    countWords('jaso_future', 'future-count', 300);
+    countWords('jaso_experience', 'experience-count');
+  </script>
+</body>
+</html>

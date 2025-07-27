@@ -1,0 +1,297 @@
+<div th:replace="fragments/header :: header"></div>
+<div th:fragment="editForm">
+  <div class="form-frame">
+  <h2>회원 정보 수정</h2>
+  <script>
+  // [2] 주소 검색(카카오 우편번호) 버튼 이벤트
+  const addrBtn = document.getElementById('addrBtn');
+  
+  addrBtn.addEventListener('click', function () {
+	new daum.Postcode({
+	  oncomplete: function (data) {
+	    document.getElementById('userAdd').value = data.address;
+	    addressCheckResult.textContent = "";
+	  }
+	}).open();
+  });
+  </script>
+  <!-- 비밀번호 변경 모달 (초기에는 안 보이게) 액션값 달라서 form 밖에 있어야 함 -->
+	<div id="pwModal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.28); z-index:1000; align-items:center; justify-content:center;">
+	  <div style="background:#fff; padding:2rem 1.5rem; border-radius:12px; width:350px; margin:60px auto;">
+	    <h3 style="text-align:center; margin-bottom:1rem;">비밀번호 변경</h3>
+	    	 <div id="pwModalMsg" style="color:red; text-align:center; margin-bottom:10px;"></div>
+	    <form id="pwChangeForm" onsubmit="return false;">
+	    <!-- <input type="hidden" name="currentPass" id="currentPassHidden" /> -->
+	      <div class="form-group">
+	        <label>현재 비밀번호</label>
+	        <input type="password" name="currentPass" required />
+	      </div>
+	      <div class="form-group">
+	        <label>새 비밀번호</label>
+	        <input type="password" name="changePass" required minlength="4"/>
+	      </div>
+	      <div class="form-group">
+	        <label>새 비밀번호 확인</label>
+	        <input type="password" name="confirmChangePass" required minlength="4"/>
+	      </div>
+	      <div style="display:flex; gap:1rem; justify-content:space-between; margin-top:1rem;">
+	        <button type="button" onclick="applyNewPassword()">변경</button>
+	        <button type="button" onclick="closePwModal()">취소</button>
+	      </div>
+	    </form>
+	  </div>
+	</div>
+  
+  <!-- 회원정보 수정 -->
+  <form th:action="@{/memberUpdate}" th:object="${users}" method="post">
+  <input type="hidden" th:field="*{userRole}">
+  <input type="hidden" name="userType" value="Y"/>
+  <input type="hidden" name="userOuth" value="N"/>
+  <input type="hidden" name="changePass" id="changePass" />
+  <input type="hidden" name="currentPass" id="currentPassHidden" />
+  
+    <!-- 아이디 + 중복확인 -->
+    <div class="form-group inline-group">
+      <div style="flex: 2;">
+        <label for="userId">아이디</label>
+        <input type="text"
+               th:field="*{userId}"
+               id="userId"
+               placeholder="아이디"
+               required readonly class="readonly-field" />
+      </div>
+    </div>
+
+    <!-- 비밀번호 (수정불가 input + 변경 버튼) -->
+	<div class="form-group" style="position: relative;">
+	  <label for="userPass">비밀번호</label>
+	  <div class="inline-group">
+	  <input type="password"
+	         th:field="*{userPass}"
+	         id="userPass"
+	         placeholder="비밀번호"
+	         required readonly class="readonly-field" />
+	         
+	   <button type="button" onclick="openPwModal()"
+          style="height:32px; flex:0.4; padding:0 16px; border-radius:0.375rem; border:1px solid #d1d5db; background:#f9fafb; color:#333; cursor:pointer;">
+	    비밀번호 변경
+	  </button>
+	  <!-- <input type="button" value="비밀번호 변경" onclick="openPwModal()" style="position: absolute; right: 0; top: 28px;"/> -->
+		<!-- <button type="button" onclick="applyNewPassword()">비밀번호 변경</button> -->
+	 </div>
+	</div>
+	
+	 <!-- 비밀번호 변경 모달 (초기에는 안 보이게) -->
+<!-- <div id="pwModal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.28); z-index:1000; align-items:center; justify-content:center;">
+	  <div style="background:#fff; padding:2rem 1.5rem; border-radius:12px; width:350px; margin:60px auto;">
+	    <h3 style="text-align:center; margin-bottom:1rem;">비밀번호 변경</h3>
+	    <form id="pwChangeForm" method="post" th:action="@{/changePassword}">
+	      <div class="form-group">
+	        <label>현재 비밀번호</label>
+	        <input type="password" name="currentPass" required />
+	      </div>
+	      <div class="form-group">
+	        <label>새 비밀번호</label>
+	        <input type="password" name="newPass" required minlength="4"/>
+	      </div>
+	      <div class="form-group">
+	        <label>새 비밀번호 확인</label>
+	        <input type="password" name="confirmPass" required minlength="4"/>
+	      </div>
+	      <div style="display:flex; gap:1rem; justify-content:space-between; margin-top:1rem;">
+	        <button type="submit">변경</button>
+	        <button type="button" onclick="closePwModal()">취소</button>
+	      </div>
+	    </form>
+	  </div>
+	</div> -->
+	
+
+    <!-- 비밀번호 확인 -->
+    <!-- <div class="form-group">
+      <label for="userPassConfirm">비밀번호 확인</label>
+      <input type="password"
+             th:field="*{userPassConfirm}"
+             id="userPassConfirm"
+             placeholder="비밀번호 확인"
+             required readonly class="readonly-field" />
+      <span id="passCheckResult"></span>
+    </div> -->
+
+    <!-- 이름 -->
+    <div class="form-group">
+		<label for="userName">이름</label>
+		  <input type="text"
+		         th:field="*{userName}"
+		         id="userName"
+		         placeholder="이름"
+		         required readonly class="readonly-field" />
+		  <span id="nameCheckResult" style="margin-left:10px;font-size:13px;"></span>
+		</div>
+
+    <!-- 생년월일 -->
+    <div class="form-group">
+      <label for="userBirth">생년월일</label>
+      <input type="date"
+             th:field="*{userBirth}"
+             id="userBirth"
+             required/>
+    </div>
+
+    <!-- 성별 -->
+    <div class="form-group">
+      <label>성별</label>
+      <div class="inline-group" style="align-items:start">
+        <input style="flex:0.1; margin-left:0;"
+        	   type="radio"
+               th:field="*{userGender}"
+               id="male"
+               value="남성" disabled class="readonly-field" />
+        <label for="male">남성</label>
+
+        <input style="flex:0.1; margin-left:0;"
+        	   type="radio"
+               th:field="*{userGender}"
+               id="female"
+               value="여성" disabled class="readonly-field"/>
+        <label for="female">여성</label>
+      </div>
+    </div>
+    <span id="genderCheckResult" class="warning"></span>
+    
+    
+
+    <!-- 이메일 -->
+	<div class="form-group">
+		<div class="inline-group">
+			<div>
+				<label for="emailId">이메일</label>
+				<div class="inline-group">
+					<input type="text" th:field="*{emailId}" 
+						id="emailId" placeholder="example" required=""
+						name="emailId" value=""> 
+					<span style="flex: 0.1;">@</span>
+					<input type="text" th:field="*{emailDomain}"  name="emailDomain" id="emailDomain"
+						readonly="" required="" value="">
+					<div style="flex: 2;">
+						<select
+							id="emailDomainSelect">
+							<option value="" selected="">도메인 선택</option>
+							<option value="naver.com">naver.com</option>
+							<option value="gmail.com">gmail.com</option>
+							<option value="daum.net">daum.net</option>
+							<option value="custom">직접입력</option>
+						</select>
+					</div>
+				</div>
+				</div>
+			</div>
+			<span id="emailCheckResult"	class="warning"></span> 
+		</div>
+
+    <!-- 핸드폰번호 -->
+    <div class="form-group">
+      <label style="flex: none; align-self: center;" for="phonePrefix">핸드폰번호</label>
+      <div class="inline-group">
+      <select th:field="*{phonePrefix}" id="phonePrefix">
+        <option value="010">010</option>
+        <option value="011">011</option>
+        <option value="017">017</option>
+        <option value="070">070</option>
+      </select>
+      <input type="text"
+             th:field="*{phoneMiddle}"
+             id="phoneMiddle"
+             maxlength="4"
+             placeholder="0000" />
+      <input type="text"
+             th:field="*{phoneLast}"
+             id="phoneLast"
+             maxlength="4"
+             placeholder="0000" />
+     </div>
+      <span id="phoneCheckResult" class="warning"></span>
+    </div>
+
+    <!-- 주소 검색 -->
+    <div class="form-group">
+      <label style="flex:2; align-self: center;" for="userAdd">주소</label>
+      <div  class="inline-group">
+      <input type="text"
+             th:field="*{userAdd}"
+             id="userAdd"
+             placeholder="주소"
+             readonly style="flex:2;"/>
+      <button type="button" id="addrBtn">주소 검색</button>
+      </div>
+      <span id="addressCheckResult" class="warning"></span>
+    </div>
+    <div class="form-group">
+      <input type="text"
+             th:field="*{userAddDetail}"
+             id="userAddDetail"
+             placeholder="상세주소 입력" />
+       <span id="addressDetailCheckResult" class="warning"></span>
+    </div>
+
+	<!-- 면접관인 경우 -->
+	<div class="form-group" th:if="${users.userRole} == 'intr'">
+	  <label for="userCareer1">경력</label>
+	  <input type="text" th:field="*{userCareer}" id="userCareer" placeholder="경력 1 (회사/직무/기간)">
+	  <input type="text" th:field="*{userCareer2}" id="userCareer2" placeholder="경력 2 (기간 예 : 5년)" style="margin-top:0.5rem;">
+	</div>
+
+
+    <!-- 기술 스택 (체크박스 예시) -->
+    <div class="form-group">
+	  <label>기술</label>
+	  <div >
+	    <label class="btn-checkbox">
+	      <input  type="checkbox" name="skill" value="Java" 
+	      			th:checked="${#arrays.contains(userSkillArr, 'Java')}"/>
+	      <span>Java</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="React.js"
+	      		 th:checked="${#arrays.contains(userSkillArr, 'React.js')}" />
+	      <span>React.js</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="Vue.js" 
+	      		 th:checked="${#arrays.contains(userSkillArr, 'Vue.js')}" />
+	      <span>Vue.js</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="JPA"
+	      		 th:checked="${#arrays.contains(userSkillArr, 'JPA')}" />
+	      <span>JPA</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="MyBatis" 
+	      		 th:checked="${#arrays.contains(userSkillArr, 'MyBatis')}" />
+	      <span>MyBatis</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="Spring Boot" 
+	      		 th:checked="${#arrays.contains(userSkillArr, 'Spring Boot')}"/>
+	      <span>Spring Boot</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="MySQL" 
+	      		 th:checked="${#arrays.contains(userSkillArr, 'MySQL')}"/>
+	      <span>MySQL</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="Oracle" 
+	      		 th:checked="${#arrays.contains(userSkillArr, 'Oracle')}"/>
+	      <span>Oracle</span>
+	    </label>
+	  </div>
+	</div>
+
+
+    <!-- 수정 버튼 -->
+    <button type="submit">정보 수정</button>
+  </form>
+  </div>
+</div>

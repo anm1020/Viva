@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>회원가입</title>
+  <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+  <script src="https://code.jquery.com/jquery-latest.js"></script>
+  <script th:src="@{/js/check2.js}"></script>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <link rel="stylesheet" th:href="@{/css/common.css}">
+  <style>
+    /* 카드 컨테이너 */
+    .form-frame {
+      max-width: 360px;
+      margin: 2rem auto;
+      padding: 1.5rem;
+      background-color: #ffffff;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .form-frame h2 {
+      text-align: center;
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: #111827;
+    }
+    .form-frame .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-frame label {
+      display: block;
+      margin-bottom: 0.25rem;
+      font-size: 0.875rem;
+      color: #374151;
+    }
+    .form-frame input,
+    .form-frame select {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.875rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      background-color: #f9fafb;
+      box-sizing: border-box;
+    }
+    .warning{
+      font-size: 0.8rem;
+    }
+    .inline-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .inline-group > * {
+      flex: 1;
+    }
+    .form-frame button {
+      font-size: 0.875rem;
+      border-radius: 0.375rem;
+    }
+    .form-frame button[type="button"] {
+      padding: 0.5rem 0.75rem;
+      background-color: #ffffff;
+      border: 1px solid #d1d5db;
+      color: #374151;
+      cursor: pointer;
+    }
+    .form-frame button[type="button"]:hover {
+      background-color: #f3f4f6;
+    }
+    .form-frame button[type="submit"] {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 1rem;
+      background-color: #007bff;
+      color: #ffffff;
+      border: none;
+      cursor: pointer;
+    }
+    .form-frame button[type="submit"]:hover {
+      background-color: #0056b3;
+    }
+    
+    
+    /* 1) 체크박스 숨기기 */
+.btn-checkbox input[type="checkbox"] {
+  display: none;
+}
+/* 2) 기본 버튼 스타일 */
+.btn-checkbox{
+  display : inline-block !important;
+}
+.btn-checkbox span {
+  display: inline-block;
+  padding: 4px 8px;
+  margin: 4px 6px 4px 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+/* 3) 체크되었을 때 스타일 */
+.btn-checkbox input[type="checkbox"]:checked + span {
+  background-color: #007bff;   /* 파란색 */
+  color: #fff;                /* 글자 흰색 */
+  border-color: #007bff;
+}
+  </style>
+</head>
+<body>
+<div th:replace="fragments/header :: header"></div>
+
+  <div class="form-frame">
+  <h2>회원가입</h2>
+  <form th:action="@{/memberinsert}" th:object="${users}" method="post">
+  <input type="hidden" th:field="*{userRole}">
+  <!-- <input type="hidden" name="userRole" value="mem"/> -->
+  <input type="hidden" name="userType" value="Y"/>
+  <input type="hidden" name="userOuth" value="N"/>
+
+    <!-- 아이디 + 중복확인 -->
+    <div class="form-group">
+      <label for="userId">아이디</label>
+       <div class="inline-group" >
+        <input type="text"
+               th:field="*{userId}"
+               id="userId"
+               placeholder="아이디"
+               required />
+      <div style="flex: 0.32; align-self: end;">
+        <button type="button" id="checkIdBtn">중복확인</button>
+      </div>
+      </div>
+        <span id="idCheckResult" class="warning"></span>
+    </div>
+
+    <!-- 비밀번호 -->
+    <div class="form-group">
+      <label for="userPass">비밀번호</label>
+      <input type="password"
+             th:field="*{userPass}"
+             id="userPass"
+             placeholder="비밀번호"
+             required />
+    </div>
+
+    <!-- 비밀번호 확인 -->
+    <div class="form-group">
+      <label for="userPassConfirm">비밀번호 확인</label>
+      <input type="password"
+             th:field="*{userPassConfirm}"
+             id="userPassConfirm"
+             placeholder="비밀번호 확인"
+             required />
+      <span id="passCheckResult" class="warning"></span>
+    </div>
+
+    <!-- 이름 -->
+    <div class="form-group">
+		<label for="userName">이름</label>
+		  <input type="text"
+		         th:field="*{userName}"
+		         id="userName"
+		         placeholder="이름"
+		         required />
+		  <span id="nameCheckResult" class="warning"></span>
+		</div>
+
+    <!-- 생년월일 -->
+    <div class="form-group">
+      <label for="userBirth">생년월일</label>
+      <input type="date"
+             th:field="*{userBirth}"
+             id="userBirth"
+             required />
+    </div>
+
+    <!-- 성별 -->
+    <div class="form-group">
+      <label>성별</label>
+      <div class="inline-group" style="align-items:start">
+        <input style="flex:0.1; margin-left:0;"
+        	   type="radio"
+               th:field="*{userGender}"
+               id="male"
+               value="남성" />
+        <label for="male">남성</label>
+
+        <input style="flex:0.1; margin-left:0;"
+        	   type="radio"
+               th:field="*{userGender}"
+               id="female"
+               value="여성" />
+        <label for="female">여성</label>
+      </div>
+    </div>
+    <span id="genderCheckResult" class="warning"></span>
+
+    <!-- 이메일 -->
+	<div class="form-group">
+		<div class="inline-group">
+			<div>
+				<label for="emailId">이메일</label>
+				<div class="inline-group">
+					<input type="text" id="emailId" placeholder="example" required=""
+						name="emailId" value=""> <span style="flex: 0.1;">@</span>
+					<input type="text" name="emailDomain" id="emailDomain"
+						readonly="" required="" value="">
+					<div style="flex: 2;">
+						<select
+							id="emailDomainSelect">
+							<option value="" selected="">도메인 선택</option>
+							<option value="naver.com">naver.com</option>
+							<option value="gmail.com">gmail.com</option>
+							<option value="daum.net">daum.net</option>
+							<option value="custom">직접입력</option>
+						</select>
+					</div>
+				</div>
+				</div>
+			</div>
+			<span id="emailCheckResult"	class="warning"></span> 
+		</div>
+
+	<!-- 핸드폰번호 -->
+    <div class="form-group">
+      <label style="flex: none; align-self: center;" for="phonePrefix">핸드폰번호</label>
+      <div class="inline-group">
+      <select th:field="*{phonePrefix}" id="phonePrefix">
+        <option value="010">010</option>
+        <option value="011">011</option>
+        <option value="017">017</option>
+        <option value="070">070</option>
+      </select>
+      <input type="text"
+             th:field="*{phoneMiddle}"
+             id="phoneMiddle"
+             maxlength="4"
+             placeholder="0000" />
+      <input type="text"
+             th:field="*{phoneLast}"
+             id="phoneLast"
+             maxlength="4"
+             placeholder="0000" />
+     </div>
+      <span id="phoneCheckResult" class="warning"></span>
+    </div>
+
+    <!-- 주소 검색 -->
+    <div class="form-group">
+      <label style="flex:2; align-self: center;" for="userAdd">주소</label>
+      <div  class="inline-group">
+      <input type="text"
+             th:field="*{userAdd}"
+             id="userAdd"
+             placeholder="주소"
+             readonly style="flex:2;"/>
+      <button type="button" id="addrBtn">주소 검색</button>
+      </div>
+      <span id="addressCheckResult" class="warning"></span>
+    </div>
+    <div class="form-group">
+      <input type="text"
+             th:field="*{userAddDetail}"
+             id="userAddDetail"
+             placeholder="상세주소 입력" />
+       <span id="addressDetailCheckResult" class="warning"></span>
+    </div>
+
+	<!-- 면접관인 경우 -->
+	<div class="form-group" th:if="${users.userRole} == 'intr'">
+	  <label for="userCareer1">경력</label>
+	  <input type="text" name="userCareer" id="userCareer" placeholder="경력 1 (회사/직무/기간)">
+	  <input type="text" name="userCareer2" id="userCareer2" placeholder="경력 2 (기간 예 : 5년)" style="margin-top:0.5rem;">
+	</div>
+
+
+    <!-- 기술 스택 (체크박스 예시) -->
+    <div class="form-group">
+	  <label>기술</label>
+	  <div >
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="Java" />
+	      <span>Java</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="React.js" />
+	      <span>React.js</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="Vue.js" />
+	      <span>Vue.js</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="JPA" />
+	      <span>JPA</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="MyBatis" />
+	      <span>MyBatis</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="Spring Boot" />
+	      <span>Spring Boot</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="MySQL" />
+	      <span>MySQL</span>
+	    </label>
+	    <label class="btn-checkbox">
+	      <input type="checkbox" name="skill" value="Oracle" />
+	      <span>Oracle</span>
+	    </label>
+	    <!-- 나머지도 동일하게 -->
+	  </div>
+	</div>
+    
+    
+    
+    <!-- <div class="form-group">
+      <label>기술</label>
+      <div class="inline-group">
+        <label>
+          <input type="checkbox" name="skill" value="Java" /> Java </label>
+        <label>
+          <input type="checkbox" name="skill"  value="React.js" /> React.js </label>
+        <label>
+          <input type="checkbox" name="skill"  value="Vue.js" /> Vue.js</label>
+        <label>
+          <input type="checkbox" name="skill"  value="JPA" /> JPA</label>
+        <label>
+          <input type="checkbox" name="skill"  value="MyBatis" /> MyBatis</label>
+        <label>
+          <input type="checkbox" name="skill"  value="Spring Boot" /> Spring Boot</label>
+        <label>
+          <input type="checkbox" name="skill"  value="Oracle " /> Oracle </label>
+        <label>
+          <input type="checkbox" name="skill"  value="MySQL" /> MySQL</label>
+      </div>
+    </div> -->
+
+    <!-- 회원가입 버튼 -->
+    <button type="submit">회원가입</button>
+  </form>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>테스트 결제페이지</title>
+  <script src="https://code.jquery.com/jquery-latest.js"></script>
+  <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
+</head>
+<body>
+  <h1>테스트 결제 (정적 페이지)</h1>
+  <p>payId: <span id="payId">123</span></p>
+  <p>amount: <span id="amount">1000</span>원</p>
+  <button id="btn-pay">결제하기</button>
+
+  <script>
+    // 1) application.properties에서 복사해 온 impKey
+    const impKey = "imp14397622";
+
+    // 2) 테스트용 payId, amount
+    const payResno = 123;
+    const amount   = 1000;
+
+    // 3) 채널키 (application.properties 값 복사)
+    const channelKeyKakao   = "channel-key-5b946238-e93e-4fcb-9fea-969a118b569d";
+
+    // 버튼 클릭 시
+    document.getElementById('btn-pay').onclick = () => {
+      // → 여기서는 window.IMP 를 바로 사용합니다
+      IMP.init(impKey);
+      IMP.request_pay({
+        channel:     'kakao',
+        channelKey:  channelKeyKakao,
+        pay_method:  'card',
+        merchant_uid: payResno,
+        name:         '면접 예약 테스팅',
+        amount:       amount
+      }, function(rsp) {
+        if (rsp.success) {
+          alert("테스트 결제 성공! rsp.imp_uid=" + rsp.imp_uid);
+        } else {
+          alert("테스트 결제 실패: " + rsp.error_msg);
+        }
+      });
+    };
+  </script>
+</body>
+</html>

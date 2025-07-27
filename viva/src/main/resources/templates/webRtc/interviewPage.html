@@ -1,0 +1,2674 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>화상 면접 SPA</title>
+
+<style>
+/* main-view, new-view, list-view는 각각 숨김처리 */
+html, body {
+  height: 100%; 
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.view {
+	display: none;
+	height: auto;
+}
+
+.view.active {
+	display: block;
+}
+
+/* ✅ 영상 통화 뷰는 강제 전체화면 + overflow 제거 */
+#videoroom-view.view.active {
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ================================== */
+/* 방 목록 */
+.roomList-container {
+  display: flex;
+  flex-direction: column;
+  max-width: 1100px;
+  margin: 50px auto 50px auto;
+  min-height: calc(100vh - 200px);
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 14px rgba(70,110,180,0.08);
+}
+
+
+.room-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3열 고정 */
+  gap: 2rem;              /* 카드 사이 간격 */
+  justify-items: center;  /* 카드 내부 가운데 정렬 */
+  margin: 2rem auto;
+  max-width: 1100px;      /* 한줄에 3개까지만 */
+}
+
+.room-card {
+  width: 300px;
+  min-height: 180px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 3px 20px #0001;
+  padding: 1.6rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  transition: transform .13s;
+  cursor: pointer;
+  align-items: flex-start;
+}
+
+.room-card:hover {
+  transform: translateY(-5px) scale(1.03);
+  box-shadow: 0 5px 28px #0002;
+}
+
+.room-status-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	display: inline-block;
+	margin-right: 8px;
+}
+
+.status-waiting {
+	background-color: red;
+}
+
+.status-playing {
+	background-color: green;
+}
+
+.status-ended {
+	background-color: gray;
+}
+
+.room-title {
+	font-size: 1.1rem;
+	font-weight: bold;
+	margin: 8px 0;
+}
+
+.room-info {
+	color: #666;
+	font-size: 0.9rem;
+	margin-top: 4px;
+}
+
+.room-icon {
+	position: relative;
+	top: 0px;
+	left: 230px;
+	font-size: 1.5rem;
+}
+
+.room-list a {
+	text-decoration: none;
+	color: inherit;
+}
+
+.room-list a:hover {
+	transform: translateY(-4px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 방생성버튼 */
+.room-btn-row {
+  display: flex;
+  justify-content: center;
+  gap: 18px;           /* 버튼 사이 여백 */
+  margin-top: 20px;    /* 위쪽 여백 */
+  width: 100%;
+}
+
+.creation{
+	background: #e0e4eb; /* 연한 회색 배경 */
+	color: #333; /* 어두운 글자색 */
+	font-size: 13px;
+	padding: 6px 12px;
+	border: none; /* 테두리 없음 */
+	border-radius: 6px;
+	cursor: pointer;
+	transition: background 0.2s, color 0.2s;
+}
+.creation:hover {
+	background: #cfd5e0; /* 살짝 진한 회색으로 강조 */
+	color: #000;
+}
+
+.moveMain{
+	background: #e0e4eb; /* 연한 회색 배경 */
+	color: #333; /* 어두운 글자색 */
+	font-size: 13px;
+	padding: 6px 12px;
+	border: none; /* 테두리 없음 */
+	border-radius: 6px;
+	cursor: pointer;
+	transition: background 0.2s, color 0.2s;
+}
+.moveMain:hover {
+	background: #cfd5e0; /* 살짝 진한 회색으로 강조 */
+	color: #000;
+}
+
+/* 방 생성 버튼 */
+.btn-createRoom{
+	background: #e0e4eb; /* 연한 회색 배경 */
+	color: #333; /* 어두운 글자색 */
+	font-size: 13px;
+	padding: 6px 12px;
+	border: none; /* 테두리 없음 */
+	border-radius: 6px;
+	cursor: pointer;
+	transition: background 0.2s, color 0.2s;
+}
+.btn-createRoom:hover {
+	background: #cfd5e0; /* 살짝 진한 회색으로 강조 */
+	color: #000;
+}
+
+.btn-close{
+	background: #e0e4eb; /* 연한 회색 배경 */
+	color: #333; /* 어두운 글자색 */
+	font-size: 13px;
+	padding: 6px 12px;
+	border: none; /* 테두리 없음 */
+	border-radius: 6px;
+	cursor: pointer;
+	transition: background 0.2s, color 0.2s;
+}
+.btn-close:hover {
+	background: #cfd5e0; /* 살짝 진한 회색으로 강조 */
+	color: #000;
+}
+
+.room-delete-btn{
+	background: #e0e4eb; /* 연한 회색 배경 */
+	color: #333; /* 어두운 글자색 */
+	font-size: 13px;
+	padding: 6px 12px;
+	border: none; /* 테두리 없음 */
+	border-radius: 6px;
+	cursor: pointer;
+	right: 0px;
+	transition: background 0.2s, color 0.2s;
+}
+.room-delete-btn:hover {
+	background: #cfd5e0; /* 살짝 진한 회색으로 강조 */
+	color: #000;
+}
+
+/* 모달 배경 */
+.modal {
+  display: none; 
+  position: fixed; 
+  z-index: 9999;
+  left: 0; top: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.15);
+}
+
+/* 모달 본체 */
+.modal-content {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.10);
+  padding: 32px 36px 24px 36px;
+  width: 350px;
+  margin: 60px auto 0 auto;
+  position: relative;
+  font-size: 16px;
+}
+
+/* 닫기 버튼 */
+.modal-content .close {
+  position: absolute;
+  top: 16px; right: 18px;
+  font-size: 22px;
+  color: #8b8b8b;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.modal-content .close:hover { color: #444; }
+
+/* 폼 그룹 정렬 */
+.modal-content .form-group {
+  margin-bottom: 18px;
+}
+.modal-content label {
+  display: flex;
+  flex-direction: column;
+  font-size: 15px;
+  color: #333;
+  margin-bottom: 2px;
+}
+.modal-content input[type="text"],
+.modal-content input[type="password"],
+.modal-content input[type="number"] {
+  padding: 7px 10px;
+  border: 1px solid #e3e5e8;
+  border-radius: 6px;
+  font-size: 15px;
+  margin-top: 6px;
+  margin-bottom: 6px;
+  background: #f9fafb;
+  transition: border 0.2s;
+}
+.modal-content input:focus {
+  outline: none;
+  border-color: #82aaff;
+  background: #fff;
+}
+
+
+/* 비디오 화면 */
+#videoroom-view {
+  height: 100vh;      /* 전체 화면 */
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/*** 비디오 영역 css ***/
+.video-chat-wrapper {
+  flex: 1;
+  display: flex;
+  gap: 0;
+  width: 100vw;
+/*   height: calc(100vh - 110px); 상단 헤더 등 빼고 꽉 채우기 */
+  overflow: auto;
+  background: #181818;
+}
+
+
+/* 메인 비디오 영역 */
+.main-video-area {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  overflow: visible; 
+  min-width: 0;
+  width: 100%;
+  height: 100%; 
+}
+
+/* ★ 메인비디오+썸네일 하나로 보이게 감싸기 */
+.main-video-bundle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #222;
+  border-radius: 22px;
+  box-shadow: 0 4px 28px rgba(0,0,0,0.14);
+  overflow: visible;
+  margin-top: 5px;
+  margin-bottom: 0 !important;
+}
+
+/* 메인 비디오+썸네일 컨테이너 */
+.main-video-container {
+  width: 100%;          /* 전체 폭 채우기 */
+  max-width: 1080px;    /* 최대 너비는 원하는 만큼 */
+  height: 440px;        /* 비율은 필요에 따라 */
+  position: relative;
+  background: #222;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  padding: 0; 
+}
+
+/* 메인 비디오 */
+#mainVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #111;
+  padding: 0px;
+}
+
+/* 썸네일 바 (메인비디오 상단에 라운드로 붙이기) */
+.video-thumbnails {
+  width: 100%;   /* 부모와 동일하게! */
+  max-width: 1080px;   /* 위의 main-video-container와 맞추기 (또는 100%만 써도 됨) */
+  margin: 0 auto;      /* 가운데 정렬 */
+  min-height: 60px;
+  background: #222;
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  border-top-left-radius: 22px;
+  border-top-right-radius: 22px;
+  border-bottom: 2px solid #202020;
+  padding: 5px 0 5px 0;
+  z-index: 2;
+}
+
+
+.video-thumbnails video {
+  width: 110px;
+  height: 75px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid transparent;
+  cursor: pointer;
+  pointer-events: auto; /* 비디오만 클릭 허용 */
+  background: #222;
+}
+.video-thumbnails video.active {
+  border-color: #2298ff;
+}
+
+/* 오른쪽 전체 패널 (참가자 + 채팅) */
+.right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid #ccc;
+  padding: 10px;
+  background: #f9f9f9;
+}
+
+/* 🔷 채팅창 영역 */
+.chat-panel {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ddd;
+  background: #fff;
+  padding: 10px;
+  min-height: 200px;
+}
+
+/* 채팅창 내부 구성 */
+.chat-title {
+  font-weight: bold;
+  padding: 10px;
+  background-color: #cfd8ff;
+  border-bottom: 1px solid #ccc;
+  text-align: center;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  padding: 8px;
+  background: #fafafa;
+}
+
+.chat-input-area {
+  display: flex;
+  gap: 10px;
+}
+
+.chat-input-area input {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-right: 1px solid #ccc;
+}
+
+.chat-input-area button {
+  padding: 8px 12px;
+  border: none;
+  background-color: #607d8b;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.chat-input-area button:hover {
+  background-color: #455a64;
+}
+
+.label {
+	font-size: 14px;
+	background-color: #3498db;
+	color: #fff;
+	padding: 2px 6px;
+	border-radius: 3px;
+}
+
+.hide {
+	display: none;
+}
+
+
+.participant-panel {
+  flex: 0 0 auto;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  padding: 10px;
+  background-color: #fff;
+}
+
+.panel-header {
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.panel-body {
+  max-height: 150px;
+  overflow-y: auto;
+  padding: 8px; 
+}
+
+
+.participant {
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.participant .avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ccc;
+  color: #fff;
+  text-align: center;
+  line-height: 32px;
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.participant .display-name {
+  background-color: white;
+  color: black;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-left: 8px;
+  flex-grow: 1;
+}
+
+.participant .icons {
+  font-size: 0.9rem;
+  color: gray;
+}
+
+
+/* 하단 컨트롤 바 */
+.control-bar {
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  background: #181818;  /* 검은배경 */
+  border-bottom-left-radius: 22px;
+  border-bottom-right-radius: 22px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.11);
+  padding: 10px 0 14px 0;
+  position: relative;
+}
+
+.control-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #e0e0e0;
+  font-weight: 500;
+  font-size: 0.8rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+  min-width: 60px;
+  padding: 8px 12px;
+  border-radius: 12px;
+}
+.control-btn:hover {
+  background: #23242b;
+  color: #49a0fa;
+}
+.control-btn .icon {
+  font-size: 1.55rem;
+  margin-bottom: 2px;
+}
+.control-btn.end {
+  color: #f34555;
+  font-weight: bold;
+}
+.control-btn.end:hover {
+  background: #2c191a;
+  color: #ff7575;
+}
+
+.profile-popup {
+  position: absolute;
+  min-width: 220px;
+  background: #232428;
+  color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.33);
+  padding: 16px 20px;
+  z-index: 1002;
+  animation: fadeIn 0.12s;
+}
+@keyframes fadeIn { from { opacity:0; transform: scale(0.98); } to { opacity:1; } }
+
+.profile-header {
+  display: flex; align-items: center; margin-bottom: 16px;
+}
+.profile-header .avatar {
+  width: 44px; height: 44px; border-radius: 50%; background: #666; font-size: 1.5rem;
+  display: flex; align-items: center; justify-content: center; font-weight: bold;
+  margin-right: 12px;
+}
+.profile-header .profile-nick { font-weight: bold; font-size: 1.1rem; }
+
+.profile-volume { display: flex; align-items: center; gap: 10px; }
+.profile-volume .icon { font-size: 1.2rem; }
+.profile-volume .volume-value { font-size: 0.98rem; margin-left: 4px; }
+
+
+
+
+
+
+
+</style>
+<!-- 외부 라이브러리 -->
+<script	th:src="@{https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/6.4.0/adapter.min.js}"></script>
+<script	th:src="@{https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js}"></script>
+<script	th:src="@{https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js}"></script>
+<script	th:src="@{https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js}"></script>
+<script	th:src="@{https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.4.0/bootbox.min.js}"></script>
+<script	th:src="@{https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js}"></script>
+<script	th:src="@{https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js}"></script>
+<script th:src="@{https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js}"></script>
+<script th:src="@{https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js}"></script>
+
+
+<!-- 내부 라이브러리 -->
+<script th:src="@{/js/webRtc/janus.js}"></script>
+<link rel="stylesheet" th:href="@{/css/common.css}">
+<link rel="stylesheet" th:href="@{/css/hero.css}" />
+<link rel="stylesheet"
+	th:href="@{https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css}" />
+<link rel="stylesheet"
+	th:href="@{https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css}" />
+
+
+</head>
+<body>
+<!-- header -->
+<div th:replace="fragments/header :: headerFragment"></div>
+
+<!-- 방 목록 화면 -->
+<div id="list-view" class="view active">
+	<section class="hero-banner">
+		<div class="text-area">
+			<h1>Interview</h1>
+			<p>Prepare for an interview through a video interview</p>
+		</div>
+		<div class="img-area"></div>
+	</section>
+	<div class="board-footer">화상 면접방</div>
+	<div class="roomList-container">
+		<input type="hidden" id="user_id" name="user_id" th:value="${userId}">
+		<div id="roomList" class="room-list"></div>
+		
+		<div class="room-btn-row">
+			<button class="moveMain" onclick="location.href = '/main'">메인화면으로 이동</button>
+<!-- 			<button class="creation" th:if="${userRole == 'intr'}">방생성</button> -->
+		</div>
+	
+		<div id="createRoomModal" class="modal" style="display:none;">
+			<div class="modal-content">
+			    <h2>면접 방 생성</h2>
+			    <label for="intrRoomTitle">방 제목:</label> 
+			    <input type="text" id="intrRoomTitle" name="intrRoomTitle" /></label><br>
+			    <label for="roomPw">비밀번호:</label>
+			    <input type="password" id="roomPw" name="roomPw" /></label><br>
+			    <label for="participantCount">최대 참가 인원:</label>
+			    <input type="number" id="participantCount" name="participantCount" min="2" max="6" value="2" /></label><br>
+			    <input type="hidden" id="host_id" name="host_id" th:value=${userId}>
+			    <button id="btn-createRoom" class="btn-createRoom">방 생성</button>
+			    <button id="btn-close" class="btn-close">취소</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- 통화방 화면 -->
+<div id="videoroom-view" class="view">
+			
+	<div class="video-chat-wrapper">
+		<div class="main-video-area">
+		  <div class="main-video-bundle">
+			<!-- 상단 썸네일 바 -->
+			<div class="video-thumbnails" id="videoThumbnails"></div>
+			<!-- 중앙 메인 비디오 -->
+			<div class="main-video-container">
+			  <video id="mainVideo" autoplay playsinline muted></video>
+			</div>
+			<div class="control-bar">
+			    <div class="control-btn" id="mute-toggle">
+			      <span class="icon">🎤</span>
+			      <span class="label">마이크</span>
+			    </div>
+<!-- 			    <div class="control-btn" id="startCamBtn"> -->
+<!-- 			      <span class="icon">📷</span> -->
+<!-- 			      <span class="label">카메라</span> -->
+<!-- 			    </div> -->
+			    <div class="control-btn" id="recordToggleBtn">
+			      <span class="icon">🎥</span>
+			      <span class="label">녹화</span>
+			    </div> 
+			    <div class="control-btn" id="audioRecordToggleBtn">
+			      <span class="icon">🎙️</span>
+			      <span class="label">음성녹음</span>
+			    </div>
+			    <div class="control-btn end" id="exitBtn">
+			      <span class="icon">🚪</span>
+			      <span class="label">종료</span>
+			    </div>
+			  </div>
+		  </div>
+		</div>
+		<div class="right-panel">
+			<!-- 참가자 패널 -->
+			<div id="participantPanel" class="participant-panel">
+			  <div class="panel-header">
+			    <span>참가자(<span id="participantCountRoom"></span>)</span>
+			    <button onclick="refreshParticipantList()">🔄</button>
+			  </div>
+			  <div class="panel-body" id="participantList"></div>
+			</div>
+			<!-- 🔵 채팅창 -->
+		    <div class="chat-panel">
+		      <div class="chat-title">채팅창</div>
+		      <div class="chat-messages" id="chatMessages"></div>
+		      <div class="chat-input-area">
+		        <input type="text" id="chatInput" placeholder="내용 입력" />
+		        <button id="sendChatBtn">전송</button>
+		      </div>
+		  	</div>
+		</div>
+	</div>
+</div>
+
+<script>
+//✅ 전역 상태 변수
+var version = 1.2;
+var server = null;
+server = "https://janus.jsflux.co.kr/janus";
+var janus = null;
+var sfutest = null;
+var mypvtid = null;
+var opaqueId = "videoroom-" + Janus.randomString(12);
+var selectedRoomId = null;
+var displayName = null;
+var feeds = [];
+var isDestroying = false; 		// 중복 detach 방지용 플래그
+const audioContexts = {};  		// { [feedId]: { ctx, gainNode } }
+var myUsername = null;
+var myDataId = null;
+const userId = "[[${userId}]]";
+let hostId = null;
+let isDataChannelReady = false;
+let currentView = null;
+const feedHandles = {}; 
+let isMicMuted = false;			//현재 음소거 상태 저장용 전역 변수 (초기값 false)
+let maxParticipantCount = null; 
+
+document.addEventListener("DOMContentLoaded", () => {
+	  // 'list-view'가 활성화된 경우 자동으로 방 목록 불러오기
+	  const listView = document.getElementById("list-view");
+	  if (listView && listView.classList.contains("active")) {
+	  	loadRoomList();
+	}
+});
+
+// navigate 처리 (화면 전환 시 정리 포함)
+function navigate(view) {
+	
+	// 1️ 현재 뷰에서 나가기 전에 정리 작업
+	if (currentView === 'videoroom' && view !== 'videoroom') {
+	    leaveRoom();  // WebSocket + Janus 연결 정리
+	}
+	
+	// 2 화면 전환
+  	document.querySelectorAll('.view').forEach(div => div.classList.remove('active'));
+  	document.getElementById(view + '-view').classList.add('active');
+  
+  	// 뷰 별 진입 처리
+  	
+  	if (view === 'list'){
+	  	loadRoomList();
+  	}
+  	
+  	if (view === 'videoroom'){
+		initJanus(); // 방 입장 시 초기화
+  	}
+  
+  	currentView = view;
+}
+
+// 방 생성 버튼 클릭
+$(document).off("click", ".creation").on("click", ".creation", function () {
+    $("#createRoomModal").show();
+    $("#intrRoomTitle").val("");
+    $("#roomPw").val("");
+    $("#participantCnt").val("2");
+});
+
+// 모달 닫기
+$(document).off("click", ".modal .btn-close").on("click", ".modal .btn-close", function () {
+    $("#createRoomModal").hide();
+});
+
+// 바깥 영역 클릭시 닫기 (선택)
+$(document).off("mousedown", ".modal").on("mousedown", ".modal", function (e) {
+    if ($(e.target).is(".modal")) $("#createRoomModal").fadeOut(100);
+});
+
+$(document).off("click", "#btn-createRoom").on("click", "#btn-createRoom", function () {
+    const title = $("#intrRoomTitle").val();
+    const host_id = $("#host_id").val();
+    const roomPw = $("#roomPw").val();
+    const participantCnt = $("#participantCnt").val();
+
+    // 간단 유효성
+    if (!title) return alert("방 제목을 입력하세요.");
+
+    fetch("/api/meeting/roomcreate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            intrRoomTitle: title,
+            roomPw: roomPw,
+            hostId: host_id,
+            participantCount: participantCnt
+        })
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("서버 오류");
+        return res.json();
+    })
+    .then(data => {
+        alert(`방 생성 완료: ${data.intrRoomTitle}`);
+
+        const roomId = data.intrRoomId;
+        const hostId = data.hostId;
+
+        // Janus 세션 생성(아래 함수 참고)
+        return createRoomsOnJanus(roomId, hostId, participantCnt);
+    })
+    .then(() => {
+        // 모두 완료 후
+        $("#createRoomModal").hide();
+        loadRoomList();
+    })
+    .catch(err => {
+        alert("방 생성 실패: " + err.message);
+    });
+});
+
+
+// ✅ 방 생성
+const createForm = document.getElementById("createRoomForm");
+if (createForm) {
+  createForm.addEventListener("submit", function(e) {
+    e.preventDefault();
+    const title = document.getElementById("intrRoomTitle").value;
+	const host_id = document.getElementById("host_id").value;
+	const roomPw = document.getElementById("roomPw").value;                
+	const participantCount = document.getElementById("participantCount").value;
+
+	console.log("hostId : " + host_id);
+    fetch("/api/meeting/roomcreate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+    	  intrRoomTitle: title,
+    	  roomPw: roomPw,
+    	  hostId: host_id,
+    	  participantCount: participantCount
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      alert(`방 생성 완료: ${data.intrRoomTitle}`);
+      
+      const roomId = data.intrRoomId;
+      const hostId = data.hostId;
+
+   	  // ✅ Janus 세션 시작 → 방 생성 → 종료
+      createRoomsOnJanus(roomId, hostId, participantCount);
+      
+      navigate('list');
+    });
+  });
+}
+
+// 방 생성용 janus 세션 생성
+function createRoomsOnJanus(roomId, hostId, participantCnt) {
+	  Janus.init({
+	    debug: "all",
+	    callback: function () {
+	      janus = new Janus({
+	        server: server, // Janus 서버 주소
+	        success: function () {
+	          // 비디오룸 플러그인 attach
+	          janus.attach({
+	            plugin: "janus.plugin.videoroom",
+	            success: function (videohandle) {
+	              videohandle.send({
+	                message: {
+	                  request: "create",
+	                  room: roomId,
+	                  description: `Room for host ${hostId}`,
+	                  publishers: 6,
+	                  data: true
+	                }
+	              });
+	              
+	              console.log("📹 Video room created");
+	            },
+	            error: function (err) {
+	              console.error("Video plugin attach error", err);
+	            }
+	          });
+	        },
+	        error: function (err) {
+	          console.error("Janus session error", err);
+	        },
+	        destroyed: function () {
+	          console.log("Janus session destroyed");
+	        }
+	      });
+	    }
+	  });
+}
+
+// ✅ 방 목록
+function loadRoomList() {
+  fetch("/api/meeting/roomlist")
+    .then(res => res.json())
+    .then(data => {
+      const listEl = document.getElementById("roomList");
+      if (!listEl) return;
+      listEl.innerHTML = "";
+
+      data.forEach(room => {
+        const statusClass = room.statusCd === 'waiting' ? 'status-waiting'
+                          : room.statusCd === 'in_progress' ? 'status-playing'
+                          : 'status-ended';
+
+     	// hostId가 현재 유저면 삭제 버튼 생성
+        const isHost = room.hostId === userId;
+        
+     	// status-ended면 카드 생성하지 않음
+     	// 방 삭제시 : statusClass 값 -> status-ended로 변경
+        if (statusClass === 'status-ended') return;
+        
+        const div = document.createElement("div");
+        div.className = "room-card";
+        div.innerHTML = `
+          <div>
+            <span class="room-status-dot ${statusClass}"></span>
+            <span>${room.intrRoomId}</span>
+	        <span class="room-icon">${room.roomPw ? '🔒' : '🔓'}</span>
+          </div>
+          <div class="room-title">${room.intrRoomTitle}</div>
+          <div class="room-info">${room.hostId}님의 방</div>
+          <div class="room-info">현재 참가 인원 : ${room.currentParticipantCount} / ${room.participantCount}</div>
+          <div class="room-info">생성: ${formatDate(room.createdDt)}</div>
+	      ${isHost ? '<button class="room-delete-btn">삭제</button>' : ''}
+        `;
+        
+        // 삭제 버튼 클릭 시 처리
+	    if (isHost) {
+	        div.querySelector('.room-delete-btn').addEventListener("click", (e) => {
+	            e.stopPropagation(); // 카드 클릭 이벤트 방지
+	            // 삭제 처리 함수 호출 (room.intrRoomId 등 전달)
+	            deleteRoom(room.intrRoomId, room.roomPw);
+	        });
+	    }
+        
+        div.addEventListener("click", () => {
+	        if (room.roomPw) {
+	            // 비밀번호 입력 팝업
+	            const input = prompt("비밀번호를 입력하세요:");
+	            if (input === null) return; // 취소
+	            if (input === room.roomPw) {
+	                // 비밀번호 일치 → 입장
+	                enterRoom(room.intrRoomId, room.hostId, userId);
+	            	// 🟢 참가자 수 증가 백엔드 반영
+	            	console.log(selectedRoomId);
+	                if (room.intrRoomId) {
+	                	$.post('/api/meeting/room/' + room.intrRoomId + '/join', function(currentCount) {
+	                        $('.room-info').text(`현재 참가 인원 : ${currentCount} / ${room.participantCount}`);
+	                        maxParticipantCount = room.participantCount;
+	                        console.log("방 최대 인원 : " + maxParticipantCount);
+	                    });
+	                }
+	            } else {
+	                alert("비밀번호가 일치하지 않습니다.");
+	            }
+	        } else {
+	            // 비밀번호 없는 방 → 바로 입장
+	            enterRoom(room.intrRoomId, room.hostId, userId);
+	        }
+	    });
+        listEl.appendChild(div);
+      });
+    });
+}
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return date.toLocaleString("ko-KR", {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit'
+  });
+}
+
+// 방 삭제
+function deleteRoom(roomId, roomPw) {
+    // 1. 비밀번호 입력 팝업
+    const input = prompt("방 삭제를 위해 비밀번호를 입력하세요:");
+    if (input === null) return; // 취소
+    if (input !== roomPw) {
+        alert("비밀번호가 일치하지 않습니다.");
+        return;
+    }
+    // 2. AJAX로 서버에 상태 변경 요청 (예: fetch 사용)
+    fetch(`/api/meeting/${roomId}/end`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ roomPw: input })
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("상태 변경 실패");
+        // 성공 시 카드 UI에서 제거 또는 새로고침
+        alert("방이 성공적으로 종료되었습니다.");
+        navigate('list');
+    })
+    .catch(err => {
+        alert("방 삭제 중 오류가 발생했습니다: " + err.message);
+    });
+    
+}
+
+//참가자 목록을 담는 전역 배열
+let participants = [];
+
+//참가자 목록 콘솔 출력 함수
+function logParticipants() {
+  console.log("📋 현재 참가자 목록:");
+  participants.forEach(p => {
+    console.log(`- ID: ${p.id}, Display: ${p.display}, AudioMuted: ${p.audioMuted}, VideoMuted: ${p.videoMuted}`);
+  });
+}
+
+// ✅ 참가자 추가 함수
+function addParticipant(id, display, audioMuted = false, videoMuted = false) {
+	const idStr = String(id);
+	const exists = participants.some(p => p.display === display);
+
+	participants[id] = {
+		    id,
+		    display,
+		    audioMuted: audioMuted,
+		    videoMuted: videoMuted
+	};
+	
+	if (!exists) {
+	    participants.push({ id: idStr, display, audioMuted, videoMuted });
+	    console.log(`✅ 참가자 추가됨: ${idStr} (${display})`);
+	    renderParticipants();
+	} else {
+	    console.log(`⚠️ 중복 참가자 무시: ${display}`);
+	}  
+}
+
+// ✅ 참가자 제거 함수
+function removeParticipant(id) {
+  participants = participants.filter(p => p.id !== id);
+  logParticipants();
+}
+
+// 참가자 목록 렌더 함수
+function renderParticipants() {
+	logParticipants();
+	const listEl = document.getElementById('participantList');
+	const countEl = document.getElementById('participantCountRoom');
+	  
+	listEl.innerHTML = ''; // 초기화
+	countEl.textContent = participants.length;
+
+	participants.forEach(p => {
+	    const avatarChar = p.display ? p.display.charAt(0).toUpperCase() : '?';
+	    const participantEl = document.createElement('div');
+	    participantEl.className = 'participant';
+	    participantEl.setAttribute('data-remote-id', p.remoteId);  // <- 반드시 필요!
+
+	    participantEl.innerHTML = `
+	      <div class="avatar">${avatarChar}</div>
+	      <div class="display-name">${p.display}</div>
+	      <div class="icons">
+	        <span>${p.audioMuted ? '🔇' : '🎤'}</span>
+	        <span>${p.videoMuted ? '📷❌' : '🎥'}</span>
+	      </div>
+	    `;
+	    listEl.appendChild(participantEl);
+	});
+}
+
+function refreshParticipantList() {
+	renderParticipants();
+}
+
+
+// ✅ 방 입장
+function enterRoom(roomId, host, name) {
+  selectedRoomId = roomId;
+  displayName = name;
+  hostId = host;
+  
+  console.log("선택된 방 번호 : " + selectedRoomId);
+  console.log("선택된 방 hostId : " + hostId);
+  console.log("입장 유저 Id : " + displayName);
+  
+  connectChat(selectedRoomId);		// 채팅방 연결
+
+  
+  // 🔻 기존 영상 DOM 초기화
+  $('#remoteContainer').empty();
+  $('#local-box').remove();
+  
+  navigate('videoroom');
+}
+
+// ✅ Janus 초기화
+function initJanus() {
+  if (!Janus.isWebrtcSupported()) {
+    alert("WebRTC를 지원하지 않는 브라우저입니다.");
+    navigate('list');
+    return;
+  }
+  
+  Janus.init({
+    debug: "all",
+    callback: createJanusSession
+  });
+}
+
+// ✅ 세션 생성
+function createJanusSession() {
+  
+	console.log("세션 생성 : createJanusSession 진입");
+	
+	if (janus !== null) {
+	    janus.destroy();
+	    janus = null;
+	  }
+	  feeds = [];
+	
+    janus = new Janus({
+    server: server,
+    success: function () {
+      janus.attach({
+        plugin: "janus.plugin.videoroom",
+        opaqueId: opaqueId,
+        success: function (pluginHandle) {
+          sfutest = pluginHandle;
+          sfutest.send({
+            message: {
+              request: "join",
+              room: Number(selectedRoomId),
+              ptype: "publisher",
+              display: displayName
+            }
+          });
+          console.log("세션 생성 : 성공");
+        },
+
+     	// ICE 상태 변경 로그
+		iceState: function(state) {
+			Janus.log("ICE state changed to " + state);
+		},
+		
+		// 미디어 전송 상태 (audio/video) 로그
+		mediaState: function(medium, on) {
+			Janus.log("Janus " + (on ? "started" : "stopped") + " receiving our " + medium);
+		},
+		
+		// webRTC 연결 상태
+		webrtcState: function(on) {
+			Janus.log("Janus says our WebRTC PeerConnection is " + (on ? "up" : "down") + " now");
+			// 대역폭 조절 버튼영역 표시
+			$('#bitrate').parent().parent().removeClass('hide').show();
+			// 각 대역폭 메뉴 클릭 시 bitrate 설정 처리
+			$('#bitrate a').click(function() {
+				var id = $(this).attr("id");
+				var bitrate = parseInt(id)*1000;	// kbps -> bps 변환
+				if(bitrate === 0) {
+					Janus.log("Not limiting bandwidth via REMB");
+				} else {
+					Janus.log("Capping bandwidth to " + bitrate + " via REMB");
+				}
+				// 버튼 UI 텍스트 업데이트 및 메뉴 닫기
+				$('#bitrateset').html($(this).html() + '<span class="caret"></span>').parent().removeClass('open');
+				// janus 서버에 bitrate 설정 요청
+				sfutest.send({ message: { request: "configure", bitrate: bitrate }});
+				return false;
+			});
+		},
+        
+        onmessage: function (msg, jsep) {
+          
+          console.log("참가한 방 번호: " + selectedRoomId);
+          console.log("[DEBUG] onmessage 수신 msg:", msg);
+          // 방 최초 참가시
+          if (msg.videoroom === "joined") {
+        	mypvtid = msg.private_id;
+        	// 본인 audio/video 정보
+        	const hasAudio = msg.audio_codec !== null;
+        	const hasVideo = msg.video_codec !== null;
+        	
+        	console.log("본인 audio_codec:", msg.audio_codec);
+        	console.log("본인 video_codec:", msg.video_codec);
+        	  
+        	addParticipant(msg.id, displayName, !hasAudio, !hasVideo);
+        	renderParticipants();
+        	
+            publishOwnFeed(displayName);
+// 				publishOwnDummyFeed()
+            
+            // 참가자 목록 처리
+            if (msg.publishers) {
+              
+              msg.publishers.forEach(pub => {
+            	const idStr = String(pub.id);
+            	
+            	if (recentlyLeft.has(idStr)) {
+                    console.log("⏳ recentlyLeft 캐시 감지 → skip:", idStr);
+                    return;
+                }
+                if (feeds.some(f => f.rfid === pub.id)) {
+                    console.log("⚠️ 이미 등록된 feed → skip:", pub.id);
+                    return;
+                }
+                
+                if (pub.display === displayName) return; // 본인은 무시
+                console.log("참가자 : " + pub.display, displayName);
+                
+            	const audioMuted = pub.audio_codec === null;
+                const videoMuted = pub.video_codec === null;
+             
+                addParticipant(pub.id, pub.display, audioMuted, videoMuted);
+                newRemoteFeed(pub.id, pub.display);
+                
+              });
+              renderParticipants();
+            }
+          }
+          
+          // 새로운 유저가 입장한 경우
+          if (msg.videoroom === "event" && msg.publishers) {
+        	  msg.publishers.forEach(pub => {
+        		const idStr = String(pub.id);  
+        		
+        		if (recentlyLeft.has(idStr)) {
+	        		const age = Date.now() - recentlyLeft.get(idStr);
+	        		if (age < 3000) {
+	        		     console.log(`⏳ 퇴장 캐시 무시: ${idStr} (age ${age})`);
+	        		     return;
+	        		} else {
+	        		     recentlyLeft.delete(idStr); // 만료된 캐시는 제거
+	        		}
+        		}
+        		
+	        	if (pub.display === displayName) return; // ✅ 본인은 제외
+        		const alreadyExists = feeds.some(f => String(f.rfid) === idStr);
+        		if (!alreadyExists && !isRecentlyLeft(pub.id)) {
+        			const audioMuted = pub.audio_codec === null;
+        		    const videoMuted = pub.video_codec === null;
+
+        		    addParticipant(pub.id, pub.display, audioMuted, videoMuted); // ✅ 참가자 추가
+        		    newRemoteFeed(pub.id, pub.display);                          // ✅ 피드 연결
+        	 	} else {
+        	    	console.log(`⚠️ 중복 방지: 이미 존재하는 feed (${pub.id}) 무시`);
+        	 	}
+        	});
+        	renderParticipants(); // UI 갱신
+          }
+
+       	  // 참가자 퇴장 처리 (unpublished 또는 leaving 이벤트)
+          if (msg.videoroom === "event" && (msg.unpublished || msg.leaving)) {
+            const leavingId = msg.unpublished || msg.leaving;
+            console.log("재생성 확인용 퇴장 처리 : " + recentlyLeft);
+            
+            // 본인 퇴장 ('ok')이면 전체 클린업
+            if (leavingId === 'ok' && msg.private_id === mypvtid) {
+              console.log("🔁 본인 퇴장 감지 → 전체 클린업");
+              cleanupAllFeeds();
+              return;
+            }
+
+            console.log("🚪 참가자 퇴장 감지:", leavingId, typeof leavingId);
+
+            // ✅ 정리 수행
+            removeParticipant(leavingId);       // 참가자 리스트에서 제거
+            removeRemoteFeed(leavingId);        // feeds 배열, DOM, 오디오 컨텍스트 제거
+            renderParticipants();           	// UI 갱신
+            
+            console.log("현재 feeds 목록:", feeds.map(f => f.rfid));
+
+	         // onmessage 퇴장 처리 시
+	         if (leavingId !== 'ok') {
+	           markAsLeft(leavingId);
+	           console.log("재생성 확인용 : " + recentlyLeft);
+	         }
+            
+          }
+          // 🔻 수신한 jsep 처리
+          if (jsep) {
+            sfutest.handleRemoteJsep({ jsep });
+          }
+        },
+
+        onlocalstream: function (stream) {		// 내 출력화면
+        	console.log("onlocalstream 진입");
+        		
+        	const remoteId = 'local'; // 고정 ID
+        	const videoElId = `remotevideo-${remoteId}`;
+        	const boxElId = `remote-box-${remoteId}`;
+        	const muteBtnId = `mute-btn-${remoteId}`;
+        	const volumeSliderId = `volume-slider-${remoteId}`;
+        	
+        	addVideoThumbnail(stream, remoteId, displayName || '나');
+        	// 내 화면 영역
+        	if (!document.getElementById(boxElId)) {
+        	    const localBox = `
+        	      <div class="remote-box" id="${boxElId}">
+        	        <span>내 화면</span><br>
+        	        <video id="${videoElId}" autoplay muted playsinline></video>
+        	        <div style="margin-top: 4px;">
+        	          <button id="${muteBtnId}" style="cursor: pointer;">🔊</button>
+        	          <input type="range" min="0" max="2" step="0.01" value="1"
+        	            class="volume-slider" data-id="${remoteId}" id="${volumeSliderId}"
+        	            style="width: 80%; margin-top: 4px;" />
+        	        </div>
+
+        	        <!-- 🔻 Bandwidth 설정 (optional) -->
+        	        <div class="bitrate-controls">
+        	          <button id="bitrateset">Bandwidth ▼</button>
+        	          <ul id="bitrate" class="dropdown-menu">
+        	            <li><a href="#" id="0">No limit</a></li>
+        	            <li><a href="#" id="128">128kbps</a></li>
+        	            <li><a href="#" id="256">256kbps</a></li>
+        	            <li><a href="#" id="512">512kbps</a></li>
+        	            <li><a href="#" id="1024">1mbps</a></li>
+        	            <li><a href="#" id="1500">1.5mbps</a></li>
+        	            <li><a href="#" id="2000">2mbps</a></li>
+        	          </ul>
+        	        </div>
+        	      </div>`;
+        	    $('#remoteContainer').append(localBox);
+        	  }
+          
+        	const videoElement = document.getElementById(videoElId);
+        	Janus.attachMediaStream(videoElement, stream);
+
+        	// ✅ 오디오 트랙 있는 경우에만 오디오 제어 처리
+        	const hasAudio = stream.getAudioTracks().length > 0;
+        	
+        	// 음향 조절
+        	if (hasAudio) {
+        	  try {
+        	    const audioCtx = new AudioContext();
+        	    const source = audioCtx.createMediaStreamSource(stream);
+        	    const gainNode = audioCtx.createGain();
+        	    source.connect(gainNode).connect(audioCtx.destination);
+
+        	    audioContexts[remoteId] = {
+        	      ctx: audioCtx,
+        	      gainNode: gainNode,
+        	      muted: false
+        	    };
+
+        	    const slider = document.getElementById(volumeSliderId);
+        	    const muteBtn = document.getElementById(muteBtnId);
+
+        	    slider.addEventListener('input', e => {
+        	      const value = parseFloat(e.target.value);
+        	      const state = audioContexts[remoteId];
+        	      if (!state) return;
+
+        	      state.gainNode.gain.value = value;
+        	      if (value === 0) {
+        	        state.muted = true;
+        	        muteBtn.textContent = '🔇';
+        	      } else {
+        	        state.muted = false;
+        	        muteBtn.textContent = '🔊';
+        	      }
+        	    });
+
+        	    muteBtn.addEventListener('click', () => {
+        	      const state = audioContexts[remoteId];
+        	      if (!state) return;
+
+        	      const slider = document.getElementById(volumeSliderId);
+        	      if (state.muted) {
+        	        // 음소거 해제
+        	        const restoreVolume = parseFloat(slider.value) || 1.0;
+        	        state.gainNode.gain.value = restoreVolume;
+        	        muteBtn.textContent = '🔊';
+        	      } else {
+        	        // 음소거
+        	        state.gainNode.gain.value = 0.0;
+        	        muteBtn.textContent = '🔇';
+        	      }
+        	      state.muted = !state.muted;
+        	    });
+        	  } catch (err) {
+        	    console.warn("⚠️ local stream audio 제어 실패", err);
+        	  }
+          } else {
+        	  console.warn("⚠️ stream에 audio track 없음 → 오디오 제어 생략");
+          }
+        	
+          // stream이 비어있는 경우에도 attachMediaStream 처리 (검은 화면 표시)
+//           Janus.attachMediaStream(document.getElementById('localvideo'), stream);
+        },
+
+        oncleanup: cleanupAllFeeds,
+        ondetached: cleanupAllFeeds,
+        error: function (err) {
+          console.error("Janus 오류", err);
+        }
+      });	// end videoroom 플러그인
+    },
+
+    destroyed: cleanupAllFeeds
+  });
+}
+
+
+function restartPublisherWithRealCam() {
+	if (!janus || !selectedRoomId) return;
+
+	if (sfutest) {
+		sfutest.detach({
+	      success: () => {
+	        attachPublisherAndStartCam();
+	      },
+	      error: (err) => {
+	        console.error("detach 실패", err);
+	      }
+	    });
+	} else {
+	    attachPublisherAndStartCam();
+	}
+}
+
+function attachPublisherAndStartCam() {
+	janus.attach({
+	    plugin: "janus.plugin.videoroom",
+	    opaqueId,
+	    success: function (pluginHandle) {
+	      sfutest = pluginHandle;
+	      
+	      // join 전송
+	      sfutest.send({
+	        message: {
+	          request: "join",
+	          room: Number(selectedRoomId),
+	          ptype: "publisher",
+	          display: displayName
+	        }
+	      });
+	      
+	    },
+	    
+	    onmessage: function (msg, jsep) {
+	    	  if (msg.videoroom === "joined") {
+	    	    mypvtid = msg.private_id;
+	    	    publishOwnFeed(displayName);  // ✅ 이 시점에 확실히 join 완료됨
+	    	  }
+
+	    	  if (jsep) sfutest.handleRemoteJsep({ jsep });
+	    },
+	    
+	    error: function (err) {
+	      console.error("플러그인 재연결 실패", err);
+	    }
+	});
+}
+
+// ✅ 내 영상 publish
+function publishOwnFeed(displayName) {
+  console.log("publishOwnFeed 정상 호출");
+  sfutest.createOffer({
+    media: { 
+      audioRecv: false, videoRecv: false, 
+      audioSend: true, videoSend: true
+    },
+    success: function (jsep) {
+      sfutest.send({
+        message: { request: "configure", audio: true, video: true },
+        jsep
+      });
+      console.log("publishOwnFeed 성공");
+    },
+    error: async function (error) {
+      console.warn("📛 내 stream publish 실패", error.message);
+
+      try {
+        // ⚠️ 캠/마이크 없음 → dummyStream 사용
+        const dummyStream = getSilentDummyStream(displayName);
+
+        // ⚠️ local-box는 onlocalstream에서만 생성 → 여기선 비디오 연결만
+        const videoElem = document.getElementById('localvideo');
+        if (videoElem) {
+          videoElem.srcObject = dummyStream;
+        } else {
+          console.warn("⚠️ localvideo element가 없음. onlocalstream에서 처리 필요");
+        }
+
+        // Janus에 dummy stream attach 후 publish
+        sfutest.createOffer({
+          stream: dummyStream,
+          media: {
+            audioRecv: false,
+            videoRecv: false,
+            audioSend: true,
+            videoSend: true
+          },
+          success: function (jsep) {
+            sfutest.send({
+              message: { request: "configure", audio: true, video: true },
+              jsep
+            });
+          },
+          error: function (err) {
+            console.error("📛 dummyStream publish 실패", err);
+          }
+        });
+
+      } catch (e) {
+        console.error("❌ dummyStream 구성 실패", e);   
+      }
+    }
+  });
+}
+
+// 입장시 더미 스트림 publish
+function publishOwnDummyFeed(displayName) {
+	  const dummyStream = getSilentDummyStream(displayName);
+
+	  sfutest.createOffer({
+	    stream: dummyStream,
+	    media: {
+	      audioRecv: false,
+	      videoRecv: false,
+	      audioSend: true,
+	      videoSend: true
+	    },
+	    success: function (jsep) {
+	      sfutest.send({
+	        message: { request: "configure", audio: true, video: true },
+	        jsep
+	      });
+	    },
+	    error: function (err) {
+	      console.error("📛 dummyStream publish 실패", err);
+	    }
+	  });
+	}
+
+// 캠없는 경우 더미 데이터
+function getSilentDummyStream(displayName) {
+	  const stream = new MediaStream();
+
+	  // 🔇 dummy audio track
+	  const ctx = new AudioContext();
+	  const dst = ctx.createMediaStreamDestination();
+	  const silence = ctx.createBufferSource();
+	  silence.buffer = ctx.createBuffer(1, 1, 22050); // 무음 버퍼 (0.000045초짜리)
+	  silence.connect(dst);
+	  silence.start();
+	  const audioTrack = dst.stream.getAudioTracks()[0];
+	  stream.addTrack(audioTrack);
+
+	  // 📷 dummy video track (검정 화면)
+	  const canvas = Object.assign(document.createElement("canvas"), { width: 320, height: 240 });
+	  const context = canvas.getContext("2d");
+	  context.fillStyle = "black";
+	  context.fillRect(0, 0, canvas.width, canvas.height);
+	  
+	  // 가운데 텍스트
+	  context.fillStyle = "white";               // 텍스트 색상
+	  context.font = "bold 20px Arial";          // 텍스트 스타일
+	  context.textAlign = "center";
+	  context.textBaseline = "middle";
+	  context.fillText(displayName, canvas.width / 2, canvas.height / 2);
+	  
+	  const videoTrack = canvas.captureStream().getVideoTracks()[0];
+	  stream.addTrack(videoTrack);
+
+	  return stream;
+	}
+
+// ✅ remote feed 추가
+function newRemoteFeed(id, display) {
+	
+  //이미 등록된 feed인지 확인 (중복 방지) 존재 시 제거 후 재사용 방지
+  if (feeds.find(f => String(f.rfid) === String(id)) || isRecentlyLeft(id)) {
+    console.warn(`⚠️ Feed ${id} already exists, removing newRemoteFeed`);
+	return;
+  }
+  
+  //이미 DOM에 해당 ID의 video 박스가 존재하는 경우
+  if (document.getElementById(`remote-box-${id}`)) {
+    console.warn(`⚠️ remote-box-${id} already exists in DOM, removing`);
+    document.getElementById(`remote-box-${id}`).remove();
+  }
+  
+  janus.attach({
+    plugin: "janus.plugin.videoroom",
+    opaqueId,
+
+    success: function (pluginHandle) {
+      const remoteFeed = pluginHandle;
+      remoteFeed.rfid = id;
+      remoteFeed.rfdisplay = display;
+      feedHandles[id] = remoteFeed;
+      feeds.push(remoteFeed);
+
+      remoteFeed.send({
+        message: {
+          request: "join",
+          room: Number(selectedRoomId),
+          ptype: "subscriber",
+          feed: id,
+          private_id: mypvtid
+        }
+      });
+      renderParticipants();
+    },
+
+    onmessage: function (msg, jsep) {
+      if (jsep) {
+        feeds.find(f => f.rfid === id)?.createAnswer({
+          jsep,
+          media: { audioSend: false, videoSend: false },
+          success: function (jsep) {
+            feeds.find(f => f.rfid === id)?.send({ message: { request: "start", room: Number(selectedRoomId) }, jsep });
+          },
+          error: function (err) {
+            console.error("remote SDP 오류", err);
+          }
+        });
+      }
+    },
+
+    onremotestream: function (stream) {
+    	
+    	
+    	const remoteId = id;
+    	const videoElId = `remotevideo-${remoteId}`;
+    	const boxElId = `remote-box-${remoteId}`;
+    	const muteBtnId = `mute-btn-${remoteId}`;
+    	const volumeSliderId = `volume-slider-${remoteId}`;
+    	
+    	addVideoThumbnail(stream, remoteId, display);
+
+    	// DOM 이미 있는 경우 종료
+    	if (document.getElementById(boxElId)) return;
+      
+    	// remote-box HTML 생성 및 삽입
+      	const html = `
+        	<div class="remote-box" id="${boxElId}">
+	          	<span>${display}</span><br>
+	          	<video id="${videoElId}" autoplay playsinline></video>
+	          	<div style="margin-top: 4px;">
+	            	<button id="${muteBtnId}" style="cursor: pointer;">🔊</button>
+	          		<input type="range" min="0" max="2" step="0.01" value="1" 
+	                	class="volume-slider" data-id="${remoteId}" id="${volumeSliderId}" style="width: 80%; margin-top: 4px;" />
+	            </div>
+        	</div>`;
+      	$('#remoteContainer').append(html);
+      	
+      	// 비디오 스트림 연결
+        const videoElement = document.getElementById(videoElId);
+        if (!videoElement) {
+        	console.error("❌ video element가 존재하지 않습니다");
+        	return;
+        }
+      	Janus.attachMediaStream(videoElement, stream);
+        
+     	// 🎧 오디오 스트림 있는 경우 배열에 추가
+//         if (stream.getAudioTracks().length > 0) {
+//           console.log(`🎧 remote stream 등록됨 (ID: ${remoteId})`);
+//           remoteAudioMap.set(remoteId, stream);
+//         } else {
+//           console.warn(`⚠️ remote stream에 오디오 트랙 없음 (ID: ${remoteId})`);
+//         }
+      	
+     	// ✅ 오디오 트랙 있는 경우에만 오디오 제어 처리
+        const hasAudio = stream.getAudioTracks().length > 0;
+
+        // 오디오 컨텍스트 구성
+        if(hasAudio){
+	        const audioCtx = new AudioContext();
+	        const source = audioCtx.createMediaStreamSource(stream);
+	        const gainNode = audioCtx.createGain();
+	
+	        // 오디오 흐름: source -> gainNode -> 출력
+	        source.connect(gainNode).connect(audioCtx.destination);
+	
+	        // 전역 저장소에 등록
+	        audioContexts[remoteId] = {
+	          ctx: audioCtx,
+	          gainNode: gainNode,
+	          muted: false  // 초기 상태: 음소거 아님
+	        };
+	
+	     	// 볼륨 슬라이더 제어
+	        const slider = document.getElementById(volumeSliderId);
+	        const muteBtn = document.getElementById(muteBtnId);
+	        const state = audioContexts[remoteId];
+	        
+	        if(slider && state && muteBtn){
+	        	console.log("지금 여기");
+		        slider.addEventListener('input', e => {
+		          const value = parseFloat(e.target.value);
+ 		          state.gainNode.gain.value = value;
+		          if (value === 0) {
+		            state.muted = true;
+		            muteBtn.textContent = '🔇';
+		          } else {
+		            state.muted = false;
+		            muteBtn.textContent = '🔊';
+		          }
+		        });
+		     	// 음소거 버튼 제어
+		        muteBtn.addEventListener('click', () => {
+		          const restoreVolume = parseFloat(slider.value) || 1.0;
+		          
+		          console.log(`등록된 muteBtn ID: ${muteBtnId}`, muteBtn);
+		          
+		          if (state.muted) {
+		        	// 음소거 해제
+		            state.gainNode.gain.value = restoreVolume;
+		            muteBtn.textContent = '🔊';
+		          } else {
+		        	// 음소거
+		            state.gainNode.gain.value = 0.0;
+		            muteBtn.textContent = '🔇';
+		          }
+		          state.muted = !state.muted;
+		        });
+	        }
+	        
+        } else {
+        	console.warn("⚠️ stream에 audio track 없음 → 오디오 제어 생략");
+        }
+    },
+
+    oncleanup: function () {
+      removeRemoteFeed(id);
+      remoteAudioMap.delete(id);
+      console.log(`🧹 remoteAudioMap에서 제거됨: ${id}`);
+    },
+
+    ondetached: function () {
+      removeRemoteFeed(id);
+      remoteAudioMap.delete(id);  // ✅ Map에서 제거
+      console.log(`🧹 remoteAudioMap에서 제거됨: ${id}`);
+    }
+  });
+}
+
+const detachedFeeds = new Set();  // 전역 캐시
+
+// ✅ remote feed 제거
+function removeRemoteFeed(id) {
+  console.log(`🧹 remote feed 제거: ${id}`);
+  const idStr = String(id);
+  
+  //중복 제거 방지
+  if (detachedFeeds.has(idStr)) {
+    console.log(`⏹️ 중복 제거 차단: ${idStr}`);
+    return;
+  }
+  detachedFeeds.add(idStr);
+  
+  // feeds에서 제거 대상 찾기
+  const targetFeed = feeds.find(f => f && String(f.rfid) === idStr);
+  if (!targetFeed) {
+    console.warn(`⚠️ 이미 제거된 remote feed: ${idStr}`);
+    removeVideoThumbnail(idStr);			// 썸네일은 혹시 남아 있을 수 있으니 아래 줄은 남겨둠
+    return;
+  }
+  
+  // ✅ detach feed handle
+  try {
+    targetFeed.detach();
+  } catch (e) {
+    console.warn("❌ detach 중 예외:", e);
+  }
+  
+  // feeds 배열에서 제거
+  feeds = feeds.filter(f => String(f.rfid) !== idStr);
+
+  // 비디오 DOM 제거
+  document.getElementById(`remote-box-${idStr}`)?.remove();
+  
+  // 썸네일 비디오 동적 제거
+  console.log(`removeRemoteFeed called with id=${idStr}`);
+  removeVideoThumbnail(idStr);
+  
+  // 오디오 컨텍스트 제거
+  if (audioContexts[id]) {
+	  try {
+	      audioContexts[id].ctx.close();
+	  } catch (e) {}
+	  delete audioContexts[id];
+  }
+  
+  
+  // 핸들 제거
+  if (feedHandles && feedHandles[idStr]) {
+    try {
+      feedHandles[idStr].detach();
+    } catch (e) {}
+    delete feedHandles[idStr];
+  }
+  
+  //✅ 참가자 리스트에서도 제거
+  const p = participants.find(p => String(p.id) === idStr);
+  if (p) {
+    removeParticipant(p.id);
+    renderParticipants();
+  }
+  
+  
+}
+
+const recentlyLeft = new Map();
+
+function markAsLeft(id) {
+  const strId = String(id);
+  recentlyLeft.set(strId, Date.now());
+  setTimeout(() => recentlyLeft.delete(strId), 3000); // 3초간 유효
+}
+
+function isRecentlyLeft(id) {
+	const strId = String(id);
+	if (recentlyLeft.has(strId)) {
+	    const age = Date.now() - recentlyLeft.get(strId);
+	    if (age < 3000) return true;
+		recentlyLeft.delete(strId);
+	}
+	return false;
+}
+
+
+// ✅ 전체 정리
+function cleanupAllFeeds() {
+
+	if (isDestroying) return;
+	isDestroying = true; // 🔐 진입 플래그 설정
+
+	console.log("🧹 cleanupAllFeeds() 실행");
+	
+   // remote feed detach + 배열 초기화
+   // 중복 제거 방지
+   feeds.forEach((f, i) => {
+    if (f && !seen.has(f.rfid)) {
+      try { f.detach(); } catch (e) {}
+      seen.add(f.rfid);
+    }
+    feeds[i] = null;
+  });
+   
+   feeds = [];
+  
+   // remote 오디오 스트림 종료 (브라우저 사운드 중지)
+   if (window.remoteAudioMap) {
+     for (const [feedId, stream] of remoteAudioMap.entries()) {
+       if (stream && typeof stream.getTracks === "function") {
+         stream.getTracks().forEach(track => {
+           try { track.stop(); } catch (e) {}
+         });
+       }
+       remoteAudioMap.delete(feedId);
+     }
+   }
+
+   // audioContexts 모두 close (잔여 사운드/노이즈 방지)
+   if (window.audioContexts) {
+     Object.values(audioContexts).forEach(state => {
+       try { state.ctx.close(); } catch (e) {}
+     });
+     Object.keys(audioContexts).forEach(k => delete audioContexts[k]);
+   }
+
+   // 모든 video/audio DOM에서 srcObject = null (자동정리)
+   document.querySelectorAll("video, audio").forEach(el => {
+     try { el.srcObject = null; } catch (e) {}
+   });
+   
+  // 영상 DOM 제거
+  $('#remoteContainer').empty();
+  $('#local-box').remove();
+  
+  // 영상 썸네일 제거
+  document.getElementById('videoThumbnails').innerHTML = '';
+  document.getElementById('mainVideo').srcObject = null;
+  
+  // 핸들 및 세션 초기화
+  if (sfutest && typeof sfutest.detach === "function") {
+    try { sfutest.detach(); } catch (e) {}
+  }
+  sfutest = null;
+  myid = null;
+  mypvtid = null;
+  myUsername = null;
+  myDataId = null;
+  selectedRoomId = null;
+  displayName = null;
+  
+  // janus 세션 제거
+  if (janus) {
+	try { janus.destroy(); } catch (e) {}
+    janus = null;
+  }
+  
+  isDestroying = false;
+  
+}
+
+// 상단 썸네일 동적 추가
+function addVideoThumbnail(stream, id, displayName) {
+	id = String(id);
+	
+	if (document.getElementById(`thumb-${id}`)) return;  // 이미 썸네일 있으면 패스
+	
+	const video = document.createElement('video');
+	video.id = `thumb-${id}`;
+	video.autoplay = true;
+	video.playsInline = true;
+	video.muted = true;
+	video.title = displayName;
+	video.srcObject = stream;
+
+	// 클릭시 메인화면 교체
+	video.addEventListener('click', function() {
+	    const mainVideo = document.getElementById('mainVideo');
+	    mainVideo.srcObject = stream;
+	    document.querySelectorAll('.video-thumbnails video').forEach(v => v.classList.remove('active'));
+	    video.classList.add('active');
+	});
+
+	document.getElementById('videoThumbnails').appendChild(video);
+
+	// 최초 추가라면 mainVideo도 자동 연결 (본인 입장/첫 참가자)
+	const mainVideo = document.getElementById('mainVideo');
+	if (!mainVideo.srcObject) {
+	    mainVideo.srcObject = stream;
+	    video.classList.add('active');
+	}
+	
+}
+
+// 상단 비디오 썸네일 동적 제거
+function removeVideoThumbnail(id) {
+	id = String(id);
+	console.log(`removeVideoThumbnail called for thumb-${id}`);
+	document.getElementById(`thumb-${id}`)?.remove();
+}
+
+
+
+// websocket 연결 및 구독
+let stompClient = null;
+let chatSubscription = null;		// 구독 객체 저장용 (나중에 unsubscribe 가능)
+
+
+function connectChat(roomId) {
+  if (stompClient && stompClient.connected) {
+	  stompClient.disconnect(() => {
+	    console.log("🔌 기존 WebSocket 연결 해제 완료");
+	  });
+  }
+	
+  const socket = new SockJS("http://43.201.107.133:8080/ws-chat");
+  stompClient = Stomp.over(socket);
+
+  stompClient.connect({}, function () {
+    console.log("✅ 채팅 연결 성공");
+    
+    // 구독
+    stompClient.subscribe(`/topic/chat/${roomId}`, function (messageOutput) {
+      const msg = JSON.parse(messageOutput.body);
+	  appendChatMessage(msg.sender, msg.message);
+    });
+	sendMessage(displayName + "님이 입장하셨습니다.");
+  });
+  
+}
+
+// websocket 연결 종료
+function disconnectChat() {
+	if (stompClient && stompClient.connected) {
+	  stompClient.disconnect(() => {
+	    console.log("🛑 WebSocket 연결 종료됨");
+	  });
+	}
+}
+
+function leaveRoom() {
+	// 1. 채팅 퇴장 메시지 전송
+	if (stompClient && stompClient.connected) {
+    	sendMessage(displayName + "님이 퇴장하셨습니다.");
+  	}
+	
+	// 2. WebSocket 연결 해제
+	if (stompClient) {
+		disconnectChat();
+		stompClient = null;
+	
+		// 채팅창 초기화
+		const chatBox = document.getElementById("chatMessages");
+		if (chatBox) chatBox.innerHTML = "";
+		
+	}
+
+	// 3. Janus 연결 해제 전에 -> unpublish를 명시적으로 수행
+	if (sfutest) {
+	    const unpubRequest = { request: "unpublish" };
+	    sfutest.send({ message: unpubRequest });
+	}
+	
+	// 4. Janus 연결 해제
+	if (janus && !isDestroying) {
+	    isDestroying = true;
+	    janus.destroy({
+	      	success: () => {
+	        	console.log("🧹 Janus 세션 종료 완료");
+	        	cleanupAllFeeds();
+		        janus = null;
+		        isDestroying = false;
+	    	}
+	  	});
+	} else {
+        // 만약 janus 세션이 이미 없거나 이미 종료 중이면 직접 정리!
+        cleanupAllFeeds();
+    }
+	
+	// 5. 전역 상태 초기화
+	selectedRoomId = null;
+	displayName = null;
+	participants = [];
+	isCamOn = true;
+	
+	
+}
+
+// 메세지 전송
+function sendMessage(message) {
+	const content = message;
+
+	stompClient.send("/app/chat.send", {}, JSON.stringify({
+		type: 'chat',
+		roomId: selectedRoomId,
+		sender: displayName,
+	    message: content
+	}));
+
+}
+
+// 채팅 메세지 DOM 추가
+function appendChatMessage(sender, msg) {
+  const chatBox = document.getElementById("chatMessages");
+  const p = document.createElement("p");
+  
+  const safeSender = escapeHtml(sender);
+  const safeMsg = escapeHtml(msg);
+  
+  p.textContent = `[${sender}] ${msg}`;
+  chatBox.appendChild(p);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+//HTML 이스케이프 처리 함수 (XSS 방지용)
+function escapeHtml(str) {
+  return str.replace(/[&<>"']/g, function (match) {
+    return {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[match];
+  });
+}
+
+// 이벤트 바인딩
+const input = document.getElementById("chatInput");
+const sendBtn = document.getElementById("sendChatBtn");
+
+document.getElementById("sendChatBtn").addEventListener("click", () => {
+  const message = input.value.trim();
+  if (message !== "") {
+    sendMessage(message);
+    input.value = "";
+  }
+});
+
+//Enter 키 입력 이벤트
+input.addEventListener("keypress", function (e) {
+  if (e.key === "Enter" && !e.shiftKey) {		// 엔터키 감지 && Shift+Enter 줄바꿈 허용
+    e.preventDefault(); // 줄바꿈 방지
+    sendBtn.click();    // 전송 버튼 클릭과 동일한 효과
+  }
+});
+
+// 메시지 전송 함수
+function sendMessagePayload(payload) {
+	if (!stompClient || !stompClient.connected) return;
+	stompClient.send("/app/chat", {}, JSON.stringify(payload));
+}
+
+// 마이크 음소거 상태 전송
+function notifyAudioMuteStatus(isMuted) {
+	const payload = {
+	    type: 'audio-mute-status',
+	    roomId: selectedRoomId,
+	    sender: displayName,
+	    muted: isMuted
+	};
+	sendMessagePayload(payload);
+}
+
+//종료버튼 클릭시
+document.getElementById("exitBtn").addEventListener("click", function () {
+	//🟡 참가자 수 감소 백엔드 반영
+	console.log("현재 선택된 방 : " + selectedRoomId);
+    if (selectedRoomId) {
+    	$.post('/api/meeting/room/' + selectedRoomId + '/leave', function(currentCount) {
+            $('.room-info').text(`현재 참가 인원 : ${currentCount} / ${maxParticipantCount}`);
+	    	console.log("방나감 현재 인원/최대인원: " + currentCount + "/" +maxParticipantCount);
+	    	loadRoomList();
+        });
+	}
+	navigate('list'); // navigate는 세션정리 없이 화면 전환만
+});
+
+
+// document.getElementById("startCamBtn").addEventListener("click", () => {
+// 	const btn = document.getElementById("startCamBtn");
+// 	const icon = btn.querySelector('.icon');
+// 	const label = btn.querySelector('.label');
+	
+// 	if (isCamOn) {
+// 		if (!sfutest) return;
+// 	    // .detach()/destroy() 사용 시에는 완전 세션/플러그인 재연결(비효율), 
+// 	    // hangup은 세션 유지하면서 트랙만 교체
+// 	    sfutest.hangup(); 		// 기존 트랙/세션 끊기 
+// 	    // 내 트랙을 멈추고 dummyStream을 publish
+// 	    publishOwnDummyFeed(displayName); // 또는 sfutest.send({ request: "unpublish" });
+
+// 	    isCamOn = false;
+// 	    icon.textContent = "📷";
+// 	    label.textContent = "캠 끄기";
+//     } else {
+//     	// 캠 켜기 (실제 캠 publish)
+//         turnOnCamera();
+// 	    isCamOn = true;
+// 	    icon.textContent = "📷";
+// 	    label.textContent = "캠 켜기";
+//     }
+// });
+
+// let isCamOn = true;
+// // 캠 시작 버튼 클릭
+// document.getElementById("startCamBtn").addEventListener("click", function () {
+// 	if (isCamOn) {
+//         // 캠 끄기 (unpublish 또는 dummy publish)
+//         turnOffCamera();
+//     } else {
+//         // 캠 켜기 (실제 캠 publish)
+//         turnOnCamera();
+//     }
+
+// 	updateCamBtn();
+// 	// 	restartPublisherWithRealCam();
+// });
+
+// function updateCamBtn() {
+//     const btn = document.getElementById("startCamBtn");
+//     const icon = btn.querySelector('.icon');
+// 	const label = btn.querySelector('.label');
+//     btn.textContent = isCamOn ? "캠 끄기" : "캠 켜기";
+//     if (isCamOn) {
+// 	    isCamOn = false;
+// 	    icon.textContent = "🛑";
+// 	    label.textContent = "캠 끄기";
+// 	} else {
+// 	    isCamOn = true;
+// 	    icon.textContent = "📷";
+// 	    label.textContent = "캠 켜기";
+// 	}
+    
+// }
+
+// // 캠 끄기 (실제로는 dummy stream publish 또는 unpublish)
+// function turnOffCamera() {
+//     if (!sfutest) return;
+
+//     // .detach()/destroy() 사용 시에는 완전 세션/플러그인 재연결(비효율), 
+//     // hangup은 세션 유지하면서 트랙만 교체
+//     try { sfutest.hangup(); } catch (e) {} 		// 기존 트랙/세션 끊기 
+//     try {
+// 	 	// hangup 후에는 기존 sfutest 핸들 사용 불가
+// 	 	sfutest.detach({
+// 	        success: function () {
+// 	            // detach가 끝난 후 새로 attach해서 더미 피드 publish
+// 	            janus.attach({
+// 	                plugin: "janus.plugin.videoroom",
+// 	                opaqueId,
+// 	                success: function (pluginHandle) {
+// 	                    sfutest = pluginHandle;
+// 	                    // 방에 재참여
+// 	                    sfutest.send({
+// 	                        message: {
+// 	                            request: "join",
+// 	                            room: Number(selectedRoomId),
+// 	                            ptype: "publisher",
+// 	                            display: displayName
+// 	                        }
+// 	                    });
+// 	                },
+// 	                error: function (err) {
+//                         alert("Janus attach 실패! 네트워크 점검 필요: " + err);
+//                         isCamOn = false;
+//                         updateCamBtn();
+//                     },
+// 	                onmessage: function (msg, jsep) {
+// 	                    if (msg.videoroom === "joined") {
+// 	                        mypvtid = msg.private_id;
+// 	                        publishOwnDummyFeed(displayName); // 이제는 안전하게 호출 가능
+// 	                    }
+// 	                    if (jsep) sfutest.handleRemoteJsep({ jsep });
+// 	                }
+// 	            });
+// 	        },
+// 	        error: function (err) {
+//                 alert("detach error: " + err);
+//             }
+// 	    });
+// 	} catch (e) {
+// 	    console.warn("detach 예외", e);
+// 	}
+// }
+
+
+// // hangup 후 바로 createOffer 금지!
+// // 반드시 detach → attach → join → publish 구조를 지키세요!
+// // Janus attach가 완료되어야만 새 stream publish/publishDummyFeed 가능
+
+// // 캠 켜기 (실제 카메라 스트림 publish)
+// function turnOnCamera() {
+// 	if (!sfutest) return;
+// 	try { sfutest.hangup(); } catch (e) {}		// 기존 트랙/세션 끊기 
+	
+// 	try{
+// 		sfutest.detach({
+// 	        success: function () {
+// 	            janus.attach({
+// 	                plugin: "janus.plugin.videoroom",
+// 	                opaqueId,
+// 	                success: function (pluginHandle) {
+// 	                    sfutest = pluginHandle;
+// 	                    sfutest.send({
+// 	                        message: {
+// 	                            request: "join",
+// 	                            room: Number(selectedRoomId),
+// 	                            ptype: "publisher",
+// 	                            display: displayName
+// 	                        }
+// 	                    });
+// 	                },
+// 	                error: function (err) {
+//                         alert("Janus attach 실패! 네트워크 점검 필요: " + err);
+//                         isCamOn = true;
+//                         updateCamBtn();
+//                     },
+// 	                onmessage: function (msg, jsep) {
+// 	                    if (msg.videoroom === "joined") {
+// 	                        mypvtid = msg.private_id;
+// 	                        publishOwnFeed(displayName);
+// 	                    }
+// 	                    if (jsep) sfutest.handleRemoteJsep({ jsep });
+// 	                }
+// 	            });
+// 	        },
+// 	        error: function (err) {
+//                 alert("detach error: " + err);
+//             }
+// 	    });
+// 	} catch (e) {
+//         console.warn("detach 예외", e);
+//     }
+// }
+
+
+//마이크 토글 버튼 클릭 핸들러
+document.getElementById("mute-toggle").addEventListener("click", toggleMute);
+
+//녹음 및 녹화 버튼 토글
+let isRecording = false;
+let isAudioRecording = false;
+
+
+// 녹화 버튼 토글
+document.getElementById("recordToggleBtn").addEventListener("click", () => {
+	const btn = document.getElementById("recordToggleBtn");
+	const icon = btn.querySelector('.icon');
+	const label = btn.querySelector('.label');
+	
+	if (!isRecording) {
+	    startFullRecording();
+	    isRecording = true;
+	    icon.textContent = "🛑";
+	    label.textContent = "녹화 중지";
+    } else {
+	    stopFullRecording();
+	    isRecording = false;
+	    icon.textContent = "🎥";
+	    label.textContent = "녹화";
+    }
+});
+
+// 녹음 버튼 토글
+document.getElementById("audioRecordToggleBtn").addEventListener("click", () => {
+	const button = document.getElementById("audioRecordToggleBtn");
+	const icon = button.querySelector('.icon');
+	const label = button.querySelector('.label');
+	  
+	if (!isAudioRecording) {
+	    startAudioRecording();
+	    isAudioRecording = true;
+	    icon.textContent = "🛑";
+	    label.textContent = "녹음 중지";
+	} else {
+	    stopAudioRecording();
+	    isAudioRecording = false;
+	    icon.textContent = "🎙️";
+	    label.textContent = "음성녹음";
+	}
+});
+
+// 내 마이크 음소거
+function toggleMute() {
+	if (!sfutest) {
+	    console.warn("❗ sfutest 핸들이 아직 연결되지 않음");
+	    return;
+	  }
+
+	const btn = document.getElementById("mute-toggle");
+	const icon = btn.querySelector('.icon');
+	const label = btn.querySelector('.label');
+	
+	const muted = sfutest.isAudioMuted();
+	if (isMicMuted) {
+	    sfutest.unmuteAudio(); // 마이크 켜기
+	    icon.textContent = "🎤";
+        label.textContent = "마이크";
+	    isMicMuted = false;
+	    updateMyAudioMuted(false); // 🔊 내 마이크 상태 업데이트
+	    console.log("🔊 마이크 활성화됨");
+	} else {
+	    sfutest.muteAudio(); // 마이크 끄기
+	    icon.textContent = "🔇";
+        label.textContent = "음소거";
+	    isMicMuted = true;
+	    updateMyAudioMuted(true); // 🔊 내 마이크 상태 업데이트
+	    console.log("🔇 마이크 음소거됨");
+	}
+}
+
+// audioMuted 값 업데이트
+function updateMyAudioMuted(muted) {
+	participants = participants.map(p => {
+	    if (p.display === displayName) {
+	      return { ...p, audioMuted: muted };
+		}
+	    return p;
+	});
+	renderParticipants(); // UI 갱신
+}
+
+//녹화
+let mediaRecorder;
+let recordedChunks = [];
+let mixedStream;
+
+const remoteAudioMap = new Map(); 	// feedId → remoteStream
+let myMicStream = null;           	// 내 마이크 스트림
+let screenStream = null;
+
+// ✅ 녹화 시작
+async function startFullRecording() {
+  try {
+    recordedChunks = [];
+
+    // 1. 화면 공유 시작 (탭 or 전체 화면 선택)
+    screenStream = await navigator.mediaDevices.getDisplayMedia({
+      video: true,
+      audio: false   // 오디오는 AudioContext에서 따로 믹싱
+    });
+
+    screenStream.getVideoTracks()[0].onended = () => {
+    	stopFullRecording();
+    	console.log("📴 화면 공유 종료됨 → 녹화 자동 중지");
+    };
+    
+    // 2. 마이크 입력 (오디오)
+  	try {
+      myMicStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (err) {
+      console.warn("🎙️ 마이크 접근 실패:", err);
+      myMicStream = null;
+    }
+    
+    // 3. AudioContext로 모든 오디오 합성 (remote + 내 마이크)
+    const audioCtx = new AudioContext();
+    const destination = audioCtx.createMediaStreamDestination();
+
+    // 믹싱할 스트림: remote + 마이크
+    const allAudioStreams = [...remoteAudioMap.values(), myMicStream];
+    if (myMicStream) allAudioStreams.push(myMicStream);
+
+    if (allAudioStreams.length === 0) {
+      throw new Error("오디오 입력이 존재하지 않습니다.");
+    }
+    
+    allAudioStreams.forEach(stream => {
+      try {
+        const source = audioCtx.createMediaStreamSource(stream);
+        source.connect(destination);
+      } catch (err) {
+        console.warn("⚠️ 오디오 믹싱 실패:", err);
+      }
+    });
+
+    // 4. video (화면 캡처) + audio (믹싱된 트랙) 결합
+    const mixedTracks = [
+      ...screenStream.getVideoTracks(),
+      ...destination.stream.getAudioTracks()
+    ];
+    mixedStream = new MediaStream(mixedTracks);
+
+    // 5. MediaRecorder로 녹화 시작
+    mediaRecorder = new MediaRecorder(mixedStream, {
+    	mimeType: 'video/webm;codecs=vp8,opus'
+  	});
+
+    mediaRecorder.ondataavailable = e => {
+      if (e.data.size > 0) recordedChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(recordedChunks, { type: 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      
+      const saveLink = document.createElement('a');
+      saveLink.href = url;
+      saveLink.download = `녹화파일_${new Date().toISOString().slice(0,19).replace(/[:T]/g, '-')}.webm`;
+      saveLink.textContent = "🔽 녹화파일 저장";
+      saveLink.click();
+    };
+
+    mediaRecorder.start();
+    console.log("✅ 녹화 시작됨");
+
+  } catch (err) {
+    console.error("🎥 녹화 시작 실패:", err);
+    
+ 	// 👉 화면 공유 자동 종료
+    if (screenStream) {
+      screenStream.getTracks().forEach(track => track.stop());
+      console.log("🛑 예외 발생 → 화면 공유 중단됨");
+    }
+    alert("녹화를 시작할 수 없습니다: " + err.message);
+  }
+}
+
+// ✅ 녹화 중지
+function stopFullRecording() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+    console.log("🛑 녹화 중지됨");
+  }
+  
+  if (screenStream) {
+	    screenStream.getTracks().forEach(track => track.stop()); // 화면 공유 종료
+	    console.log("🖥️ 화면 공유 중단됨");
+	    screenStream = null;
+  }
+  
+}
+
+// 녹음 기능
+let mediaRecorder2;
+let recordedChunks2 = [];
+let mixedAudioStream;
+let myMicStream2 = null;
+
+const remoteAudioMap2 = new Map();   // feedId → MediaStream
+
+// ✅ 오디오 녹음 시작
+async function startAudioRecording() {
+  try {
+    recordedChunks2 = [];
+
+    // 마이크 입력
+    try {
+      myMicStream2 = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (err) {
+      console.warn("🎙️ 마이크 접근 실패:", err);
+      myMicStream2 = null;
+    }
+
+    const audioCtx = new AudioContext();
+    const destination = audioCtx.createMediaStreamDestination();
+
+    const allStreams = [...remoteAudioMap2.values()];
+    if (myMicStream2) allStreams.push(myMicStream2);
+
+    if (allStreams.length === 0) {
+      alert("🎧 오디오 입력이 없습니다.");
+      return;
+    }
+
+    // 오디오 믹싱
+    allStreams.forEach(stream => {
+      try {
+        const source = audioCtx.createMediaStreamSource(stream);
+        source.connect(destination);
+      } catch (err) {
+        console.warn("⚠️ 오디오 믹싱 실패:", err);
+      }
+    });
+
+    mixedAudioStream2 = destination.stream;
+
+    mediaRecorder2 = new MediaRecorder(mixedAudioStream2, {
+      mimeType: 'audio/webm'
+    });
+
+    mediaRecorder2.ondataavailable = e => {
+      if (e.data.size > 0) recordedChunks2.push(e.data);
+    };
+
+    mediaRecorder2.onstop = () => {
+      const blob = new Blob(recordedChunks2, { type: 'audio/webm' });
+      uploadAudio(blob);
+      console.log("녹음 여기까진 되나");
+    };
+
+    mediaRecorder2.start();
+    console.log("🎙️ 오디오 녹음 시작됨");
+  } catch (err) {
+    console.error("🎙️ 오디오 녹음 실패:", err);
+    alert("녹음을 시작할 수 없습니다.");
+  }
+}
+
+// ✅ 오디오 녹음 중지
+function stopAudioRecording() {
+  if (mediaRecorder2 && mediaRecorder2.state !== 'inactive') {
+    mediaRecorder2.stop();
+    console.log("🛑 오디오 녹음 중지됨");
+  }
+}
+
+// 녹음 파일 서버로 업로드
+function uploadAudio(blob) {
+	const formData = new FormData();
+	const filename = `recorded_audio_${Date.now()}.webm`;
+	formData.append("audioFile", blob, filename);
+
+	fetch("/api/audio/upload", {
+	    method: "POST",
+	    body: formData
+	})
+	.then(res => res.text())
+	.then(msg => alert("✅ 서버 업로드 완료\n" + msg))
+	.catch(err => console.error("❌ 업로드 실패", err));
+}
+
+
+
+// 볼륨 슬라이더
+// 닉네임 클릭 시 볼륨 슬라이더 토글
+document.getElementById('participantList').addEventListener('click', function(e){
+  const target = e.target;
+  if (target.classList.contains('display-name')) {
+    const participantDiv = target.closest('.participant');
+    const remoteId = participantDiv.getAttribute('data-remote-id');
+    showProfilePopup(participantDiv, remoteId, e);
+  }
+});
+
+function showProfilePopup(participantDiv, remoteId, event) {
+	// 기존 팝업 제거
+	const prevPopup = document.getElementById('profilePopup');
+	if (prevPopup) prevPopup.remove();
+
+	// (위치 계산: 클릭 위치나 participantDiv 위치)
+	const rect = participantDiv.getBoundingClientRect();
+	const top = rect.bottom + window.scrollY + 5;
+	const left = rect.left + window.scrollX - 20;
+
+	// 참가자 정보
+	const nick = participantDiv.querySelector('.display-name').textContent;
+	const avatar = participantDiv.querySelector('.avatar').textContent;
+
+	// 팝업 생성
+	const popup = document.createElement('div');
+	popup.className = 'profile-popup';
+	popup.id = 'profilePopup';
+	popup.style.top = `${top}px`;
+	popup.style.left = `${left}px`;
+
+	popup.innerHTML = `
+
+	    <div class="profile-volume">
+	        <span class="icon">🔊</span>
+	        <input type="range" min="0" max="2" step="0.01" value="${getRemoteVolume(remoteId)}" class="volume-slider" style="width:110px">
+	        <span class="volume-value">${getRemoteVolume(remoteId).toFixed(2)}</span>
+	    </div>
+	`;
+
+	document.body.appendChild(popup);
+
+	// 슬라이더 이벤트
+	const slider = popup.querySelector('.volume-slider');
+	const valueSpan = popup.querySelector('.volume-value');
+    const icon = popup.querySelector('.icon');
+	slider.addEventListener('input', function(){
+		const volume = parseFloat(this.value);
+		setRemoteVolume(remoteId, volume);
+	    valueSpan.textContent = this.value;
+	    // 🔊🔇 아이콘 토글
+	    icon.textContent = volume === 0 ? '🔇' : '🔊';
+	    console.log('setRemoteVolume:', remoteId, this.value, audioContexts[remoteId]?.gainNode?.gain.value);
+	});
+	
+	// 아이콘 클릭시 볼륨 0<->1 토글
+    icon.addEventListener('click', function(){
+        if (parseFloat(slider.value) === 0) {
+            slider.value = 1.0;
+        } else {
+            slider.value = 0;
+        }
+        slider.dispatchEvent(new Event('input'));
+    });
+
+	// 바깥 클릭 시 닫힘
+	setTimeout(() => {
+	    document.addEventListener('mousedown', hideProfilePopup, { once: true });
+	}, 50);
+
+	function hideProfilePopup(e){
+	    if (!popup.contains(e.target)){
+	    	popup.remove();
+	    	document.removeEventListener('mousedown', hideProfilePopup);
+	    }
+    }
+}
+
+//실제 볼륨 제어 함수
+function getRemoteVolume(remoteId) {
+  // audioContexts[remoteId].gainNode.gain.value 등 실제 오디오 상태와 연동!
+  return audioContexts[remoteId]?.gainNode?.gain.value || 1.0;
+}
+function setRemoteVolume(remoteId, value) {
+  if (audioContexts[remoteId]) audioContexts[remoteId].gainNode.gain.value = value;
+}
+
+// remote feed 퇴장시 제거
+function removeRemoteStreamFromAudioList(feedId) {
+	if (remoteAudioMap.has(feedId)) {
+    	remoteAudioMap.delete(feedId);
+    	console.log(`🧹 feed ${feedId} 오디오 스트림 제거됨`);
+  	}
+}
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>면접관 등록</title>
+  <link rel="stylesheet" th:href="@{/css/common.css}">
+  <link rel="stylesheet" th:href="@{/css/int.css}">
+</head>
+<body>
+
+<div th:replace="fragments/header :: headerFragment"></div>
+
+<div class="interviewer-container">
+  <h2 class="section-title">면접관 프로필 등록</h2>
+
+  <form th:action="@{/interviewer/save}" method="post" class="register-form">
+    
+    <!-- 🔹 기본 정보 -->
+    <div class="top-section">
+      <div class="profile-left">
+        <input type="text" name="intrImage" placeholder="이미지 URL">
+      </div>
+      <div class="info-right">
+        <p><strong>이름 :</strong> <input type="text" name="userName" th:value="${user.userName}" readonly></p>
+        <p><strong>경력 :</strong> <input type="text" name="userCareer" th:value="${user.userCareer}" readonly></p>
+        <p><strong>보유 스킬 :</strong> <input type="text" name="userSkill" th:value="${user.userSkill}" readonly></p>
+        <p><strong>한 줄 소개 :</strong> <input type="text" name="intrIntro" placeholder="예: Java 백엔드 전문가"></p>
+        <p><strong>상담 가격 :</strong> <input type="number" name="intrPrice" placeholder="예: 30000"></p>
+      </div>
+    </div>
+
+    <!-- 🔹 직무 카테고리 -->
+    <div class="intro-box">
+      <label><strong>직무 카테고리 (최대 3개)</strong></label>
+      <div class="form-category-box">
+        <div th:each="cate : ${T(com.example.demo.model.entity.CategoryType).values()}"
+             class="form-category-item"
+             th:attr="data-value=${cate}"
+             onclick="toggleCategory(this)">
+          <span th:text="${cate}">카테고리</span>
+        </div>
+      </div>
+      <input type="hidden" name="intrCate" id="intrCateHidden">
+    </div>
+
+    <!-- 🔹 자기소개 -->
+    <div class="intro-box">
+      <strong>자기소개</strong>
+      <textarea name="intrContent" class="form-content-textarea" rows="8"
+                placeholder="자기소개, 상담 방식 등 자세히 적어주세요"></textarea>
+    </div>
+
+    <!-- 🔹 등록 버튼 -->
+    <div style="text-align: right; margin-top: 20px;">
+      <button type="submit" class="register-btn">등록하기</button>
+    </div>
+  </form>
+</div>
+
+<div th:replace="fragments/footer :: footerFragment"></div>
+
+<script>
+  function toggleCategory(element) {
+    element.classList.toggle('selected');
+
+    const selected = Array.from(document.querySelectorAll('.form-category-item.selected'))
+                          .map(el => el.getAttribute('data-value'));
+
+    if (selected.length > 3) {
+      alert("최대 3개까지 선택할 수 있습니다.");
+      element.classList.remove('selected');
+      return;
+    }
+
+    document.getElementById("intrCateHidden").value = selected.join(',');
+  }
+</script>
+
+</body>
+</html>
+
