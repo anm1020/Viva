@@ -92,14 +92,16 @@ public class MeetingRoomController {
 	
 	// 참가자 입장 (인원 +1)
     @PostMapping("/room/{roomId}/join")
-    public void joinRoom(@PathVariable("roomId") Integer roomId) {
-        service.increaseCurrentParticipantCount(roomId);
+    public ResponseEntity<Integer> joinRoom(@PathVariable("roomId") Integer roomId) {
+    	 int updatedCount = service.increaseCurrentParticipantCount(roomId);
+    	 return ResponseEntity.ok(updatedCount); // 현재 인원 리턴
     }
 
     // 참가자 퇴장 (인원 -1)
     @PostMapping("/room/{roomId}/leave")
-    public void leaveRoom(@PathVariable("roomId") Integer roomId) {
-        service.decreaseCurrentParticipantCount(roomId);
+    public ResponseEntity<Integer> leaveRoom(@PathVariable("roomId") Integer roomId) {
+    	int updatedCount = service.decreaseCurrentParticipantCount(roomId);
+        return ResponseEntity.ok(updatedCount);
     }
 	
 	// 방 삭제
