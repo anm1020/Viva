@@ -24,8 +24,8 @@
             <th>ID</th>
             <th>이름</th>
             <th>회원 구분</th>
-            <th>게시물 수</th>
-            <th>댓글 수</th>
+            <!-- <th>게시물 수</th>
+            <th>댓글 수</th> --> 
             <th>가입일</th>
             <th>상태</th>
             <th th:if="${selectedRole == 'intr'}">권한</th>
@@ -37,8 +37,8 @@
             <td th:text="${user.userId}"></td>
             <td th:text="${user.userName}"></td>
             <td th:text="${user.userRole}"></td>
-            <td>게시물 수</td>
-            <td>댓글 수</td>
+            <!-- <td>게시물 수</td>
+            <td>댓글 수</td> -->
             <td th:text="${#temporals.format(user.createdDt, 'yyyy-MM-dd')}"></td>
             <td>
                 <button type="button"
