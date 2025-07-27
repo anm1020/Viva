@@ -96,7 +96,111 @@ $(document).on('click', '.btn-notice-list', function(e) {
 });
 
 
+// 공지사항 수정 (폼 기반)
+function updateNotice() {
+  const form = $('#noticeEditForm');
+  $.ajax({
+    type: "POST",
+    url: "/notice/update",
+    data: form.serialize(),
+    success: function(resp) {
+      alert('수정되었습니다!');
+      location.reload(); // 또는 상세로 이동
+    },
+    error: function() {
+      alert('수정 실패!');
+    }
+  });
+}
 
+// 공지사항 삭제
+function deleteNotice(noticeId) {
+  if (!noticeId) {
+    alert('삭제할 공지 ID가 없습니다.');
+    return;
+  }
+  if (!confirm('정말 삭제하시겠습니까?')) return;
+  $.ajax({
+    type: "POST",
+    url: "/notice/delete/" + noticeId,
+    success: function() {
+      alert('삭제되었습니다.');
+      // 공지 리스트 부분만 AJAX로 다시 불러오기 (프래그먼트가 아니라면 아래처럼!)
+      $('#adminMainContent').load('/notice/noticeList', function(resp, status) {
+        if (status !== 'success') {
+          $('#adminMainContent').html('<p>공지 목록 로드 실패!</p>');
+        }
+      });
+    },
+    error: function() {
+      alert('삭제 실패!');
+    }
+  });
+}
+
+
+// 목록 버튼 클릭 시
+$(".btn-notice-list").on("click", function(e) {
+  e.preventDefault();
+  location.href = "/notice/noticeList";
+});
+
+// 만약 버튼에 동적으로 이벤트 부여
+$(document).on('click', '#btnUpdateNotice', updateNotice);
+$(document).on('click', '#btnDeleteNotice', function() {
+  const noticeId = $(this).data('id');
+  deleteNotice(noticeId);
+});
+
+
+/*
+// 수정 버튼 클릭 시
+$("#btnUpdateNotice").on("click", function(e) {
+  e.preventDefault();
+  if(!confirm("수정하시겠습니까?")) return;
+
+  var formData = $("#noticeEditForm").serialize();
+  $.ajax({
+    url: "/notice/update",
+    type: "POST",
+    data: formData,
+    success: function(res) {
+      if(res === "success") {
+        alert("수정되었습니다!");
+        location.href = "/notice/noticeList";
+      } else {
+        alert("실패: " + res);
+      }
+    },
+    error: function(xhr) {
+      alert("수정 실패: " + (xhr.responseText || ''));
+    }
+  });
+});
+
+  // 삭제 버튼 클릭 시
+  $("#btnDeleteNotice").on("click", function(e) {
+    e.preventDefault();
+    if(!confirm("정말 삭제하시겠습니까?")) return;
+
+    const noticeId = $(this).data("id");
+    $.ajax({
+      url: "/notice/delete/" + noticeId,
+      type: "POST",
+      success: function() {
+        alert("삭제되었습니다!");
+        location.href = "/notice/noticeList";
+      },
+      error: function() {
+        alert("삭제 실패!");
+      }
+    });
+  }); */
+
+
+
+//여기!!!!!!!!!!!!!!!!!!---------------------------------------------------------------------
+/*
 // 공지사항 수정 (폼 기반)
 function updateNotice() {
   const form = $('#noticeEditForm');
@@ -139,14 +243,14 @@ function deleteNotice(noticeId) {
   });
 }
 
-
+/*
 // 만약 버튼에 동적으로 이벤트 부여
 $(document).on('click', '#btnUpdateNotice', updateNotice);
 $(document).on('click', '#btnDeleteNotice', function() {
   const noticeId = $(this).data('id');
   deleteNotice(noticeId);
 });
-
+----------여기까지!!!!!!!!!!!!!111-------------------------------------*/
 // (4) "목록으로" 버튼 >>  오전에 했던 코드인데 위랑 겹치나 싶어서 일단 주석처리. 01:46
 /*$(document).on("click", "#notice-noticeList-btn", function(e) {
     e.preventDefault();

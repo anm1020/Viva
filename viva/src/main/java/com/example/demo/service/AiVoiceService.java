@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
@@ -228,5 +230,76 @@ public class AiVoiceService {
             .build();
         aiVoSessionRepository.save(session);
         return sessionId;
+    }
+
+    // GPT API를 호출하여 음성 피드백 생성
+    public String generateVoiceFeedback(String prompt) {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(openAiApiKey);
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("model", "gpt-3.5-turbo");
+
+            List<Map<String, String>> messages = new ArrayList<>();
+            messages.add(Map.of("role", "system", "content", "너는 면접 전문가입니다. 면접 답변을 분석하여 구체적이고 실용적인 피드백을 제공해주세요."));
+            messages.add(Map.of("role", "user", "content", prompt));
+            body.put("messages", messages);
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+
+            ResponseEntity<Map> response = restTemplate.postForEntity(
+                "https://api.openai.com/v1/chat/completions", 
+                request, 
+                Map.class
+            );
+
+            if (response.getBody() != null) {
+                List<Map<String, Object>> choices = (List<Map<String, Object>>) response.getBody().get("choices");
+                if (choices != null && !choices.isEmpty()) {
+                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                    if (message != null) {
+                        return (String) message.get("content");
+                    }
+                }
+            }
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // GPT 응답 JSON 파싱
+    public Map<String, Object> parseFeedbackResponse(String gptResponse) {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            // JSON 블록 추출
+            int startIndex = gptResponse.indexOf("{");
+            int endIndex = gptResponse.lastIndexOf("}") + 1;
+            
+            if (startIndex >= 0 && endIndex > startIndex) {
+                String jsonStr = gptResponse.substring(startIndex, endIndex);
+                return objectMapper.readValue(jsonStr, Map.class);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        // 파싱 실패 시 기본값 반환
+        result.put("summary", "분석 중 오류가 발생했습니다.");
+        result.put("speechSpeed", "분석 중...");
+        result.put("pronunciation", "분석 중...");
+        result.put("strengths", "분석 중...");
+        result.put("weaknesses", "분석 중...");
+        result.put("details", List.of());
+        result.put("example", "");
+        result.put("suggestions", List.of());
+        
+        return result;
     }
 } 

@@ -11,7 +11,7 @@
     <div class="resume-header">
         <div class="header-left">
             <h1 class="resume-name" th:text="${user.userName}">표정현</h1>
-            <p class="resume-title" th:text="${resume.rePosition}">Web Backend Developer</p>
+            <p class="resume-title" th:text="${resume.reTitle != null and resume.reTitle != '' ? resume.reTitle : resume.rePosition}">Web Backend Developer</p>
         </div>
         <div class="header-right">
             <div class="photo-placeholder">
@@ -78,11 +78,11 @@
         <!-- 교육 -->
         <div class="resume-section">
             <h2 class="section-title">교육</h2>
-            <div th:if="${resume.reTrainingPeriod != null and resume.reTrainingPeriod != ''}" th:with="periods=${resume.reTrainingPeriod.split(',')}, orgs=${resume.reTrainingInstitution != null ? resume.reTrainingInstitution.split(',') : #strings.arraySplit('', ',')}, details=${resume.reTrainingCourse != null ? resume.reTrainingCourse.split(',') : #strings.arraySplit('', ',')}">
-                <div class="section-row" th:each="i : ${#numbers.sequence(0, #arrays.length(periods) - 1)}">
-                    <span class="date-col" th:text="${periods[i]}"></span>
-                    <span class="org-col" th:text="${i < #arrays.length(orgs) ? orgs[i] : ''}"></span>
-                    <span class="detail-col" th:text="${i < #arrays.length(details) ? details[i] : ''}"></span>
+            <div th:if="${resume.reTrainingPeriod != null and resume.reTrainingPeriod != ''}" th:with="periods=${resume.reTrainingPeriod.split(',')}, orgs=${resume.reTrainingInstitution != null and resume.reTrainingInstitution != '' ? resume.reTrainingInstitution.split(',') : #strings.arraySplit('', ',')}, details=${resume.reTrainingCourse != null and resume.reTrainingCourse != '' ? resume.reTrainingCourse.split(',') : #strings.arraySplit('', ',')}">
+                <div class="section-row" th:each="period, stat : ${periods}">
+                    <span class="date-col" th:text="${period}"></span>
+                    <span class="org-col" th:text="${stat.index < #arrays.length(orgs) ? orgs[stat.index] : ''}"></span>
+                    <span class="detail-col" th:text="${stat.index < #arrays.length(details) ? details[stat.index] : ''}"></span>
                 </div>
             </div>
         </div>
@@ -90,11 +90,11 @@
         <!-- 주요경력 -->
         <div class="resume-section">
             <h2 class="section-title">주요경력</h2>
-            <div th:if="${resume.reExperiencePeriod != null and resume.reExperiencePeriod != ''}" th:with="periods=${resume.reExperiencePeriod.split(',')}, orgs=${resume.reExperienceCompany != null ? resume.reExperienceCompany.split(',') : #strings.arraySplit('', ',')}, details=${resume.reExperiencePosition != null ? resume.reExperiencePosition.split(',') : #strings.arraySplit('', ',')}">
-                <div class="section-row" th:each="i : ${#numbers.sequence(0, #arrays.length(periods) - 1)}">
-                    <span class="date-col" th:text="${periods[i]}"></span>
-                    <span class="org-col" th:text="${i < #arrays.length(orgs) ? orgs[i] : ''}"></span>
-                    <span class="detail-col" th:text="${i < #arrays.length(details) ? details[i] : ''}"></span>
+            <div th:if="${resume.reExperiencePeriod != null and resume.reExperiencePeriod != ''}" th:with="periods=${resume.reExperiencePeriod.split(',')}, orgs=${resume.reExperienceCompany != null and resume.reExperienceCompany != '' ? resume.reExperienceCompany.split(',') : #strings.arraySplit('', ',')}, details=${resume.reExperiencePosition != null and resume.reExperiencePosition != '' ? resume.reExperiencePosition.split(',') : #strings.arraySplit('', ',')}">
+                <div class="section-row" th:each="period, stat : ${periods}">
+                    <span class="date-col" th:text="${period}"></span>
+                    <span class="org-col" th:text="${stat.index < #arrays.length(orgs) ? orgs[stat.index] : ''}"></span>
+                    <span class="detail-col" th:text="${stat.index < #arrays.length(details) ? details[stat.index] : ''}"></span>
                 </div>
             </div>
         </div>
@@ -102,11 +102,11 @@
         <!-- 자격증 -->
         <div class="resume-section">
             <h2 class="section-title">자격증</h2>
-            <div th:if="${resume.reCertificationsPeriod != null and resume.reCertificationsPeriod != ''}" th:with="periods=${resume.reCertificationsPeriod.split(',')}, orgs=${resume.reCertificationsInstitution != null ? resume.reCertificationsInstitution.split(',') : #strings.arraySplit('', ',')}, details=${resume.reCertificationsName != null ? resume.reCertificationsName.split(',') : #strings.arraySplit('', ',')}">
-                <div class="section-row" th:each="i : ${#numbers.sequence(0, #arrays.length(periods) - 1)}">
-                    <span class="date-col" th:text="${periods[i]}"></span>
-                    <span class="org-col" th:text="${i < #arrays.length(orgs) ? orgs[i] : ''}"></span>
-                    <span class="detail-col" th:text="${i < #arrays.length(details) ? details[i] : ''}"></span>
+            <div th:if="${resume.reCertificationsPeriod != null and resume.reCertificationsPeriod != ''}" th:with="periods=${resume.reCertificationsPeriod.split(',')}, orgs=${resume.reCertificationsInstitution != null and resume.reCertificationsInstitution != '' ? resume.reCertificationsInstitution.split(',') : #strings.arraySplit('', ',')}, details=${resume.reCertificationsName != null and resume.reCertificationsName != '' ? resume.reCertificationsName.split(',') : #strings.arraySplit('', ',')}">
+                <div class="section-row" th:each="period, stat : ${periods}">
+                    <span class="date-col" th:text="${period}"></span>
+                    <span class="org-col" th:text="${stat.index < #arrays.length(orgs) ? orgs[stat.index] : ''}"></span>
+                    <span class="detail-col" th:text="${stat.index < #arrays.length(details) ? details[stat.index] : ''}"></span>
                 </div>
             </div>
         </div>
@@ -114,11 +114,11 @@
         <!-- 어학능력 -->
         <div class="resume-section">
             <h2 class="section-title">어학능력</h2>
-            <div th:if="${resume.reLanguagesPeriod != null and resume.reLanguagesPeriod != ''}" th:with="periods=${resume.reLanguagesPeriod.split(',')}, orgs=${resume.reLanguagesLanguage != null ? resume.reLanguagesLanguage.split(',') : #strings.arraySplit('', ',')}, details=${resume.reLanguagesLevel != null ? resume.reLanguagesLevel.split(',') : #strings.arraySplit('', ',')}">
-                <div class="section-row" th:each="i : ${#numbers.sequence(0, #arrays.length(periods) - 1)}">
-                    <span class="date-col" th:text="${periods[i]}"></span>
-                    <span class="org-col" th:text="${i < #arrays.length(orgs) ? orgs[i] : ''}"></span>
-                    <span class="detail-col" th:text="${i < #arrays.length(details) ? details[i] : ''}"></span>
+            <div th:if="${resume.reLanguagesPeriod != null and resume.reLanguagesPeriod != ''}" th:with="periods=${resume.reLanguagesPeriod.split(',')}, orgs=${resume.reLanguagesLanguage != null and resume.reLanguagesLanguage != '' ? resume.reLanguagesLanguage.split(',') : #strings.arraySplit('', ',')}, details=${resume.reLanguagesLevel != null and resume.reLanguagesLevel != '' ? resume.reLanguagesLevel.split(',') : #strings.arraySplit('', ',')}">
+                <div class="section-row" th:each="period, stat : ${periods}">
+                    <span class="date-col" th:text="${period}"></span>
+                    <span class="org-col" th:text="${stat.index < #arrays.length(orgs) ? orgs[stat.index] : ''}"></span>
+                    <span class="detail-col" th:text="${stat.index < #arrays.length(details) ? details[stat.index] : ''}"></span>
                 </div>
             </div>
         </div>
@@ -141,19 +141,19 @@
     <div class="resume-section">
         <h2 class="section-title">프로젝트</h2>
         
-        <div th:if="${resume.reProjectsPeriod != null and resume.reProjectsPeriod != ''}" th:with="periods=${resume.reProjectsPeriod.split(',')}, titles=${resume.reProjectsTitle != null ? resume.reProjectsTitle.split(',') : #strings.arraySplit('', ',')}, links=${resume.reProjectsLink != null ? resume.reProjectsLink.split(',') : #strings.arraySplit('', ',')}, contents=${resume.reProjectsContent != null ? resume.reProjectsContent.split(',') : #strings.arraySplit('', ',')}">
-            <div class="project-item" th:each="i : ${#numbers.sequence(0, #arrays.length(periods) - 1)}">
+        <div th:if="${resume.reProjectsPeriod != null and resume.reProjectsPeriod != ''}" th:with="periods=${resume.reProjectsPeriod.split(',')}, titles=${resume.reProjectsTitle != null and resume.reProjectsTitle != '' ? resume.reProjectsTitle.split(',') : #strings.arraySplit('', ',')}, links=${resume.reProjectsLink != null and resume.reProjectsLink != '' ? resume.reProjectsLink.split(',') : #strings.arraySplit('', ',')}, contents=${resume.reProjectsContent != null and resume.reProjectsContent != '' ? resume.reProjectsContent.split(',') : #strings.arraySplit('', ',')}">
+            <div class="project-item" th:each="period, stat : ${periods}">
                 <div class="project-header">
-                    <span class="project-date" th:text="${periods[i]}"></span>
-                    <span class="project-title" th:text="${i < #arrays.length(titles) ? titles[i] : ''}"></span>
+                    <span class="project-date" th:text="${period}"></span>
+                    <span class="project-title" th:text="${stat.index < #arrays.length(titles) ? titles[stat.index] : ''}"></span>
                 </div>
                 <div class="project-content">
-                    <div class="project-link" th:if="${i < #arrays.length(links) and links[i] != null and links[i] != ''}">
+                    <div class="project-link" th:if="${stat.index < #arrays.length(links) and links[stat.index] != null and links[stat.index] != ''}">
                         <span class="link-label">링크:</span>
-                        <a th:href="${links[i]}" target="_blank" th:text="${links[i]}"></a>
+                        <a th:href="${links[stat.index]}" target="_blank" th:text="${links[stat.index]}"></a>
                     </div>
                     <div class="project-description">
-                        <p th:text="${i < #arrays.length(contents) ? contents[i] : ''}"></p>
+                        <p th:text="${stat.index < #arrays.length(contents) ? contents[stat.index] : ''}"></p>
                     </div>
                 </div>
             </div>

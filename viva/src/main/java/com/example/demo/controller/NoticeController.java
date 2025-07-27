@@ -1,8 +1,10 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.entity.Notice;
+import com.example.demo.model.entity.NoticeComment;
 import com.example.demo.model.entity.Users;
 import com.example.demo.repository.NoticeRepository;
+import com.example.demo.service.NoticeCommentService;
 import com.example.demo.service.NoticeService;
 import com.example.demo.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ public class NoticeController {
 	private final NoticeRepository noticeRepository;
     private final NoticeService noticeService;
     private final UserService userService;
+    private final NoticeCommentService noticeCommentService;
 
     // 관리자 여부 헬퍼
     private boolean isAdmin(Principal principal) {
@@ -38,25 +41,7 @@ public class NoticeController {
         return "notice/noticeList";
     }
 
-	/*
-	 * // 2. 작성 폼
-	 * 
-	 * @GetMapping("/new") public String showNoticeForm(Model model, Principal
-	 * principal) { if (!isAdmin(principal)) { return "error/403"; }
-	 * model.addAttribute("notice", new Notice()); return "notice/form"; }
-	 * 
-	 * // 3. 작성 처리
-	 * 
-	 * @PostMapping("/new") public String createNotice(@ModelAttribute Notice
-	 * notice, Principal principal, RedirectAttributes rttr) { Users user =
-	 * userService.findByUserId(principal.getName()) .orElseThrow(() -> new
-	 * IllegalArgumentException("사용자 정보 없음")); notice.setUser(user);
-	 * noticeService.save(notice);
-	 * 
-	 * rttr.addFlashAttribute("msg", "등록되었습니다!"); return
-	 * "redirect:/notice/noticeList"; }
-	 */
-
+	
     // 공지 글 작성 ㅊㅊ
     @GetMapping("/new")
     public String showNoticeForm(Model model, Principal principal) {
@@ -97,6 +82,11 @@ public class NoticeController {
         noticeService.incrementViewCount(id);
         model.addAttribute("notice", notice);
         model.addAttribute("isAdmin", isAdmin(principal)); // ✅ 추가!
+        
+        // ★ 댓글 리스트 가져오기
+        List<NoticeComment> commentList = noticeCommentService.getCommentsByNoticeId(id);
+        model.addAttribute("commentList", commentList);
+        
         return "notice/noticeDetailPage";
     }
     
@@ -122,6 +112,19 @@ public class NoticeController {
         noticeService.deleteNotice(id);
         return "success";
     }
+    
+    // 일반 게시판에 공지 추천
+    @PostMapping("/like/{id}")
+    @ResponseBody
+    public String likeNotice(@PathVariable("id") Long id) {
+        Notice notice = noticeService.findById(id).orElseThrow();
+        notice.setLikeCount(notice.getLikeCount() == null ? 1 : notice.getLikeCount() + 1);
+        noticeService.save(notice);
+        return "ok";
+    }
+    
+    
+    
     
 //    // 4. 수정 폼
 //    @GetMapping("/edit/{id}")

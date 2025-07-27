@@ -1,47 +1,36 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <title>이력서 목록</title>
-  <link rel="stylesheet" th:href="@{/css/resume.css}">
-</head>
-<body>
-  <h1>나의 이력서 목록</h1>
+<div
+  id="resumeListFragment"
+  th:fragment="resumeListFragment"
+  class="resume-list-container">
 
-  <div>
-    <a href="/resume/write">이력서 작성하기</a>
+  <div class="resume-header">
+    <h2>📄 나의 이력서</h2>
+    <a th:href="@{/resume/write}" class="btn-new">✍ 새 이력서 작성</a>
   </div>
 
-  <table border="1" style="width:100%; margin-top:20px;">
-    <thead>
-      <tr>
-        <th>번호</th>
-        <th>지원분야</th>
-        <th>작성일</th>
-        <th>수정일</th>
-        <th>보기</th>
-        <th>수정</th>
-        <th>삭제</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr th:each="resume : ${resumes}">
-        <td th:text="${resume.reId}">1</td>
-        <td th:text="${resume.rePosition}">지원분야</td>
-        <span th:text="${resume.reCreatedAt}">2025-07-21 10:00</span>
-        <span th:text="${resume.reUpdatedAt}">2025-07-21 10:00</span>
-        <td><a th:href="@{'/resume/view/' + ${resume.reId}}">보기</a></td>
-        <td><a th:href="@{'/resume/edit/' + ${resume.reId}}">수정</a></td>
-        <td>
-          <form th:action="@{'/resume/delete/' + ${resume.reId}}" method="post" th:object="${resume}">
-            <button type="submit" onclick="return confirm('정말 삭제하시겠습니까?')">삭제</button>
-          </form>
-        </td>
-      </tr>
-      <tr th:if="${#lists.isEmpty(resumes)}">
-        <td colspan="7">등록된 이력서가 없습니다.</td>
-      </tr>
-    </tbody>
-  </table>
-</body>
-</html>
+  <div th:each="resume : ${resumes}" class="resume-item">
+    <div class="resume-item-header">
+      <a th:href="@{/resume/view/{id}(id=${resume.reId})}"
+         th:text="${resume.reTitle != null and resume.reTitle != '' ? resume.reTitle : resume.rePosition}"
+         class="resume-title-link">지원분야</a>
+      <div class="actions">
+        <a th:href="@{/resume/view/{id}(id=${resume.reId})}">보기</a>
+        <a th:href="@{/resume/edit/{id}(id=${resume.reId})}">수정</a>
+        <form th:action="@{/resume/delete/{id}(id=${resume.reId})}"
+              method="post"
+              onsubmit="return confirm('정말 삭제하시겠습니까?');">
+          <button type="submit">삭제</button>
+        </form>
+      </div>
+    </div>
+    <div class="resume-date">
+      작성일: <span th:text="${resume.reCreatedAt}"></span>
+      │ 수정일: <span th:text="${resume.reUpdatedAt}">2025-07-21 10:00</span>
+    </div>
+  </div>
+
+  <!-- 비어있을 때 -->
+  <div th:if="${#lists.isEmpty(resumes)}" style="text-align:center; color:#666; padding:40px 0;">
+    등록된 이력서가 없습니다.
+  </div>
+</div>

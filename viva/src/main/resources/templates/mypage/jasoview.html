@@ -121,7 +121,11 @@
       <form th:action="@{/mypage/jaso/feedback/{id}(id=${jaso.id})}" method="post" style="display: inline;">
         <button type="submit" class="btn-primary">🤖 AI 피드백 요청</button> 
       </form>
-      <a th:href="@{/mypage/jaso/list}" class="btn-secondary">← 목록으로</a>
+      <a href="#" 
+   th:onclick="|$('#loadJaso').trigger('click'); return false;|" 
+   class="btn-secondary">
+  ← 목록으로
+</a>
       <a th:href="@{/mypage/jaso/delete/{id}(id=${jaso.id})}"
          onclick="return confirm('정말 삭제하시겠습니까?')"
          class="btn-danger">🗑 삭제</a>
@@ -207,5 +211,34 @@
     });
   });
   </script>
+<script>
+  $(function(){
+    $(document).on('click', '.back-to-jaso', function(e){
+      e.preventDefault();
+
+      // 1) 사이드바 탭 active 상태 토글
+      $('.sidebar-menu a').removeClass('active');
+      $('#loadJaso').addClass('active');
+
+      // 2) 기존 화면 모두 숨기기
+      if (typeof hideAllFragments === 'function') {
+        hideAllFragments();
+      } else {
+        // hideAllFragments 함수가 없으면 직접 숨기기
+        $('#reservationContainer, #editContainer, #activityContainer, #jasoContainer, #paymentListContainer').hide();
+        $('.member-info, .stat-info').hide();
+      }
+
+      // 3) 자소서 리스트 fragment 로드
+      $('#jasoContainer')
+        .show()
+        .load('/mypage/jaso/fragment', function(resp, status, xhr){
+          if (status !== 'success') {
+            alert('자소서 목록 로드 실패: ' + (xhr.statusText || status));
+          }
+        });
+    });
+  });
+</script>
 </body>
 </html>

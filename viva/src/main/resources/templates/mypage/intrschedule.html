@@ -25,11 +25,157 @@
 					th:classappend="${r.resStatus=='pending'?'pending':r.resStatus=='confirmed'?'confirmed':r.resStatus=='cancelled'?'cancelled':''}"
 					th:text="${r.resStatus=='pending'?'결제 전':r.resStatus=='confirmed'?'결제 완료':r.resStatus=='cancelled'?'취소됨':'알 수 없음'}">
 				</span></td>
-				<td><button class="creation">생성</button></td>
+				<td>
+					<button class="creation">생성</button>
+				</td>
 			</tr>
 		</tbody>
 	</table>
+	<!-- 현진 추가 -->
+	<div id="createRoomModal" class="modal" style="display:none;">
+		<div class="modal-content">
+		    <h2>면접 방 생성</h2>
+		    <label for="intrRoomTitle">방 제목:</label> 
+		    <input type="text" id="intrRoomTitle" name="intrRoomTitle" /></label><br>
+		    <label for="roomPw">비밀번호:</label>
+		    <input type="password" id="roomPw" name="roomPw" /></label><br>
+		    <label for="participantCount">최대 참가 인원:</label>
+		    <input type="number" id="participantCount" name="participantCount" min="2" max="6" value="2" /></label><br>
+		    <input type="hidden" id="host_id" name="host_id" th:value=${users.userId}>
+		    <button id="btn-createRoom" class="btn-createRoom">방 생성</button>
+		    <button id="btn-close" class="btn-close">취소</button>
+		</div>
+	</div>
+	<script>
+		$(document).off("click", ".creation").on("click", ".creation", function () {
+		    $("#createRoomModal").show();
+		    $("#intrRoomTitle").val("");
+		    $("#roomPw").val("");
+		    $("#participantCount").val("2");
+		});
+	
+		// 모달 닫기
+		$(document).off("click", ".modal .btn-close").on("click", ".modal .btn-close", function () {
+		    $("#createRoomModal").hide();
+		});
+		
+		// 바깥 영역 클릭시 닫기 (선택)
+		$(document).off("mousedown", ".modal").on("mousedown", ".modal", function (e) {
+		    if ($(e.target).is(".modal")) $("#createRoomModal").fadeOut(100);
+		});
+		
+		// 방 생성 
+		$(document).off("click", "#btn-createRoom").on("click", "#btn-createRoom", function () {
+		    const title = $("#intrRoomTitle").val();
+		    const host_id = $("#host_id").val();
+		    const roomPw = $("#roomPw").val();
+		    const participantCount = $("#participantCount").val();
 
+		    // 간단 유효성
+		    if (!title) return alert("방 제목을 입력하세요.");
+
+		    fetch("/api/meeting/roomcreate", {
+		        method: "POST",
+		        headers: { "Content-Type": "application/json" },
+		        body: JSON.stringify({
+		            intrRoomTitle: title,
+		            roomPw: roomPw,
+		            hostId: host_id,
+		            participantCount: participantCount
+		        })
+		    })
+		    .then(res => {
+		        if (!res.ok) throw new Error("서버 오류");
+		        return res.json();
+		    })
+		    .then(data => {
+		        alert(`방 생성 완료: ${data.intrRoomTitle}`);
+
+		        const roomId = data.intrRoomId;
+		        const hostId = data.hostId;
+
+		        // Janus 세션 생성(아래 함수 참고)
+		        return createRoomsOnJanus(roomId, hostId, participantCount);
+		    })
+		    .then(() => {
+		        // 모두 완료 후
+		        $("#createRoomModal").hide();
+		        $("#contentArea").load("/reservation/intrmypage"); // 목록 새로고침(SPA)
+		    })
+		    .catch(err => {
+		        alert("방 생성 실패: " + err.message);
+		    });
+		});
+
+		var version = 1.2;
+		var server = null;
+		server = "https://janus.jsflux.co.kr/janus";
+		var janus = null;
+		var sfutest = null;
+		var mypvtid = null;
+		var opaqueId = "videoroom-" + Janus.randomString(12);
+		var selectedRoomId = null;
+		var displayName = null;
+		
+		function createRoomsOnJanus(roomId, hostId, participantCount) {
+			return new Promise((resolve, reject) => {
+				Janus.init({
+		            debug: "all",
+		            callback: function () {
+		                janus = new Janus({
+		                    server: server, // Janus 서버 주소
+		                    success: function () {
+		                        janus.attach({
+		                        	// 비디오룸 플러그인 attach
+		                            plugin: "janus.plugin.videoroom",
+		                            success: function (videohandle) {
+		                                videohandle.send({
+		                                    message: {
+		                                        request: "create",
+		                                        room: roomId,
+		                                        description: `Room for host ${hostId}`,
+		                                        publishers: participantCount,
+		                                        data: true
+		                                    }
+		                                });
+		                                
+		                                videohandle.onmessage = function (msg, jsep) {
+		                                	console.log("Janus server:", server);
+		                                	console.log("Janus onmessage 수신:", msg); // 모든 메시지 찍기
+		                                    if (msg["videoroom"] === "created") {
+		                                        console.log("✅ Janus room 생성됨!", msg);
+		                                        // 생성 끝나면 세션 닫기!
+		                                        janus.destroy();
+		                                        resolve();
+		                                    } else if (msg["error"]) {
+		                                        janus.destroy();
+		                                        reject(new Error("Janus 방 생성 실패: " + msg["error"]));
+		                                    }
+		                                };
+		                                
+		                                // 실제 생성 결과를 받으려면 onmessage 핸들 추가도 가능
+// 		                                alert("videoroom 생성 성공");
+// 		                                resolve();
+// 			                            console.log("📹 Video room created");
+			        	            },
+			        	            error: function (err) {
+			        	              console.error("Video plugin attach error", err);
+			        	              janus.destroy(); reject(err);
+			        	            }
+		        	           });
+		        	        },
+		        	        error: function (err) {
+		        	          console.error("Janus session error", err);
+		        	        },
+		        	        
+		      	      });
+		      	    }
+		      	  });
+			});
+		}
+		
+		
+	</script>
 
 	<!-- ✅ 2. 비활성화된 날짜/시간 -->
 	<h2>비활성화한 시간</h2>
